@@ -1,0 +1,32 @@
+-- Promoter Schema Install File
+-- Last Update:
+-- See documentation at [...]
+
+CREATE TABLE IF NOT EXISTS /*_*/pr_campaigns (
+  cmp_id int NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  cmp_name int NOT NULL,
+  page_id int unsigned NOT NULL,
+  cmp_enabled tinyint(1) NOT NULL DEFAULT '0',
+  cmp_archived tinyint(1) NOT NULL DEFAULT '0',
+  cmp_add_general_ads tinyint(1) NOT NULL DEFAULT '0'
+) /*$wgDBTableOptions*/;
+
+
+CREATE TABLE IF NOT EXISTS /*_*/pr_ads (
+	ad_id int NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	ad_name varchar(255),
+  ad_title varchar(255) NOT NULL,
+  ad_text text NOT NULL,
+  ad_mainlink varchar(255)
+) /*$wgDBTableOptions*/;
+
+
+-- Cross-reference table between campaigns and ads
+CREATE TABLE IF NOT EXISTS /*_*/pr_adlinks (
+	adl_id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  -- Ad to attach to a campaign... (Foreign Key to pr_ads).
+  ad_id int(11) NOT NULL,
+  -- Campaign the ad will belong to (Foreign Key to pr_campaigns).
+  cmp_id int(11) NOT NULL,
+	adl_weight int(11) NOT NULL
+) /*$wgDBTableOptions*/;
