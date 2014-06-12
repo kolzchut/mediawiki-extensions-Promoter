@@ -1,6 +1,6 @@
 <?php
 
-class BannerChooser {
+class AdChooser {
 	const SLOTS_KEY = 'slots';
 	const ALLOCATION_KEY = 'allocation';
 	const RAND_MAX = 30;
@@ -8,11 +8,11 @@ class BannerChooser {
 	protected $allocContext;
 
 	protected $campaigns;
-	protected $banners;
+	protected $ads;
 
 	/**
 	 * @param array $campaigns structs of the type returned by getHistoricalCampaigns
-	 * @param AllocationContext $allocContext used for filtering campaigns and banners
+	 * @param AllocationContext $allocContext used for filtering campaigns and ads
 	 */
 	function __construct( AllocationContext $allocContext, $campaigns = null ) {
 		$this->allocContext = $allocContext;
@@ -20,11 +20,11 @@ class BannerChooser {
 		if ( $campaigns !== null ) {
 			$this->campaigns = $campaigns;
 
-			$this->banners = array();
+			$this->ads = array();
 			$this->filterCampaigns();
 			foreach ( $this->campaigns as $campaign ) {
-				foreach ( $campaign['banners'] as $name => $banner ) {
-					$this->banners[] = $banner;
+				foreach ( $campaign['ads'] as $name => $ad ) {
+					$this->ads[] = $ad;
 				}
 			}
 		} else {
@@ -33,26 +33,26 @@ class BannerChooser {
 				$allocContext->getLanguage(),
 				$allocContext->getCountry()
 			);
-			$this->banners = Banner::getCampaignBanners( $this->campaigns );
+			$this->ads = Ad::getCampaignAds( $this->campaigns );
 		}
-		$this->filterBanners();
+		$this->filterAds();
 		$this->allocate();
 	}
 
 	/**
 	 * @param $rand [1-RAND_MAX]
 	 */
-	function chooseBanner( $slot ) {
+	function chooseAds( $slot ) {
 		// Convert slot to a float, [0-1]
 		$slot = intval( $slot );
 		if ( $slot < 1 || $slot > self::RAND_MAX ) {
-			wfDebugLog( 'CentralNotice', "Illegal banner slot: {$slot}" );
+			wfDebugLog( 'Promoter', "Illegal ad slot: {$slot}" );
 			$slot = rand( 1, self::RAND_MAX );
 		}
 
 		// Choose a banner
 		$counter = 0;
-		foreach ( $this->banners as $banner ) {
+		foreach ( $this->ads as $banner ) {
 			$counter += $banner[ self::SLOTS_KEY ];
 			if ( $slot <= $counter ) {
 				return $banner;
@@ -84,8 +84,8 @@ class BannerChooser {
 	}
 
 	/**
-	 * From the selected group of banners we wish to now filter only for those that
-	 * are relevant to the user. The banners choose if they display to anon/logged
+	 * From the selected group of ads we wish to now filter only for those that
+	 * are relevant to the user. The ads choose if they display to anon/logged
 	 * out, what device, and what bucket. They must also take into account their
 	 * campaigns priority level.
 	 *
@@ -95,7 +95,7 @@ class BannerChooser {
 	 * Then we filter for campaign dependent variables -- primarily the priority
 	 * followed by the banner bucket.
 	 */
-	protected function filterBanners() {
+	protected function filterAds() {
 		// Filter on Logged
 		if ( $this->allocContext->getAnonymous() !== null ) {
 			$display_column = ( $this->allocContext->getAnonymous() ? 'display_anon' : 'display_account' );
@@ -109,8 +109,8 @@ class BannerChooser {
 
 		// Filter for the provided bucket.
 		$bucket = $this->allocContext->getBucket();
-		$this->banners = array_filter(
-			$this->banners,
+		$this->ads = array_filter(
+			$this->ads,
 			function ( $banner ) use ( $bucket ) {
 				global $wgNoticeNumberOfBuckets;
 
@@ -128,12 +128,12 @@ class BannerChooser {
 		);
 
 		// Reset the keys
-		$this->banners = array_values( $this->banners );
+		$this->ads = array_values( $this->ads );
 	}
 
 	protected function filterBannersOnColumn( $key, $value ) {
-		$this->banners = array_filter(
-			$this->banners,
+		$this->ads = array_filter(
+			$this->ads,
 			function( $banner ) use ( $key, $value ) {
 				return ( $banner[$key] === $value );
 			}
@@ -141,18 +141,18 @@ class BannerChooser {
 	}
 
 	/**
-	 * Calculate allocation proportions and store them in the banners.
+	 * Calculate allocation proportions and store them in the ads.
 	 */
 	protected function allocate() {
-		// Normalize banners to a proportion of the total campaign weight.
+		// Normalize ads to a proportion of the total campaign weight.
 		$campaignTotalWeights = array();
-		foreach ( $this->banners as $banner ) {
+		foreach ( $this->ads as $banner ) {
 			if ( empty( $campaignTotalWeights[$banner['campaign']] ) ) {
 				$campaignTotalWeights[$banner['campaign']] = 0;
 			}
 			$campaignTotalWeights[$banner['campaign']] += $banner['weight'];
 		}
-		foreach ( $this->banners as &$banner ) {
+		foreach ( $this->ads as &$banner ) {
 			// Adjust the maximum allocation for the banner according to
 			// campaign throttle settings.  The max_allocation would be
 			// this banner's allocation if only one campaign were present.
@@ -160,11 +160,11 @@ class BannerChooser {
 				* ( $banner['campaign_throttle'] / 100.0 );
 		}
 
-		// Collect banners by priority level, and determine total desired
+		// Collect ads by priority level, and determine total desired
 		// allocation for each level.
 		$priorityTotalAllocations = array();
 		$priorityBanners = array();
-		foreach ( $this->banners as &$banner ) {
+		foreach ( $this->ads as &$banner ) {
 			$priorityBanners[$banner['campaign_z_index']][] = &$banner;
 
 			if ( empty( $priorityTotalAllocations[$banner['campaign_z_index']] ) ) {
@@ -179,7 +179,7 @@ class BannerChooser {
 		krsort( $priorityBanners );
 		foreach ( $priorityBanners as $z_index => $banners ) {
 			if ( $remainingAllocation <= 0.01 ) {
-				// Don't show banners at lower priority levels if we've used up
+				// Don't show ads at lower priority levels if we've used up
 				// the full 100% already.
 				foreach ( $banners as &$banner ) {
 					$banner[self::ALLOCATION_KEY] = 0;
@@ -209,18 +209,18 @@ class BannerChooser {
 	 * Adjust the real form to reflect final slot numbers.
 	 */
 	function quantizeAllocationToSlots() {
-		// Sort the banners by weight, smallest to largest.  This helps
+		// Sort the ads by weight, smallest to largest.  This helps
 		// prevent allocating zero slots to a banner, by rounding in
-		// favor of the banners with smallest allocations.
+		// favor of the ads with smallest allocations.
 		$alloc_key = self::ALLOCATION_KEY;
-		usort( $this->banners, function( $a, $b ) use ( $alloc_key ) {
+		usort( $this->ads, function( $a, $b ) use ( $alloc_key ) {
 				return ( $a[$alloc_key] >= $b[$alloc_key] ) ? 1 : -1;
 			} );
 
 		// First pass: allocate the minimum number of slots to each banner,
 		// giving at least one slot per banner up to RAND_MAX slots.
 		$sum = 0;
-		foreach ( $this->banners as &$banner ) {
+		foreach ( $this->ads as &$banner ) {
 			$slots = intval( max( floor( $banner[self::ALLOCATION_KEY] * self::RAND_MAX ), 1 ) );
 
 			// Don't give any slots if the banner is hidden due to e.g. priority level
@@ -239,7 +239,7 @@ class BannerChooser {
 
 		// Second pass: allocate each remaining slot one at a time to each
 		// banner if they are underallocated
-		foreach ( $this->banners as &$banner ) {
+		foreach ( $this->ads as &$banner ) {
 			if ( $sum >= self::RAND_MAX ) {
 				break;
 			}
@@ -250,7 +250,7 @@ class BannerChooser {
 		}
 
 		// Refresh allocation levels according to quantization
-		foreach ( $this->banners as &$banner ) {
+		foreach ( $this->ads as &$banner ) {
 			$banner[self::ALLOCATION_KEY] = $banner[self::SLOTS_KEY] / self::RAND_MAX;
 		}
 	}
@@ -263,9 +263,9 @@ class BannerChooser {
 	}
 
 	/**
-	 * @return array of banners after filtering on criteria
+	 * @return array of ads after filtering on criteria
 	 */
-	function getBanners() {
-		return $this->banners;
+	function getAds() {
+		return $this->ads;
 	}
 }

@@ -1,8 +1,8 @@
 <?php
 
-class BannerMessage {
+class AdMessage {
 	function __construct( $banner_name, $name ) {
-		$this->banner_name = $banner_name;
+		$this->ad_name = $banner_name;
 		$this->name = $name;
 	}
 
@@ -14,7 +14,7 @@ class BannerMessage {
 	 * Obtains the key of the message as stored in the database. This varies depending on namespace
 	 *  - in the MediaWiki namespace messages are Centralnotice-{banner name}-{message name}/{lang}
 	 *  -- except for the content language which is stored without the /{lang} extension
-	 *  - in the CN Banner namespace messages are {banner name}-{message name}/{lang}
+	 *  - in the CN Ad namespace messages are {banner name}-{message name}/{lang}
 	 *
 	 * @param string|null $lang      Language code
 	 * @param int         $namespace Namespace to get key for
@@ -27,12 +27,12 @@ class BannerMessage {
 
 		if ( $namespace === NS_MEDIAWIKI ) {
 			return ( $lang === null or $lang === $wgLanguageCode ) ?
-				"Centralnotice-{$this->banner_name}-{$this->name}" :
-				"Centralnotice-{$this->banner_name}-{$this->name}/{$lang}";
-		} elseif ( $namespace === NS_CN_BANNER ) {
-			return "{$this->banner_name}-{$this->name}/{$lang}";
+				"Promoter-{$this->ad_name}-{$this->name}" :
+				"Promoter-{$this->ad_name}-{$this->name}/{$lang}";
+		} elseif ( $namespace === NS_PR_AD ) {
+			return "{$this->ad_name}-{$this->name}/{$lang}";
 		} else {
-			throw new MWException( "Namespace '$namespace' not known for having CentralNotice messages." );
+			throw new MWException( "Namespace '$namespace' not known for having Promoter messages." );
 		}
 	}
 
@@ -107,7 +107,7 @@ class BannerMessage {
 		// If we're using translate : group review; create and protect the english page
 		if ( $wgNoticeUseTranslateExtension
 			&& ( $lang === $wgLanguageCode )
-			&& BannerMessageGroup::isUsingGroupReview()
+			&& AdMessageGroup::isUsingGroupReview()
 		) {
 			$this->protectMessageInCnNamespaces(
 				$savePage( $this->getTitle( $lang, NS_CN_BANNER ), $translation ),
@@ -137,7 +137,7 @@ class BannerMessage {
 				array( 'edit' => $wgNoticeProtectGroup, 'move' => $wgNoticeProtectGroup ),
 				array( 'edit' => 'infinity', 'move' => 'infinity' ),
 				$var,
-				'Auto protected by CentralNotice -- Only edit via Special:CentralNotice.',
+				'Auto protected by Promoter -- Only edit via Special:Promoter.',
 				$user
 			);
 		}

@@ -1,6 +1,6 @@
 <?php
 
-class PromoterPager extends TemplatePager {
+class PromoterPager extends AdPager {
 	var $viewPage, $special;
 	var $editable;
 	var $filter;
@@ -10,12 +10,12 @@ class PromoterPager extends TemplatePager {
 	}
 
 	/**
-	 * Pull banners from the database
+	 * Pull ads from the database
 	 */
 	function getQueryInfo() {
 		$dbr = PRDatabase::getDb();
 
-		// First we must construct the filter before we pull banners
+		// First we must construct the filter before we pull ads
 		// When the filter comes in it is space delimited, so break that...
 		$likeArray = preg_split( '/\s/', $this->filter );
 
@@ -33,53 +33,53 @@ class PromoterPager extends TemplatePager {
 		}
 
 		// Get the current campaign and filter on that as well if required
-		$notice = $this->mRequest->getVal( 'notice' );
-		$noticeId = Campaign::getNoticeId( $notice );
+		$campaign = $this->mRequest->getVal( 'campaign' );
+		$campaignId = Campaign::getCampaignId( $campaign );
 
-		if ( $noticeId ) {
-			// Return all the banners not already assigned to the current campaign
+		if ( $campaignId ) {
+			// Return all the ads not already assigned to the current campaign
 			return array(
 				'tables' => array(
-					'assignments' => 'cn_assignments',
-					'templates' => 'cn_templates',
+					'adlinks' => 'pr_adlinks',
+					'ads' => 'pr_ads',
 				),
 
-				'fields' => array( 'templates.tmp_name', 'templates.tmp_id' ),
+				'fields' => array( 'ads.ad_name', 'ads.ad_id' ),
 
 				'conds' => array(
-					'assignments.tmp_id IS NULL',
-					'tmp_name' . $dbr->buildLike( $likeArray )
+					'adlinks.ad_id IS NULL',
+					'ad_name' . $dbr->buildLike( $likeArray )
 				),
 
 				'join_conds' => array(
-					'assignments' => array(
+					'adlinks' => array(
 						'LEFT JOIN',
-						"assignments.tmp_id = templates.tmp_id " .
-							"AND assignments.not_id = $noticeId"
+						"adlinks.ad_id = ads.ad_id " .
+							"AND adlinks.cmp_id = $campaignId"
 					)
 				)
 			);
 		} else {
-			// Return all the banners in the database
+			// Return all the ads in the database
 			return array(
-				'tables' => array( 'templates' => 'cn_templates'),
-				'fields' => array( 'templates.tmp_name', 'templates.tmp_id' ),
-				'conds'  => array( 'templates.tmp_name' . $dbr->buildLike( $likeArray ) ),
+				'tables' => array( 'ads' => 'pr_ads'),
+				'fields' => array( 'ads.ad_name', 'ads.ad_id' ),
+				'conds'  => array( 'ads.ad_name' . $dbr->buildLike( $likeArray ) ),
 			);
 		}
 	}
 
 	/**
-	 * Generate the content of each table row (1 row = 1 banner)
+	 * Generate the content of each table row (1 row = 1 ad)
 	 */
 	function formatRow( $row ) {
-		// Begin banner row
+		// Begin ad row
 		$htmlOut = Xml::openElement( 'tr' );
 
 		if ( $this->editable ) {
 			// Add box
 			$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
-				Xml::check( 'addTemplates[]', '', array( 'value' => $row->tmp_name ) )
+				Xml::check( 'addTemplates[]', '', array( 'value' => $row->ad_name ) )
 			);
 			// Weight select
 			$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top', 'class' => 'cn-weight' ),
@@ -95,8 +95,8 @@ class PromoterPager extends TemplatePager {
 		}
 
 		// Link and Preview
-		$banner = Banner::fromName( $row->tmp_name );
-		$bannerRenderer = new BannerRenderer( $this->getContext(), $banner );
+		$ad = Ad::fromName( $row->ad_name );
+		$bannerRenderer = new AdRenderer( $this->getContext(), $ad );
 
 		$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
 			$bannerRenderer->linkTo() . "<br>" . $bannerRenderer->previewFieldSet()

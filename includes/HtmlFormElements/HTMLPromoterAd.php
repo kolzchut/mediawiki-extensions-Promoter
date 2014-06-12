@@ -1,7 +1,7 @@
 <?php
 /**
- * This file is part of the CentralNotice Extension to MediaWiki
- * https://www.mediawiki.org/wiki/Extension:CentralNotice
+ * This file is part of the Promoter Extension to MediaWiki
+ * https://www.mediawiki.org/wiki/Extension:Promoter
  *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or modify
@@ -23,59 +23,59 @@
  */
 
 /**
- * Produces a banner preview DIV that can be embedded in an HTMLForm.
+ * Produces a ad preview DIV that can be embedded in an HTMLForm.
  *
  * Expects the following options:
- * - 'language'  - ISO language code to render banner in
- * - 'banner'    - Canonical name of banner
+ * - 'language'  - ISO language code to render ad in
+ * - 'ad'    - Canonical name of ad
  * - 'withlabel' - Presence of this attribute causes a label to be shown
  */
-class HTMLCentralNoticeBanner extends HTMLInfoField {
-	/** Empty - no validation can be done on a banner */
+class HTMLPromoterAd extends HTMLInfoField {
+	/** Empty - no validation can be done on a ad */
 	function validate( $value, $alldata ) { return true; }
 
-	/** Get a preview of the banner */
+	/** Get a preview of the ad */
 	public function getInputHTML( $value ) {
 		global $wgOut,
-			$wgNoticeBannerPreview;
+			$wgPromoterAdPreview;
 
-		$bannerName = $this->mParams['banner'];
+		$adName = $this->mParams['ad'];
 		if ( array_key_exists( 'language', $this->mParams ) ) {
 			$language = $this->mParams['language'];
 		} else {
 			$language = $wgOut->getContext()->getLanguage()->getCode();
 		}
 
-		$previewUrl = $wgNoticeBannerPreview . "/{$bannerName}/{$bannerName}_{$language}.png";
+		$previewUrl = $wgPromoterAdPreview . "/{$adName}/{$adName}_{$language}.png";
 		$preview = Html::Element(
 			'img',
 			array(
 				'src' => $previewUrl,
-				'alt' => $bannerName,
+				'alt' => $adName,
 			)
 		);
 
 		return Xml::tags(
 			'div',
 			array(
-				 'id' => Sanitizer::escapeId( "cn-banner-preview-$bannerName" ),
-				 'class' => 'cn-banner-preview-div',
+				 'id' => Sanitizer::escapeId( "pr-ad-preview-$adName" ),
+				 'class' => 'pr-ad-preview-div',
 			),
 			$preview
 		);
 	}
 
 	public function getTableRow( $value ) {
-		throw new MWException( "getTableRow() is not implemented for HTMLCentralNoticeBanner" );
+		throw new MWException( "getTableRow() is not implemented for HTMLPromoterAd" );
 	}
 
 	public function getRaw( $value ) {
-		throw new MWException( "getRaw() is not implemented for HTMLCentralNoticeBanner" );
+		throw new MWException( "getRaw() is not implemented for HTMLPromoterAd" );
 	}
 
 	public function getDiv( $value ) {
 		global $wgOut,
-			$wgNoticeBannerPreview;
+			$wgPromoterAdPreview;
 
 		if ( array_key_exists( 'language', $this->mParams ) ) {
 			$language = $this->mParams['language'];
@@ -86,37 +86,37 @@ class HTMLCentralNoticeBanner extends HTMLInfoField {
 		$html = Xml::openElement(
 			'div',
 			array(
-				 'id' =>  Sanitizer::escapeId( "cn-banner-list-element-{$this->mParams['banner']}" ),
-				 'class' => "cn-banner-list-element",
+				 'id' =>  Sanitizer::escapeId( "pr-ad-list-element-{$this->mParams['ad']}" ),
+				 'class' => "pr-ad-list-element",
 			)
 		);
 
-		// Make the label; this consists of a text link to the banner editor, and a series of status icons
+		// Make the label; this consists of a text link to the ad editor, and a series of status icons
 		if ( array_key_exists( 'withlabel', $this->mParams ) ) {
-			$bannerName =  $this->mParams['banner'];
-			$html .= Xml::openElement( 'div', array( 'class' => 'cn-banner-list-element-label' ) );
+			$adName =  $this->mParams['ad'];
+			$html .= Xml::openElement( 'div', array( 'class' => 'pr-ad-list-element-label' ) );
 			$html .= Linker::link(
-				SpecialPage::getTitleFor( 'CentralNoticeBanners', "edit/$bannerName" ),
-				htmlspecialchars( $bannerName ),
-				array( 'class' => 'cn-banner-list-element-label-text' )
+				SpecialPage::getTitleFor( 'PromoterAds', "edit/$adName" ),
+				htmlspecialchars( $adName ),
+				array( 'class' => 'pr-ad-list-element-label-text' )
 			);
 			$html .= ' (' . Linker::link(
 				SpecialPage::getTitleFor( 'Random' ),
-				$this->msg( 'centralnotice-live-preview' ),
-				array( 'class' => 'cn-banner-list-element-label-text' ),
+				$this->msg( 'promoter-live-preview' ),
+				array( 'class' => 'pr-ad-list-element-label-text' ),
 				array(
-					 'banner' => $bannerName,
+					 'ad' => $adName,
 					 'uselang' => $language,
 					 'force' => '1'
 				)
 			) . ')';
 			// TODO: Output status icons
-			$html .= Xml::tags( 'div', array( 'class' => 'cn-banner-list-element-label-icons' ), '' );
+			$html .= Xml::tags( 'div', array( 'class' => 'pr-ad-list-element-label-icons' ), '' );
 			$html .= Xml::closeElement( 'div' );
 		}
 
-		// Add the banner preview
-		if ( $wgNoticeBannerPreview ) {
+		// Add the ad preview
+		if ( $wgPromoterAdPreview ) {
 			$html .= $this->getInputHTML( null );
 		}
 

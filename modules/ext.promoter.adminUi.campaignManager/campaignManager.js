@@ -1,8 +1,8 @@
 /**
- * Backing JS for Special:CentralNotice, the campaign list view form.
+ * Backing JS for Special:Promoter, the campaign list view form.
  *
- * This file is part of the CentralNotice Extension to MediaWiki
- * https://www.mediawiki.org/wiki/Extension:CentralNotice
+ * This file is part of the Promoter Extension to MediaWiki
+ * https://www.mediawiki.org/wiki/Extension:Promoter
  *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or modify
@@ -25,43 +25,43 @@
 ( function ( $ ) {
 	var RAND_MAX = 30,
 		step_size = 100 / RAND_MAX;
-	$( '#centralnotice-throttle-amount' ).slider( {
+	$( '#promoter-throttle-amount' ).slider( {
 		range: "min",
 		min: 0,
 		max: 100,
-		value: $( "#centralnotice-throttle-cur" ).val(),
+		value: $( "#promoter-throttle-cur" ).val(),
 		step: step_size,
 		slide: function( event, element ) {
 			var val = Number( element.value ),
 				rounded = Math.round( val * 10 ) / 10;
-			$( "#centralnotice-throttle-echo" ).html( String( rounded ) + "%" );
-			$( "#centralnotice-throttle-cur" ).val( val );
+			$( "#promoter-throttle-echo" ).html( String( rounded ) + "%" );
+			$( "#promoter-throttle-cur" ).val( val );
 		}
 	} );
 
 	function updateThrottle() {
 		if ( $( '#throttle-enabled' ).prop( 'checked' ) ) {
-			$( '.cn-throttle-amount' ).show();
+			$( '.pr-throttle-amount' ).show();
 		} else {
-			$( '.cn-throttle-amount' ).hide();
+			$( '.pr-throttle-amount' ).hide();
 		}
 	}
 	$( '#throttle-enabled' ).click( updateThrottle );
 
 	function updateWeightColumn() {
 		if ( $( '#balanced' ).prop( 'checked' ) ) {
-			$( '.cn-weight' ).hide();
+			$( '.pr-weight' ).hide();
 		} else {
-			$( '.cn-weight' ).show();
+			$( '.pr-weight' ).show();
 		}
 	}
 	$( '#balanced' ).click( updateWeightColumn );
 
-	$( '#centralnotice-showarchived' ).click( function() {
+	$( '#promoter-showarchived' ).click( function() {
 		if ( $( this ).prop( 'checked' ) === true ) {
-			$( '.cn-archived-item' ).show();
+			$( '.pr-archived-item' ).show();
 		} else {
-			$( '.cn-archived-item' ).hide();
+			$( '.pr-archived-item' ).hide();
 		}
 	});
 

@@ -43,7 +43,7 @@
 			}
 		},
 		_create: function() {
-			var countStr = mw.message('centralnotice-items-selected', 0),
+			var countStr = mw.message('promoter-items-selected', 0),
 				that;
 
 			this.element.hide();
@@ -53,8 +53,8 @@
 			this.count = 0; // number of currently selected options
 			this.selectedContainer = $('<div class="selected"></div>').appendTo(this.container);
 			this.availableContainer = $('<div class="available"></div>')[this.options.availableFirst?'prependTo': 'appendTo'](this.container);
-			this.selectedActions = $('<div class="actions ui-widget-header ui-helper-clearfix"><span class="count">'+countStr+'</span><a href="#" class="remove-all">'+mw.message('centralnotice-remove-all')+'</a></div>').appendTo(this.selectedContainer);
-			this.availableActions = $('<div class="actions ui-widget-header ui-helper-clearfix"><input type="text" class="search empty ui-widget-content ui-corner-all"/><a href="#" class="add-all">'+mw.message('centralnotice-select-all')+'</a></div>').appendTo(this.availableContainer);
+			this.selectedActions = $('<div class="actions ui-widget-header ui-helper-clearfix"><span class="count">'+countStr+'</span><a href="#" class="remove-all">'+mw.message('promoter-remove-all')+'</a></div>').appendTo(this.selectedContainer);
+			this.availableActions = $('<div class="actions ui-widget-header ui-helper-clearfix"><input type="text" class="search empty ui-widget-content ui-corner-all"/><a href="#" class="add-all">'+mw.message('promoter-select-all')+'</a></div>').appendTo(this.availableContainer);
 			this.selectedList = $('<ul class="selected connected-list"><li class="ui-helper-hidden-accessible"></li></ul>').bind('selectstart', function(){return false;}).appendTo(this.selectedContainer);
 			this.availableList = $('<ul class="available connected-list"><li class="ui-helper-hidden-accessible"></li></ul>').bind('selectstart', function(){return false;}).appendTo(this.availableContainer);
 
@@ -163,7 +163,7 @@
 		},
 		_updateCount: function() {
 			this.element.trigger('change');
-			this.selectedContainer.find('span.count').text(mw.message('centralnotice-items-selected', this.count));
+			this.selectedContainer.find('span.count').text(mw.message('promoter-items-selected', this.count));
 		},
 		_getOptionNode: function(option) {
 			option = $(option);

@@ -27,10 +27,39 @@ $dir = __DIR__;
 
 /* Configuration */
 
+/** @var $wgPromoterTabifyPages array Declare all pages that should be tabified as PR pages */
+$wgPromoterTabifyPages = array(
+	/* Left side 'namespace' tabs */
+	'Promoter' => array(
+		'type' => 'views',
+		'message' => 'promoter-campaigns',
+	),
+	'PromoterAds' => array(
+		'type' => 'views',
+		'message' => 'promoter-ads',
+	),
+
+	/* Right side 'view' tabs */
+	/*
+	'BannerAllocation' => array(
+		'type' => 'views',
+		'message' => 'centralnotice-allocation',
+	),
+	'GlobalAllocation' => array(
+		'type' => 'views',
+		'message' => 'centralnotice-global-allocation',
+	),
+	'CentralNoticeLogs' => array(
+		'type' => 'views',
+		'message' => 'centralnotice-logs',
+	),
+	*/
+);
+
 
 /* Setup */
 require_once $dir . '/Promoter.hooks.php';
-//require_once $dir . '/Promoter.modules.php';
+require_once $dir . '/Promoter.modules.php';
 
 // Register message files
 $wgMessagesDirs['Promoter'] = __DIR__ . '/i18n';

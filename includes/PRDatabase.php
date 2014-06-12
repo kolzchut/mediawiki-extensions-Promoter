@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Utility functions for CentralNotice that don't belong elsewhere
+ * Utility functions for Promoter that don't belong elsewhere
  */
 class PRDatabase {
 	/**

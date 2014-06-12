@@ -1,6 +1,6 @@
 <?php
 
-class CNBannerPager extends ReverseChronologicalPager {
+class PRAdPager extends ReverseChronologicalPager {
 
 	/** @var bool True if the form is to be created with editable elements */
 	protected $editable = false;
@@ -22,14 +22,14 @@ class CNBannerPager extends ReverseChronologicalPager {
 	 * @param string         $formSection
 	 * @param array          $prependPrototypes
 	 * @param array          $appendPrototypes
-	 * @param string         $bannerFilter
+	 * @param string         $adFilter
 	 * @param bool           $editable
 	 */
 	function __construct( $hostTitle, $formSection = null, $prependPrototypes = array(),
-		$appendPrototypes = array(), $bannerFilter = '', $editable = false
+		$appendPrototypes = array(), $adFilter = '', $editable = false
 	) {
 		$this->editable = $editable;
-		$this->filter = $bannerFilter;
+		$this->filter = $adFilter;
 		parent::__construct();
 
 		$this->prependPrototypes = $prependPrototypes;
@@ -67,7 +67,7 @@ class CNBannerPager extends ReverseChronologicalPager {
 	}
 
 	/**
-	 * Set the database query to retrieve all the banners in the database
+	 * Set the database query to retrieve all the ads in the database
 	 *
 	 * @return array of query settings
 	 */
@@ -89,19 +89,19 @@ class CNBannerPager extends ReverseChronologicalPager {
 		}
 
 		return array(
-			'tables' => array( 'templates' => 'cn_templates'),
-			'fields' => array( 'templates.tmp_name', 'templates.tmp_id' ),
-			'conds'  => array( 'templates.tmp_name' . $this->mDb->buildLike( $likeArray ) ),
+			'tables' => array( 'ads' => 'pr_ads'),
+			'fields' => array( 'ads.ad_name', 'ads.ad_id' ),
+			'conds'  => array( 'ads.ad_name' . $this->mDb->buildLike( $likeArray ) ),
 		);
 	}
 
 	/**
-	 * Sort the banner list by tmp_id (generally equals reverse chronological)
+	 * Sort the banner list by ad_id (generally equals reverse chronological)
 	 *
 	 * @return string
 	 */
 	function getIndexField() {
-		return 'templates.tmp_id';
+		return 'ads.ad_id';
 	}
 
 	/**
@@ -114,32 +114,32 @@ class CNBannerPager extends ReverseChronologicalPager {
 	function formatRow( $row ) {
 		$retval = array();
 
-		$bannerId = $row->tmp_id;
-		$bannerName = $row->tmp_name;
+		$adId = $row->ad_id;
+		$adName = $row->ad_name;
 
 		// Add the prepend prototypes
 		foreach( $this->prependPrototypes as $prototypeName => $prototypeValues ) {
-			$retval[ "{$prototypeName}-{$bannerName}" ] = $prototypeValues;
+			$retval[ "{$prototypeName}-{$adName}" ] = $prototypeValues;
 			if ( array_key_exists( 'id', $prototypeValues ) ) {
-				$retval[ "{$prototypeName}-{$bannerId}" ][ 'id' ] .= "-$bannerName";
+				$retval[ "{$prototypeName}-{$adId}" ][ 'id' ] .= "-$adName";
 			}
 		}
 
 		// Now do the banner
-		$retval["cn-banner-list-element-$bannerId"] = array(
-			'class' => 'HTMLCentralNoticeBanner',
-			'banner' => $bannerName,
+		$retval["pr-ad-list-element-$adId"] = array(
+			'class' => 'HTMLPromoterAd',
+			'ad' => $adName,
 			'withlabel' => true,
 		);
 		if ( $this->formSection ) {
-			$retval["cn-banner-list-element-$bannerId"]['section'] = $this->formSection;
+			$retval["pr-ad-list-element-$adId"]['section'] = $this->formSection;
 		}
 
 		// Append prototypes
 		foreach( $this->appendPrototypes as $prototypeName => $prototypeValues ) {
-			$retval[ $prototypeName . "-$bannerId" ] = $prototypeValues;
+			$retval[ $prototypeName . "-$adId" ] = $prototypeValues;
 			if ( array_key_exists( 'id', $prototypeValues ) ) {
-				$retval[ $prototypeName . "-$bannerId" ][ 'id' ] .= "-$bannerId";
+				$retval[ $prototypeName . "-$adId" ][ 'id' ] .= "-$adId";
 			}
 		}
 
@@ -206,7 +206,7 @@ class HTMLBannerPagerNavigation extends HTMLFormField {
 	public function getDiv( $value ) {
 		$html = Xml::openElement(
 			'div',
-			array( 'class' => "cn-banner-list-pager-nav", )
+			array( 'class' => "pr-ad-list-pager-nav", )
 		);
 		$html .= $this->getInputHTML( $value );
 		$html .= Xml::closeElement( 'div' );

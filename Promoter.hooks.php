@@ -2,8 +2,8 @@
 /**
  * General hook definitions
  *
- * This file is part of the CentralNotice Extension to MediaWiki
- * https://www.mediawiki.org/wiki/Extension:CentralNotice
+ * This file is part of the Promoter Extension to MediaWiki
+ * https://www.mediawiki.org/wiki/Extension:Promoter
  *
  * @file
  * @ingroup Extensions
@@ -29,6 +29,7 @@ global $wgExtensionFunctions, $wgHooks;
 
 $wgExtensionFunctions[] = 'efWikiRightsPromoterSetup';
 $wgHooks[ 'LoadExtensionSchemaUpdates' ][ ] = 'PRDatabasePatcher::applyUpdates';
+$wgHooks[ 'SkinTemplateNavigation::SpecialPage' ][ ] = array( 'Promoter::addNavigationTabs' );
 
 /**
  * Load all the classes, register special pages, etc. Called through wgExtensionFunctions.
@@ -44,26 +45,40 @@ function efWikiRightsPromoterSetup() {
 
 	// Register files
 	$wgAutoloadClasses[ 'Promoter' ] = $specialDir . 'SpecialPromoter.php';
-	/*
-	$wgAutoloadClasses[ 'Banner' ] = $includeDir . 'Banner.php';
-	$wgAutoloadClasses[ 'BannerDataException' ] = $includeDir . 'Banner.php';
-	$wgAutoloadClasses[ 'BannerContentException' ] = $includeDir . 'Banner.php';
-	$wgAutoloadClasses[ 'BannerExistenceException' ] = $includeDir . 'Banner.php';
-	$wgAutoloadClasses[ 'BannerMessage' ] = $includeDir . 'BannerMessage.php';
-	$wgAutoloadClasses[ 'BannerChooser' ] = $includeDir . 'BannerChooser.php';
-	$wgAutoloadClasses[ 'BannerRenderer' ] = $includeDir . 'BannerRenderer.php';
-	*/
+	$wgAutoloadClasses[ 'Ad' ] = $includeDir . 'Ad.php';
+	$wgAutoloadClasses[ 'AdDataException' ] = $includeDir . 'Ad.php';
+	$wgAutoloadClasses[ 'AdContentException' ] = $includeDir . 'Ad.php';
+	$wgAutoloadClasses[ 'AdExistenceException' ] = $includeDir . 'Ad.php';
+
+	$wgAutoloadClasses[ 'HTMLPromoterAd' ] = $htmlFormDir . 'HTMLPromoterAd.php';
+	$wgAutoloadClasses[ 'HTMLPromoterAdMessage' ] = $htmlFormDir . 'HTMLPromoterAdMessage.php';
+
+	$wgAutoloadClasses[ 'AdMessage' ] = $includeDir . 'AdMessage.php';
+	$wgAutoloadClasses[ 'AdChooser' ] = $includeDir . 'AdChooser.php';
+	$wgAutoloadClasses[ 'AdRenderer' ] = $includeDir . 'AdRenderer.php';
+
 	$wgAutoloadClasses[ 'Campaign' ] = $includeDir . 'Campaign.php';
+	$wgAutoloadClasses[ 'AllocationContext' ] = $includeDir . 'AllocationContext.php';
 
 	$wgAutoloadClasses[ 'PRDatabasePatcher' ] = $dir . 'patches/PRDatabasePatcher.php';
 	$wgAutoloadClasses[ 'PRDatabase' ] = $includeDir . 'PRDatabase.php';
 
 
-	$wgAutoloadClasses[ 'TemplatePager' ] = $dir . 'TemplatePager.php';
+	$wgAutoloadClasses[ 'AdPager' ] = $dir . 'AdPager.php';
 	$wgAutoloadClasses[ 'PromoterPager' ] = $dir . 'PromoterPager.php';
+	$wgAutoloadClasses[ 'SpecialCampaignTemplate' ] = $specialDir . 'SpecialCampaignTemplate.php';
+	$wgAutoloadClasses[ 'SpecialPromoterAds' ] = $specialDir . 'SpecialPromoterAds.php';
+	$wgAutoloadClasses[ 'PRAdPager' ] = $includeDir . 'PRAdPager.php';
+
 
 	// Register special pages
 	$wgSpecialPages[ 'Promoter' ] = 'Promoter';
 	$wgSpecialPageGroups[ 'Promoter' ] = 'wiki'; // Wiki data and tools
+	$wgSpecialPages[ 'CampaignTemplate' ] = 'SpecialCampaignTemplate';
+	$wgSpecialPages[ 'PromoterAds'] = 'SpecialPromoterAds';
+
+	//$wgSpecialPages[ 'GlobalAllocation' ] = 'SpecialGlobalAllocation';
+	//$wgSpecialPages[ 'AdAllocation' ] = 'SpecialAdAllocation';
+	//$wgSpecialPages[ 'PromoterLogs' ] = 'SpecialPromoterLogs';
 
 }

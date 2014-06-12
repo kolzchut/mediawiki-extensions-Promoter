@@ -22,7 +22,7 @@ class Promoter extends SpecialPage {
 		$request = $this->getRequest();
 
 		// Output ResourceLoader module for styling and javascript functions
-		//$out->addModules( 'ext.centralNotice.adminUi.campaignManager' );
+		$out->addModules( 'ext.promoter.adminUi.campaignManager' );
 
 		// Check permissions
 		$this->editable = $this->getUser()->isAllowed( 'promoter-admin' );
@@ -36,9 +36,9 @@ class Promoter extends SpecialPage {
 		$method = $request->getVal( 'method' );
 
 		// Switch to campaign detail interface if requested
-		if ( $method == 'listNoticeDetail' ) {
-			$notice = $request->getVal( 'notice' );
-			$this->listNoticeDetail( $notice );
+		if ( $method == 'listCampaignDetail' ) {
+			$campaign = $request->getVal( 'campaign' );
+			$this->listCampaignDetail( $campaign );
 			$out->addHTML( Xml::closeElement( 'div' ) );
 			return;
 		}
@@ -49,12 +49,11 @@ class Promoter extends SpecialPage {
 			if ( $this->getUser()->matchEditToken( $request->getVal( 'authtoken' ) ) ) {
 				// Handle adding a campaign
 				if ( $method == 'addCampaign' ) {
-					$noticeName = $request->getVal( 'noticeName' );
-					if ( $noticeName == '' ) {
+					$campaignName = $request->getVal( 'campaignName' );
+					if ( $campaignName == '' ) {
 						$this->showError( 'promoter-null-string' );
 					} else {
-						$result = Campaign::addCampaign( $noticeName, '0',
-							100, Promoter::NORMAL_PRIORITY, $this->getUser() );
+						$result = Campaign::addCampaign( $campaignName, '0', $this->getUser() );
 						if ( is_string( $result ) ) {
 							$this->showError( $result );
 						}
@@ -65,8 +64,8 @@ class Promoter extends SpecialPage {
 					$toArchive = $request->getArray( 'archiveCampaigns' );
 					if ( $toArchive ) {
 						// Archive campaigns in list
-						foreach ( $toArchive as $notice ) {
-							Campaign::setBooleanCampaignSetting( $notice, 'archived', 1 );
+						foreach ( $toArchive as $campaign ) {
+							Campaign::setBooleanCampaignSetting( $campaign, 'archived', 1 );
 						}
 					}
 
@@ -79,53 +78,54 @@ class Promoter extends SpecialPage {
 					}
 
 					// Handle locking/unlocking campaigns
-					$lockedNotices = $request->getArray( 'locked' );
-					if ( $lockedNotices ) {
+					$lockedCampaigns = $request->getArray( 'locked' );
+					if ( $lockedCampaigns ) {
 						// Build list of campaigns to lock
-						$unlockedNotices = array_diff( Campaign::getAllCampaignNames(), $lockedNotices );
+						$unlockedCampaigns = array_diff( Campaign::getAllCampaignNames(), $lockedCampaigns );
 
 						// Set locked/unlocked flag accordingly
-						foreach ( $lockedNotices as $notice ) {
-							Campaign::setBooleanCampaignSetting( $notice, 'locked', 1 );
+						foreach ( $lockedCampaigns as $campaign ) {
+							Campaign::setBooleanCampaignSetting( $campaign, 'locked', 1 );
 						}
-						foreach ( $unlockedNotices as $notice ) {
-							Campaign::setBooleanCampaignSetting( $notice, 'locked', 0 );
+						foreach ( $unlockedCampaigns as $campaign ) {
+							Campaign::setBooleanCampaignSetting( $campaign, 'locked', 0 );
 						}
 					// Handle updates if no post content came through (all checkboxes unchecked)
 					} else {
-						$allNotices = Campaign::getAllCampaignNames();
-						foreach ( $allNotices as $notice ) {
-							Campaign::setBooleanCampaignSetting( $notice, 'locked', 0 );
+						$allCampaigns = Campaign::getAllCampaignNames();
+						foreach ( $allCampaigns as $campaign ) {
+							Campaign::setBooleanCampaignSetting( $campaign, 'locked', 0 );
 						}
 					}
 
 					// Handle enabling/disabling campaigns
-					$enabledNotices = $request->getArray( 'enabled' );
-					if ( $enabledNotices ) {
+					$enabledCampaigns = $request->getArray( 'enabled' );
+					if ( $enabledCampaigns ) {
 						// Build list of campaigns to disable
-						$disabledNotices = array_diff( Campaign::getAllCampaignNames(), $enabledNotices );
+						$disabledCampaigns = array_diff( Campaign::getAllCampaignNames(), $enabledCampaigns );
 
 						// Set enabled/disabled flag accordingly
-						foreach ( $enabledNotices as $notice ) {
-							Campaign::setBooleanCampaignSetting( $notice, 'enabled', 1 );
+						foreach ( $enabledCampaigns as $campaign ) {
+							Campaign::setBooleanCampaignSetting( $campaign, 'enabled', 1 );
 						}
-						foreach ( $disabledNotices as $notice ) {
-							Campaign::setBooleanCampaignSetting( $notice, 'enabled', 0 );
+						foreach ( $disabledCampaigns as $campaign ) {
+							Campaign::setBooleanCampaignSetting( $campaign, 'enabled', 0 );
 						}
 					// Handle updates if no post content came through (all checkboxes unchecked)
 					} else {
-						$allNotices = Campaign::getAllCampaignNames();
-						foreach ( $allNotices as $notice ) {
-							Campaign::setBooleanCampaignSetting( $notice, 'enabled', 0 );
+						$allCampaigns = Campaign::getAllCampaignNames();
+						foreach ( $allCampaigns as $campaign ) {
+							Campaign::setBooleanCampaignSetting( $campaign, 'enabled', 0 );
 						}
 					}
 
 					// Handle setting priority on campaigns
-					$preferredNotices = $request->getArray( 'priority' );
-					if ( $preferredNotices ) {
-						foreach ( $preferredNotices as $notice => $value ) {
+					/*
+					$preferredCampaigns = $request->getArray( 'priority' );
+					if ( $preferredCampaigns ) {
+						foreach ( $preferredCampaigns as $campaign => $value ) {
 							Campaign::setNumericCampaignSetting(
-								$notice,
+								$campaign,
 								'preferred',
 								$value,
 								Promoter::EMERGENCY_PRIORITY,
@@ -133,6 +133,7 @@ class Promoter extends SpecialPage {
 							);
 						}
 					}
+					*/
 
 					// Get all the final campaign settings for potential logging
 					foreach ( $allCampaignNames as $campaignName ) {
@@ -146,7 +147,8 @@ class Promoter extends SpecialPage {
 						}
 						// If there are changes, log them
 						if ( $diffs ) {
-							$campaignId = Campaign::getNoticeId( $campaignName );
+							/*
+							$campaignId = Campaign::getCampaignId( $campaignName );
 							Campaign::logCampaignChange(
 								'modified',
 								$campaignId,
@@ -154,6 +156,7 @@ class Promoter extends SpecialPage {
 								$allInitialCampaignSettings[ $campaignName ],
 								$finalCampaignSettings
 							);
+							*/
 						}
 					}
 				}
@@ -199,6 +202,7 @@ class Promoter extends SpecialPage {
 		$res = $dbr->select( 'pr_campaigns',
 			array(
 				'page_id',
+				'cmp_name',
 				'cmp_enabled',
 				'cmp_archived',
 				'cmp_add_general_ads',
@@ -223,7 +227,7 @@ class Promoter extends SpecialPage {
 			$htmlOut .= Xml::element( 'h2', null, $this->msg( 'promoter-manage' )->text() );
 
 			// Filters
-			$htmlOut .= Xml::openElement( 'div', array( 'class' => 'cn-formsection-emphasis' ) );
+			$htmlOut .= Xml::openElement( 'div', array( 'class' => 'pr-formsection-emphasis' ) );
 			$htmlOut .= Xml::checkLabel(
 				$this->msg( 'promoter-archive-show' )->text(),
 				'promoter-showarchived',
@@ -265,8 +269,8 @@ class Promoter extends SpecialPage {
 						htmlspecialchars( $row->cmp_name ),
 						array(),
 						array(
-							'method' => 'listNoticeDetail',
-							'notice' => $row->cmp_name
+							'method' => 'listCampaignDetail',
+							'campaign' => $row->cmp_name
 						)
 					)
 				);
@@ -277,12 +281,12 @@ class Promoter extends SpecialPage {
 				$end_timestamp = wfTimestamp( TS_UNIX, $row->cmp_end );
 
 				// Start
-				$rowCells .= Html::rawElement( 'td', array( 'class' => 'cn-date-column' ),
+				$rowCells .= Html::rawElement( 'td', array( 'class' => 'pr-date-column' ),
 					date( '<\b>Y-m-d</\b> H:i', $start_timestamp )
 				);
 
 				// End
-				$rowCells .= Html::rawElement( 'td', array( 'class' => 'cn-date-column' ),
+				$rowCells .= Html::rawElement( 'td', array( 'class' => 'pr-date-column' ),
 					date( '<\b>Y-m-d</\b> H:i', $end_timestamp )
 				);
 				*/
@@ -294,7 +298,7 @@ class Promoter extends SpecialPage {
 						$rowIsEnabled,
 						array_replace(
 							( !$this->editable || $rowIsArchived ) ? $readonly : array(),
-							array( 'value' => $row->cmp_name, 'class' => 'noshiftselect mw-cn-input-check-sort' )
+							array( 'value' => $row->cmp_name, 'class' => 'noshiftselect mw-pr-input-check-sort' )
 						)
 					)
 				);
@@ -306,7 +310,7 @@ class Promoter extends SpecialPage {
 						$rowIsArchived,
 						array_replace(
 							( !$this->editable || $rowIsEnabled ) ? $readonly : array(),
-							array( 'value' => $row->cmp_name, 'class' => 'noshiftselect mw-cn-input-check-sort' )
+							array( 'value' => $row->cmp_name, 'class' => 'noshiftselect mw-pr-input-check-sort' )
 						)
 					)
 				);
@@ -320,10 +324,10 @@ class Promoter extends SpecialPage {
 					wfTimestamp() < wfTimestamp( TS_UNIX, $row->cmp_end )
 					*/
 				) {
-					$classes[] = 'cn-active-campaign';
+					$classes[] = 'pr-active-campaign';
 				}
 				if ( $rowIsArchived ) {
-					$classes[] = 'cn-archived-item';
+					$classes[] = 'pr-archived-item';
 				}
 
 				$htmlOut .= Html::rawElement( 'tr', array( 'class' => $classes ), $rowCells );
@@ -332,11 +336,11 @@ class Promoter extends SpecialPage {
 			$htmlOut .= Xml::closeElement( 'table' );
 
 			if ( $this->editable ) {
-				$htmlOut .= Xml::openElement( 'div', array( 'class' => 'cn-buttons cn-formsection-emphasis' ) );
+				$htmlOut .= Xml::openElement( 'div', array( 'class' => 'pr-buttons pr-formsection-emphasis' ) );
 				$htmlOut .= Xml::submitButton( $this->msg( 'promoter-modify' )->text(),
 					array(
-						'id'   => 'centralnoticesubmit',
-						'name' => 'centralnoticesubmit'
+						'id'   => 'promotersubmit',
+						'name' => 'promotersubmit'
 					)
 				);
 				$htmlOut .= Xml::closeElement( 'div' );
@@ -359,8 +363,8 @@ class Promoter extends SpecialPage {
 			} else { // Defaults
 				/*
 				$start = null;
-				$noticeProjects = array();
-				$noticeLanguages = array();
+				$campaignProjects = array();
+				$campaignLanguages = array();
 				*/
 			}
 
@@ -379,7 +383,7 @@ class Promoter extends SpecialPage {
 			$htmlOut .= Xml::openElement( 'tr' );
 			$htmlOut .= Xml::tags( 'td', array(), $this->msg( 'promoter-campaign-name' )->escaped() );
 			$htmlOut .= Xml::tags( 'td', array(),
-				Xml::input( 'noticeName', 25, $request->getVal( 'noticeName' ) ) );
+				Xml::input( 'campaignName', 25, $request->getVal( 'campaignName' ) ) );
 			$htmlOut .= Xml::closeElement( 'tr' );
 			/*
 			// Start Date
@@ -400,7 +404,7 @@ class Promoter extends SpecialPage {
 
 			// Submit button
 			$htmlOut .= Xml::tags( 'div',
-				array( 'class' => 'cn-buttons' ),
+				array( 'class' => 'pr-buttons' ),
 				Xml::submitButton( $this->msg( 'promoter-modify' )->text() )
 			);
 
@@ -438,12 +442,12 @@ class Promoter extends SpecialPage {
 	/**
 	 * Show the interface for viewing/editing an individual campaign
 	 *
-	 * @param $notice string The name of the campaign to view
+	 * @param $campaign string The name of the campaign to view
 	 * @throws ErrorPageError
 	 */
-	function listNoticeDetail( $notice ) {
+	function listCampaignDetail( $campaign ) {
 
-		$c = new Campaign( $notice ); // Todo: Convert the rest of this page to use this object
+		$c = new Campaign( $campaign ); // Todo: Convert the rest of this page to use this object
 		try {
 			if ( $c->isArchived() ) {
 				$this->getOutput()->setSubtitle( $this->msg( 'promoter-archive-edit-prevented' ) );
@@ -460,34 +464,34 @@ class Promoter extends SpecialPage {
 			// If what we're doing is actually serious (ie: not updating the banner
 			// filter); process the request. Recall that if the serious request
 			// succeeds, the page will be reloaded again.
-			if ( $request->getCheck( 'template-search' ) == false ) {
+			if ( $request->getCheck( 'ad-search' ) == false ) {
 
 				// Check authentication token
 				if ( $this->getUser()->matchEditToken( $request->getVal( 'authtoken' ) ) ) {
 
 					// Handle removing campaign
 					if ( $request->getVal( 'archive' ) ) {
-						Campaign::setBooleanCampaignSetting( $notice, 'archived', 1 );
+						Campaign::setBooleanCampaignSetting( $campaign, 'archived', 1 );
 					}
 
-					$initialCampaignSettings = Campaign::getCampaignSettings( $notice );
+					$initialCampaignSettings = Campaign::getCampaignSettings( $campaign );
 
 					// Handle enabling/disabling campaign
 					if ( $request->getCheck( 'enabled' ) ) {
-						Campaign::setBooleanCampaignSetting( $notice, 'enabled', 1 );
+						Campaign::setBooleanCampaignSetting( $campaign, 'enabled', 1 );
 					} else {
-						Campaign::setBooleanCampaignSetting( $notice, 'enabled', 0 );
+						Campaign::setBooleanCampaignSetting( $campaign, 'enabled', 0 );
 					}
 
 
-					// Handle adding of banners to the campaign
-					$templatesToAdd = $request->getArray( 'addTemplates' );
-					if ( $templatesToAdd ) {
+					// Handle adding of ads to the campaign
+					$adsToAdd = $request->getArray( 'addTemplates' );
+					if ( $adsToAdd ) {
 						$weight = $request->getArray( 'weight' );
-						foreach ( $templatesToAdd as $templateName ) {
-							$templateId = Banner::fromName( $templateName )->getId();
-							$result = Campaign::addTemplateTo(
-								$notice, $templateName, $weight[ $templateId ]
+						foreach ( $adsToAdd as $adName ) {
+							$adId = Ad::fromName( $adName )->getId();
+							$result = Campaign::addAdTo(
+								$campaign, $adName, $weight[ $adId ]
 							);
 							if ( $result !== true ) {
 								$this->showError( $result );
@@ -495,11 +499,11 @@ class Promoter extends SpecialPage {
 						}
 					}
 
-					// Handle removing of banners from the campaign
-					$templateToRemove = $request->getArray( 'removeTemplates' );
-					if ( $templateToRemove ) {
-						foreach ( $templateToRemove as $template ) {
-							Campaign::removeTemplateFor( $notice, $template );
+					// Handle removing of ads from the campaign
+					$adToRemove = $request->getArray( 'removeAds' );
+					if ( $adToRemove ) {
+						foreach ( $adToRemove as $ad ) {
+							Campaign::removeAdFor( $campaign, $ad );
 						}
 					}
 
@@ -507,24 +511,25 @@ class Promoter extends SpecialPage {
 					$updatedWeights = $request->getArray( 'weight' );
 					$balanced = $request->getCheck( 'balanced' );
 					if ( $updatedWeights ) {
-						foreach ( $updatedWeights as $templateId => $weight ) {
+						foreach ( $updatedWeights as $adId => $weight ) {
 							if ( $balanced ) {
 								$weight = 25;
 							}
-							Campaign::updateWeight( $notice, $templateId, $weight );
+							Campaign::updateWeight( $campaign, $adId, $weight );
 						}
 					}
 
-					$finalCampaignSettings = Campaign::getCampaignSettings( $notice );
-					$campaignId = Campaign::getNoticeId( $notice );
+					$finalCampaignSettings = Campaign::getCampaignSettings( $campaign );
+					$campaignId = Campaign::getCampaignId( $campaign );
+					/*
 					Campaign::logCampaignChange( 'modified', $campaignId, $this->getUser(),
 						$initialCampaignSettings, $finalCampaignSettings );
-
+					*/
 					// If there were no errors, reload the page to prevent duplicate form submission
 					if ( !$this->promoterError ) {
 						$this->getOutput()->redirect( $this->getTitle()->getLocalUrl( array(
-								'method' => 'listNoticeDetail',
-								'notice' => $notice
+								'method' => 'listCampaignDetail',
+								'campaign' => $campaign
 						) ) );
 						return;
 					}
@@ -544,32 +549,32 @@ class Promoter extends SpecialPage {
 				array(
 					'method' => 'post',
 					'action' => $this->getTitle()->getLocalUrl( array(
-						'method' => 'listNoticeDetail',
-						'notice' => $notice
+						'method' => 'listCampaignDetail',
+						'campaign' => $campaign
 					) )
 				)
 			);
 		}
 
-		$output_detail = $this->noticeDetailForm( $notice );
-		$output_assigned = $this->assignedTemplatesForm( $notice );
-		$output_templates = $this->addTemplatesForm( $notice );
+		$output_detail = $this->campaignDetailForm( $campaign );
+		$output_assigned = $this->assignedTemplatesForm( $campaign );
+		$output_templates = $this->addTemplatesForm( $campaign );
 
 		$htmlOut .= $output_detail;
 
-		// Catch for no banners so that we don't double message
+		// Catch for no ads so that we don't double message
 		if ( $output_assigned == '' && $output_templates == '' ) {
-			$htmlOut .= $this->msg( 'promoter-no-templates' )->escaped();
+			$htmlOut .= $this->msg( 'promoter-no-ads' )->escaped();
 			$htmlOut .= Xml::element( 'p' );
-			$newPage = $this->getTitleFor( 'NoticeTemplate', 'add' );
+			$newPage = $this->getTitleFor( 'CampaignAd', 'add' );
 			$htmlOut .= Linker::link(
 				$newPage,
-				$this->msg( 'promoter-add-template' )->escaped()
+				$this->msg( 'promoter-add-ad' )->escaped()
 			);
 			$htmlOut .= Xml::element( 'p' );
 		} elseif ( $output_assigned == '' ) {
-			$htmlOut .= Xml::fieldset( $this->msg( 'promoter-assigned-templates' )->text() );
-			$htmlOut .= $this->msg( 'promoter-no-templates-assigned' )->escaped();
+			$htmlOut .= Xml::fieldset( $this->msg( 'promoter-assigned-ads' )->text() );
+			$htmlOut .= $this->msg( 'promoter-no-ads-assigned' )->escaped();
 			$htmlOut .= Xml::closeElement( 'fieldset' );
 			if ( $this->editable ) {
 				$htmlOut .= $output_templates;
@@ -585,7 +590,7 @@ class Promoter extends SpecialPage {
 
 			// Submit button
 			$htmlOut .= Xml::tags( 'div',
-				array( 'class' => 'cn-buttons' ),
+				array( 'class' => 'pr-buttons' ),
 				Xml::submitButton( $this->msg( 'promoter-modify' )->text() )
 			);
 		}
@@ -600,7 +605,7 @@ class Promoter extends SpecialPage {
 	/**
 	 * Create form for managing campaign settings (start date, end date, languages, etc.)
 	 */
-	function noticeDetailForm( $notice ) {
+	function campaignDetailForm( $campaign ) {
 
 		if ( $this->editable ) {
 			$readonly = array();
@@ -608,7 +613,7 @@ class Promoter extends SpecialPage {
 			$readonly = array( 'disabled' => 'disabled' );
 		}
 
-		$campaign = Campaign::getCampaignSettings( $notice );
+		$campaign = Campaign::getCampaignSettings( $campaign );
 
 		if ( $campaign ) {
 			// If there was an error, we'll need to restore the state of the form
@@ -628,7 +633,7 @@ class Promoter extends SpecialPage {
 
 			// Build Html
 			$htmlOut = '';
-			$htmlOut .= Xml::tags( 'h2', null, $this->msg( 'promoter-campaign-heading', $notice )->text() );
+			$htmlOut .= Xml::tags( 'h2', null, $this->msg( 'promoter-campaign-heading', $campaign )->text() );
 			$htmlOut .= Xml::openElement( 'table', array( 'cellpadding' => 9 ) );
 
 			// Rows
@@ -664,7 +669,7 @@ class Promoter extends SpecialPage {
 			$htmlOut .= Xml::tags( 'td', array(),
 				Xml::check( 'enabled', $isEnabled,
 					array_replace( $readonly,
-						array( 'value' => $notice, 'id' => 'enabled' ) ) ) );
+						array( 'value' => $campaign, 'id' => 'enabled' ) ) ) );
 			$htmlOut .= Xml::closeElement( 'tr' );
 
 			if ( $this->editable ) {
@@ -674,7 +679,7 @@ class Promoter extends SpecialPage {
 					Xml::label( $this->msg( 'promoter-archive-campaign' )->text(), 'archive' ) );
 				$htmlOut .= Xml::tags( 'td', array(),
 					Xml::check( 'archive', $isArchived,
-						array( 'value' => $notice, 'id' => 'archive' ) ) );
+						array( 'value' => $campaign, 'id' => 'archive' ) ) );
 				$htmlOut .= Xml::closeElement( 'tr' );
 			}
 			$htmlOut .= Xml::closeElement( 'table' );
@@ -685,9 +690,9 @@ class Promoter extends SpecialPage {
 	}
 
 	/**
-	 * Create form for managing banners assigned to a campaign
+	 * Create form for managing ads assigned to a campaign
 	 */
-	function assignedTemplatesForm( $notice ) {
+	function assignedTemplatesForm( $campaign ) {
 
 		$dbr = PRDatabase::getDb();
 		$res = $dbr->select(
@@ -703,7 +708,7 @@ class Promoter extends SpecialPage {
 				'adlinks.adl_weight',
 			),
 			array(
-				'campaigns.cmp_name' => $notice,
+				'campaigns.cmp_name' => $campaign,
 				'campaigns.cmp_id = adlinks.cmp_id',
 				'adlinks.ad_id = ads.ad_id'
 			),
@@ -711,7 +716,7 @@ class Promoter extends SpecialPage {
 			array( 'ORDER BY' => 'campaigns.cmp_id' )
 		);
 
-		// No banners found
+		// No ads found
 		if ( $dbr->numRows( $res ) < 1 ) {
 			return '';
 		}
@@ -732,18 +737,18 @@ class Promoter extends SpecialPage {
 		}
 		$isBalanced = ( count( array_unique( $weights ) ) === 1 );
 
-		// Build Assigned banners HTML
+		// Build Assigned ads HTML
 		$htmlOut = Html::hidden( 'change', 'weight' );
 		$htmlOut .= Xml::fieldset( $this->msg( 'promoter-assigned-templates' )->text() );
 
-		// Equal weight banners
+		// Equal weight ads
 		$htmlOut .= Xml::openElement( 'tr' );
 		$htmlOut .= Xml::tags( 'td', array(),
 			Xml::label( $this->msg( 'promoter-balanced' )->text(), 'balanced' ) );
 		$htmlOut .= Xml::tags( 'td', array(),
 			Xml::check( 'balanced', $isBalanced,
 				array_replace( $readonly,
-					array( 'value' => $notice, 'id' => 'balanced' ) ) ) );
+					array( 'value' => $campaign, 'id' => 'balanced' ) ) ) );
 		$htmlOut .= Xml::closeElement( 'tr' );
 
 		$htmlOut .= Xml::openElement( 'table',
@@ -756,7 +761,7 @@ class Promoter extends SpecialPage {
 			$htmlOut .= Xml::element( 'th', array( 'align' => 'left', 'width' => '5%' ),
 				$this->msg( "promoter-remove" )->text() );
 		}
-		$htmlOut .= Xml::element( 'th', array( 'align' => 'left', 'width' => '5%', 'class' => 'cn-weight' ),
+		$htmlOut .= Xml::element( 'th', array( 'align' => 'left', 'width' => '5%', 'class' => 'pr-weight' ),
 			$this->msg( 'promoter-weight' )->text() );
 		$htmlOut .= Xml::element( 'th', array( 'align' => 'left', 'width' => '5%' ),
 			$this->msg( 'promoter-bucket' )->text() );
@@ -775,14 +780,14 @@ class Promoter extends SpecialPage {
 			}
 
 			// Weight
-			$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top', 'class' => 'cn-weight' ),
+			$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top', 'class' => 'pr-weight' ),
 				$this->weightDropDown( "weight[$row->ad_id]", $row->adl_weight )
 			);
 
 
-			// Banner
-			$banner = Banner::fromName( $row->ad_name );
-			$renderer = new BannerRenderer( $this->getContext(), $banner );
+			// Ad
+			$banner = Ad::fromName( $row->ad_name );
+			$renderer = new AdRenderer( $this->getContext(), $banner );
 			$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
 				$renderer->linkTo() . '<br/>' .
 				$renderer->previewFieldSet()
@@ -811,48 +816,48 @@ class Promoter extends SpecialPage {
 	}
 
 	/**
-	 * Create form for adding banners to a campaign
+	 * Create form for adding ads to a campaign
 	 */
-	function addTemplatesForm( $notice ) {
+	function addTemplatesForm( $campaign ) {
 		// Sanitize input on search key and split out terms
 		$searchTerms = $this->sanitizeSearchTerms( $this->getRequest()->getText( 'tplsearchkey' ) );
 
 		$pager = new PromoterPager( $this, $searchTerms );
 
 		// Build HTML
-		$htmlOut = Xml::fieldset( $this->msg( 'promoter-available-templates' )->text() );
+		$htmlOut = Xml::fieldset( $this->msg( 'promoter-available-ads' )->text() );
 
-		// Banner search box
-		$htmlOut .= Html::openElement( 'fieldset', array( 'id' => 'cn-template-searchbox' ) );
-		$htmlOut .= Html::element( 'legend', null, $this->msg( 'promoter-filter-template-banner' )->text() );
+		// Ad search box
+		$htmlOut .= Html::openElement( 'fieldset', array( 'id' => 'pr-ad-searchbox' ) );
+		$htmlOut .= Html::element( 'legend', null, $this->msg( 'promoter-filter-ad-banner' )->text() );
 
-		$htmlOut .= Html::element( 'label', array( 'for' => 'tplsearchkey' ), $this->msg( 'promoter-filter-template-prompt' )->text() );
+		$htmlOut .= Html::element( 'label', array( 'for' => 'tplsearchkey' ), $this->msg( 'promoter-filter-ad-prompt' )->text() );
 		$htmlOut .= Html::input( 'tplsearchkey', $searchTerms );
 		$htmlOut .= Html::element(
 			'input',
 			array(
 				'type'=> 'submit',
 				'name'=> 'template-search',
-				'value' => $this->msg( 'promoter-filter-template-submit' )->text()
+				'value' => $this->msg( 'promoter-filter-ad-submit' )->text()
 			)
 		);
 
 		$htmlOut .= Html::closeElement( 'fieldset' );
 
-		// And now the banners, if any
+		// And now the ads, if any
 		if ( $pager->getNumRows() > 0 ) {
 
-			// Show paginated list of banners
+			// Show paginated list of ads
 			$htmlOut .= Xml::tags( 'div',
-				array( 'class' => 'cn-pager' ),
+				array( 'class' => 'pr-pager' ),
 				$pager->getNavigationBar() );
 			$htmlOut .= $pager->getBody();
 			$htmlOut .= Xml::tags( 'div',
-				array( 'class' => 'cn-pager' ),
+				array( 'class' => 'pr-pager' ),
 				$pager->getNavigationBar() );
 
 		} else {
-			$htmlOut .= $this->msg( 'promoter-no-templates' )->escaped();
+			$htmlOut .= $this->msg( 'promoter-no-ads' )->escaped();
 		}
 		$htmlOut .= Xml::closeElement( 'fieldset' );
 
@@ -881,7 +886,7 @@ class Promoter extends SpecialPage {
 	}
 
 	function showError( $message ) {
-		$this->getOutput()->wrapWikiMsg( "<div class='cn-error'>\n$1\n</div>", $message );
+		$this->getOutput()->wrapWikiMsg( "<div class='pr-error'>\n$1\n</div>", $message );
 		$this->promoterError = true;
 	}
 
@@ -902,7 +907,7 @@ class Promoter extends SpecialPage {
 	}
 
 	/**
-	 * Sanitizes template search terms by removing non alpha and ensuring space delimiting.
+	 * Sanitizes ad search terms by removing non alpha and ensuring space delimiting.
 	 *
 	 * @param $terms string Search terms to sanitize
 	 *
@@ -923,14 +928,48 @@ class Promoter extends SpecialPage {
 	}
 
 	/**
-	 * Loads a CentralNotice variable from session data.
+	 * Adds Promoter specific navigation tabs to the UI.
+	 * Implementation of SkinTemplateNavigation::SpecialPage hook.
+	 *
+	 * @param Skin  $skin Reference to the Skin object
+	 * @param array $tabs Any current skin tabs
+	 *
+	 * @return boolean
+	 */
+	public static function addNavigationTabs( Skin $skin, array &$tabs ) {
+		global $wgPromoterTabifyPages;
+
+		$title = $skin->getTitle();
+		list( $alias, $sub ) = SpecialPageFactory::resolveAlias( $title->getText() );
+
+		if ( !array_key_exists( $alias, $wgPromoterTabifyPages ) ) {
+			return true;
+		}
+
+		// Clear the special page tab that's there already
+		//$tabs['namespaces'] = array();
+
+		// Now add our own
+		foreach ( $wgPromoterTabifyPages as $page => $keys ) {
+			$tabs[ $keys[ 'type' ] ][ $page ] = array(
+				'text' => wfMessage( $keys[ 'message' ] ),
+				'href' => SpecialPage::getTitleFor( $page )->getFullURL(),
+				'class' => ( $alias === $page ) ? 'selected' : '',
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Loads a Promoter variable from session data.
 	 *
 	 * @param string $variable Name of the variable
 	 * @param object $default Default value of the variable
 	 *
 	 * @return object Stored variable or default
 	 */
-	public function getCNSessionVar( $variable, $default = null ) {
+	public function getPRSessionVar( $variable, $default = null ) {
 		$val = $this->getRequest()->getSessionData( "promoter-$variable" );
 		if ( is_null( $val ) ) {
 			$val = $default;
@@ -940,23 +979,23 @@ class Promoter extends SpecialPage {
 	}
 
 	/**
-	 * Sets a CentralNotice session variable. Note that this will fail silently if a
+	 * Sets a Promoter session variable. Note that this will fail silently if a
 	 * session does not exist for the user.
 	 *
 	 * @param string $variable Name of the variable
 	 * @param object $value    Value for the variable
 	 */
-	public function setCNSessionVar( $variable, $value ) {
+	public function setPRSessionVar( $variable, $value ) {
 		$this->getRequest()->setSessionData( "promoter-{$variable}", $value );
 	}
 
 	protected function makeShortList( $all, $list ) {
-		global $wgNoticeListComplementThreshold;
+		global $wgPromoterListComplementThreshold;
 		//TODO ellipsis and js/css expansion
 		if ( count($list) == count($all)  ) {
 			return $this->getContext()->msg( 'promoter-all' )->text();
 		}
-		if ( count($list) > $wgNoticeListComplementThreshold * count($all) ) {
+		if ( count($list) > $wgPromoterListComplementThreshold * count($all) ) {
 			$inverse = array_values( array_diff( $all, $list ) );
 			$txt = $this->getContext()->getLanguage()->listToText( $inverse );
 			return $this->getContext()->msg( 'promoter-all-except', $txt )->text();

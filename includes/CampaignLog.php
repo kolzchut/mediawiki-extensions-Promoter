@@ -3,7 +3,7 @@
 class CampaignLog {
 	static $basic_fields = array( 'start', 'end', 'enabled', 'preferred', 'locked', 'geo', 'buckets' );
 	static $list_fields = array( 'projects', 'languages', 'countries' );
-	static $map_fields = array( 'banners' );
+	static $map_fields = array( 'ads' );
 
 	function __construct( $row = null ) {
 		$begin = array();

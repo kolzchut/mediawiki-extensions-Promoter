@@ -1,8 +1,8 @@
 /**
- * Styles specific to Special:CentralNotice
+ * Styles specific to Special:Promoter
  *
- * This file is part of the CentralNotice Extension to MediaWiki
- * https://www.mediawiki.org/wiki/Extension:CentralNotice
+ * This file is part of the Promoter Extension to MediaWiki
+ * https://www.mediawiki.org/wiki/Extension:Promoter
  *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or modify
@@ -23,17 +23,17 @@
  * @file
  */
 
-.cn-formsection-emphasis {
+.pr-formsection-emphasis {
 	padding: 0.5em;
 	background-color: #FFFFFF;
 	border: 1px solid #2F6FAB;
 }
 
-.cn-buttons {
+.pr-buttons {
 	text-align: right;
 }
 
-.cn-active-campaign {
+.pr-active-campaign {
 	background-color: #ddffdd;
 }
 
@@ -41,7 +41,7 @@
 	width: 50%;
 }
 
-#centralnotice-throttle-echo {
+#promoter-throttle-echo {
 	font-weight: bold;
 	line-height: 200%;
 }

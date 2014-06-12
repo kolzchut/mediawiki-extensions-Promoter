@@ -13,7 +13,7 @@ class Campaign {
 	protected $archived = null;
 
 	/**
-	 * Construct a lazily loaded CentralNotice campaign object
+	 * Construct a lazily loaded Promoter campaign object
 	 *
 	 * @param string|int $campaignIdentifier Either an ID or name for the campaign
 	 */
@@ -105,7 +105,7 @@ class Campaign {
 
 		// Get campaign info from database
 		$row = $db->selectRow(
-			array('notices' => 'pr_campaigns'),
+			array('campaigns' => 'pr_campaigns'),
 			array(
 				 'cmp_id',
 				 'cmp_name',
@@ -154,14 +154,14 @@ class Campaign {
 	 * @return array Array of campaign IDs that matched the filter.
 	 */
 	static function getCampaigns( $enabled = true, $archived = false ) {
-		$notices = array();
-
+		$campaign = array();
+		$conds = array();
 		// Database setup
 		$dbr = PRDatabase::getDb();
 
 		// Therefore... construct the common components : pr_campaigns
 
-		$tables = array( 'notices' => 'pr_campaigns' );
+		$tables = array( 'campaigns' => 'pr_campaigns' );
 
 		if ( $enabled ) {
 			$conds[ 'cmp_enabled' ] = 1;
@@ -173,7 +173,7 @@ class Campaign {
 			$conds[ 'cmp_archived' ] = 0;
 		}
 
-		// Pull the notice IDs of the campaigns
+		// Pull the campaign IDs
 		$res = $dbr->select(
 			$tables,
 			'cmp_id',
@@ -181,11 +181,11 @@ class Campaign {
 			__METHOD__
 		);
 		foreach ( $res as $row ) {
-			$notices[ ] = $row->cmp_id;
+			$campaign[ ] = $row->cmp_id;
 		}
 
 
-		return $notices;
+		return $campaign;
 	}
 
 	/**
@@ -200,7 +200,7 @@ class Campaign {
 
 		// Get campaign info from database
 		$row = $dbr->selectRow(
-			array('notices' => 'pr_campaigns'),
+			array('campaigns' => 'pr_campaigns'),
 			array(
 				'cmp_id',
 				//'cmp_start',
@@ -222,15 +222,15 @@ class Campaign {
 			return false;
 		}
 
-		$bannersIn = Banner::getCampaignBanners( $row->cmp_id, true );
-		$bannersOut = array();
-		// All we want are the banner names, weights, and buckets
-		foreach ( $bannersIn as $key => $row ) {
-			$outKey = $bannersIn[ $key ][ 'name' ];
-			$bannersOut[ $outKey ]['weight'] = $bannersIn[ $key ][ 'weight' ];
+		$adsIn = Ad::getCampaignAds( $row->cmp_id, true );
+		$adsOut = array();
+		// All we want are the ad names and weights
+		foreach ( $adsIn as $key => $row ) {
+			$outKey = $adsIn[ $key ][ 'name' ];
+			$adsOut[ $outKey ]['weight'] = $adsIn[ $key ][ 'weight' ];
 		}
 		// Encode into a JSON string for storage
-		$campaign[ 'banners' ] = FormatJson::encode( $bannersOut );
+		$campaign[ 'ads' ] = FormatJson::encode( $adsOut );
 
 		return $campaign;
 	}
@@ -243,26 +243,26 @@ class Campaign {
 	static function getAllCampaignNames() {
 		$dbr = PRDatabase::getDb();
 		$res = $dbr->select( 'pr_campaigns', 'cmp_name', null, __METHOD__ );
-		$notices = array();
+		$campaigns = array();
 		foreach ( $res as $row ) {
-			$notices[ ] = $row->cmp_name;
+			$campaigns[ ] = $row->cmp_name;
 		}
-		return $notices;
+		return $campaigns;
 	}
 
 	/**
 	 * Add a new campaign to the database
 	 *
-	 * @param $noticeName        string: Name of the campaign
+	 * @param $campaignName        string: Name of the campaign
 	 * @param $enabled           int: Boolean setting, 0 or 1
 	 * @param $user              User adding the campaign
 	 *
 	 * @throws MWException
-	 * @return int|string noticeId on success, or message key for error
+	 * @return int|string campaignId on success, or message key for error
 	 */
-	static function addCampaign( $noticeName, $enabled, $user ) {
-		$noticeName = trim( $noticeName );
-		if ( Campaign::campaignExists( $noticeName ) ) {
+	static function addCampaign( $campaignName, $enabled, $user ) {
+		$campaignName = trim( $campaignName );
+		if ( Campaign::campaignExists( $campaignName ) ) {
 			return 'promoter-campaign-exists';
 		}
 
@@ -271,7 +271,7 @@ class Campaign {
 		$dbw->begin();
 
 		$dbw->insert( 'pr_campaigns',
-			array( 'cmp_name'    => $noticeName,
+			array( 'cmp_name'    => $campaignName,
 				'cmp_enabled' => $enabled,
 				//'cmp_start'   => $dbw->timestamp( $startTs ),
 				//'cmp_end'     => $dbw->timestamp( $endTs ),
@@ -284,13 +284,13 @@ class Campaign {
 			$dbw->commit();
 
 			// Log the creation of the campaign
+			/*
 			$beginSettings = array();
 			$endSettings = array(
 				//'start'     => $dbw->timestamp( $startTs ),
 				//'end'       => $dbw->timestamp( $endTs ),
 				'enabled'   => $enabled,
 			);
-			/*
 			Campaign::logCampaignChange( 'created', $cmp_id, $user,
 				$beginSettings, $endSettings );
 			*/
@@ -315,9 +315,8 @@ class Campaign {
 			array( 'cmp_name' => $campaignName )
 		);
 		if ( $dbr->numRows( $res ) < 1 ) {
-			return 'centralnotice-remove-campaign-doesnt-exist';
+			return 'promoter-remove-campaign-doesnt-exist';
 		}
-		$row = $dbr->fetchObject( $res );
 
 		Campaign::removeCampaignByName( $campaignName, $user );
 
@@ -326,47 +325,47 @@ class Campaign {
 
 	private static function removeCampaignByName( $campaignName, $user ) {
 		// Log the removal of the campaign
-		$campaignId = Campaign::getNoticeId( $campaignName );
-		Campaign::logCampaignChange( 'removed', $campaignId, $user );
+		$campaignId = Campaign::getCampaignId( $campaignName );
+		//Campaign::logCampaignChange( 'removed', $campaignId, $user );
 
 		$dbw = PRDatabase::getDb();
 		$dbw->begin();
-		$dbw->delete( 'cn_assignments', array( 'cmp_id' => $campaignId ) );
+		$dbw->delete( 'pr_adlinks', array( 'cmp_id' => $campaignId ) );
 		$dbw->delete( 'pr_campaigns', array( 'cmp_name' => $campaignName ) );
 		$dbw->commit();
 	}
 
 	/**
-	 * Assign a banner to a campaign at a certain weight
-	 * @param $noticeName string
-	 * @param $templateName string
+	 * Assign an ad to a campaign at a certain weight
+	 * @param $campaignName string
+	 * @param $adName string
 	 * @param $weight
 	 * @return bool|string True on success, string with message key for error
 	 */
-	static function addTemplateTo( $noticeName, $templateName, $weight ) {
+	static function addAdTo( $campaignName, $adName, $weight ) {
 		$dbw = PRDatabase::getDb();
 
-		$eNoticeName = htmlspecialchars( $noticeName );
-		$noticeId = Campaign::getNoticeId( $eNoticeName );
-		$templateId = Banner::fromName( $templateName )->getId();
-		$res = $dbw->select( 'cn_assignments', 'asn_id',
+		$eCampaignName = htmlspecialchars( $campaignName );
+		$campaignId = Campaign::getCampaignId( $eCampaignName );
+		$adId = Ad::fromName( $adName )->getId();
+		$res = $dbw->select( 'pr_adlinks', 'adl_id',
 			array(
-				'tmp_id' => $templateId,
-				'cmp_id' => $noticeId
+				'ad_id' => $adId,
+				'cmp_id' => $campaignId
 			)
 		);
 
 		if ( $dbw->numRows( $res ) > 0 ) {
-			return 'centralnotice-template-already-exists';
+			return 'promoter-ad-already-exists';
 		}
 
 		$dbw->begin();
-		$noticeId = Campaign::getNoticeId( $eNoticeName );
-		$dbw->insert( 'cn_assignments',
+		$campaignId = Campaign::getCampaignId( $eCampaignName );
+		$dbw->insert( 'pr_adlinks',
 			array(
-				'tmp_id'     => $templateId,
-				'tmp_weight' => $weight,
-				'cmp_id'     => $noticeId
+				'ad_id'     => $adId,
+				'adl_weight' => $weight,
+				'cmp_id'     => $campaignId
 			)
 		);
 		$dbw->commit();
@@ -375,24 +374,24 @@ class Campaign {
 	}
 
 	/**
-	 * Remove a banner assignment from a campaign
+	 * Remove an ad assignment from a campaign
 	 */
-	static function removeTemplateFor( $noticeName, $templateName ) {
+	static function removeAdFor( $campaignName, $adName ) {
 		$dbw = PRDatabase::getDb();
 		$dbw->begin();
-		$noticeId = Campaign::getNoticeId( $noticeName );
-		$templateId = Banner::fromName( $templateName )->getId();
-		$dbw->delete( 'cn_assignments', array( 'tmp_id' => $templateId, 'cmp_id' => $noticeId ) );
+		$campaignId = Campaign::getCampaignId( $campaignName );
+		$adId = Ad::fromName( $adName )->getId();
+		$dbw->delete( 'pr_adlinks', array( 'ad_id' => $adId, 'cmp_id' => $campaignId ) );
 		$dbw->commit();
 	}
 
 	/**
 	 * Lookup the ID for a campaign based on the campaign name
 	 */
-	static function getNoticeId( $noticeName ) {
+	static function getCampaignId( $campaignName ) {
 		$dbr = PRDatabase::getDb();
-		$eNoticeName = htmlspecialchars( $noticeName );
-		$row = $dbr->selectRow( 'pr_campaigns', 'cmp_id', array( 'cmp_name' => $eNoticeName ) );
+		$eCampaignName = htmlspecialchars( $campaignName );
+		$row = $dbr->selectRow( 'pr_campaigns', 'cmp_id', array( 'cmp_name' => $eCampaignName ) );
 		if ( $row ) {
 			return $row->cmp_id;
 		} else {
@@ -403,10 +402,10 @@ class Campaign {
 	/**
 	 * Lookup the name of a campaign based on the campaign ID
 	 */
-	static function getNoticeName( $noticeId ) {
+	static function getCampaignName( $campaignId ) {
 		$dbr = PRDatabase::getDb();
-		if ( is_numeric( $noticeId ) ) {
-			$row = $dbr->selectRow( 'pr_campaigns', 'cmp_name', array( 'cmp_id' => $noticeId ) );
+		if ( is_numeric( $campaignId ) ) {
+			$row = $dbr->selectRow( 'pr_campaigns', 'cmp_name', array( 'cmp_id' => $campaignId ) );
 			if ( $row ) {
 				return $row->cmp_name;
 			}
@@ -417,12 +416,12 @@ class Campaign {
 	/**
 	 * Update a boolean setting on a campaign
 	 *
-	 * @param $noticeName string: Name of the campaign
+	 * @param $campaignName string: Name of the campaign
 	 * @param $settingName string: Name of a boolean setting (enabled, locked, or geo)
 	 * @param $settingValue int: Value to use for the setting, 0 or 1
 	 */
-	static function setBooleanCampaignSetting( $noticeName, $settingName, $settingValue ) {
-		if ( !Campaign::campaignExists( $noticeName ) ) {
+	static function setBooleanCampaignSetting( $campaignName, $settingName, $settingValue ) {
+		if ( !Campaign::campaignExists( $campaignName ) ) {
 			// Exit quietly since campaign may have been deleted at the same time.
 			return;
 		} else {
@@ -430,7 +429,7 @@ class Campaign {
 			$dbw = PRDatabase::getDb();
 			$dbw->update( 'pr_campaigns',
 				array( 'cmp_' . $settingName => $settingValue ),
-				array( 'cmp_name' => $noticeName )
+				array( 'cmp_name' => $campaignName )
 			);
 		}
 	}
@@ -438,14 +437,14 @@ class Campaign {
 	/**
 	 * Updates a numeric setting on a campaign
 	 *
-	 * @param string $noticeName Name of the campaign
+	 * @param string $campaignName Name of the campaign
 	 * @param string $settingName Name of a numeric setting (preferred)
 	 * @param int $settingValue Value to use
 	 * @param int $max The max that the value can take, default 1
 	 * @param int $min The min that the value can take, default 0
 	 * @throws MWException|RangeException
 	 */
-	static function setNumericCampaignSetting( $noticeName, $settingName, $settingValue, $max = 1, $min = 0 ) {
+	static function setNumericCampaignSetting( $campaignName, $settingName, $settingValue, $max = 1, $min = 0 ) {
 		if ( $max <= $min ) {
 			throw new RangeException( 'Max must be greater than min.' );
 		}
@@ -462,7 +461,7 @@ class Campaign {
 			$settingValue = $min;
 		}
 
-		if ( !Campaign::campaignExists( $noticeName ) ) {
+		if ( !Campaign::campaignExists( $campaignName ) ) {
 			// Exit quietly since campaign may have been deleted at the same time.
 			return;
 		} else {
@@ -470,26 +469,26 @@ class Campaign {
 			$dbw = PRDatabase::getDb();
 			$dbw->update( 'pr_campaigns',
 				array( 'cmp_'.$settingName => $settingValue ),
-				array( 'cmp_name' => $noticeName )
+				array( 'cmp_name' => $campaignName )
 			);
 		}
 	}
 
 	/**
-	 * Updates the weight of a banner in a campaign.
+	 * Updates the weight of a ad in a campaign.
 	 *
-	 * @param $noticeName   Name of the campaign to update
-	 * @param $templateId   ID of the banner in the campaign
-	 * @param $weight       New banner weight
+	 * @param $campaignName Name of the campaign to update
+	 * @param $adId   		ID of the ad in the campaign
+	 * @param $weight       New ad weight
 	 */
-	static function updateWeight( $noticeName, $templateId, $weight ) {
+	static function updateWeight( $campaignName, $adId, $weight ) {
 		$dbw = PRDatabase::getDb();
-		$noticeId = Campaign::getNoticeId( $noticeName );
-		$dbw->update( 'cn_assignments',
-			array( 'tmp_weight' => $weight ),
+		$campaignId = Campaign::getCampaignId( $campaignName );
+		$dbw->update( 'pr_adlinks',
+			array( 'adl_weight' => $weight ),
 			array(
-				'tmp_id' => $templateId,
-				'cmp_id' => $noticeId
+				'ad_id' => $adId,
+				'cmp_id' => $campaignId
 			)
 		);
 	}

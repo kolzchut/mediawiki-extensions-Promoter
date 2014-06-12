@@ -1,7 +1,7 @@
 <?php
 /**
- * This file is part of the CentralNotice Extension to MediaWiki
- * https://www.mediawiki.org/wiki/Extension:CentralNotice
+ * This file is part of the Promoter Extension to MediaWiki
+ * https://www.mediawiki.org/wiki/Extension:Promoter
  *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or modify
@@ -23,47 +23,47 @@
  */
 
 /**
- * Produces a preview div of a banner message that can be included in an HTMLForm
+ * Produces a preview div of an ad message that can be included in an HTMLForm
  *
  * Expects the following options:
  * - 'language' - ISO language code to render message in
- * - 'banner'   - Canonical name of banner message belongs to
+ * - 'ad'   - Canonical name of ad message belongs to
  * - 'message'  - Canonical name of the message
  */
-class HTMLCentralNoticeBannerMessage extends HTMLTextAreaField {
+class HTMLPromoterAdMessage extends HTMLTextAreaField {
 	const DEFAULT_COLS = 45;
 	const DEFAULT_ROWS = 1;
 
 	function __construct( $params ) {
 		if ( !array_key_exists( 'default', $params ) ) {
-			$message = new BannerMessage( $this->mParams[ 'banner' ], $this->mParams[ 'message' ] );
+			$message = new AdMessage( $this->mParams[ 'ad' ], $this->mParams[ 'message' ] );
 			$params[ 'default' ] = $message->getContents( $this->mParams[ 'language' ] );
 		}
 
 		parent::__construct( $params );
 	}
 
-	/** Empty - no validation can be done on a banner message */
+	/** Empty - no validation can be done on an ad message */
 	function validate( $value, $alldata ) { return true; }
 
-	/** Get a preview of the banner message */
+	/** Get a preview of the ad message */
 	public function getInputHTML( $value ) {
 		global $wgContLang;
 
-		$message = new BannerMessage( $this->mParams[ 'banner' ], $this->mParams[ 'message' ] );
+		$message = new AdMessage( $this->mParams[ 'ad' ], $this->mParams[ 'message' ] );
 
-		$html = Xml::openElement( 'table', array( 'class' => 'cn-message-table' ) );
+		$html = Xml::openElement( 'table', array( 'class' => 'pr-message-table' ) );
 		$html .= Xml::openElement( 'tr' );
 
 		$originText = $message->getContents( $wgContLang->getCode() );
 		$html .= Xml::element(
 			'td',
-			array( 'class' => 'cn-message-text-origin' ),
+			array( 'class' => 'pr-message-text-origin' ),
 			$originText
 		);
 
 		$this->mParams[ 'placeholder' ] = $originText;
-		$html .= Xml::openElement( 'td', array( 'class' => 'cn-message-text-native' ) );
+		$html .= Xml::openElement( 'td', array( 'class' => 'pr-message-text-native' ) );
 		$html .= parent::getInputHTML( $message->getContents( $this->mParams[ 'language' ] ) );
 		$html .= Xml::closeElement( 'td' );
 

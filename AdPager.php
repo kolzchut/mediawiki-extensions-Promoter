@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Provides pagination functionality for viewing banner lists in the CentralNotice admin interface.
+ * Provides pagination functionality for viewing ad lists in the Promoter admin interface.
  *
  * @deprecated 2.3 -- We're moving to an HTML form model and this is no longer used directly.
  * We still need to move the Campaign manager to HTMLForm though and so this still exists for
  * that part of CN.
  */
-class TemplatePager extends ReverseChronologicalPager {
+class AdPager extends ReverseChronologicalPager {
 	var $onRemoveChange, $viewPage, $special;
 	var $editable;
 	var $filter;
@@ -24,11 +24,11 @@ class TemplatePager extends ReverseChronologicalPager {
 
 		$msg = Xml::encodeJsVar( $this->msg( 'promoter-confirm-delete' )->text() );
 		$this->onRemoveChange = "if( this.checked ) { this.checked = confirm( $msg ) }";
-		$this->viewPage = SpecialPage::getTitleFor( 'NoticeTemplate', 'view' );
+		$this->viewPage = SpecialPage::getTitleFor( 'CampaignAd', 'view' );
 	}
 
 	/**
-	 * Set the database query to retrieve all the banners in the database
+	 * Set the database query to retrieve all the ads in the database
 	 *
 	 * @return array of query settings
 	 */
@@ -52,9 +52,9 @@ class TemplatePager extends ReverseChronologicalPager {
 		}
 
 		return array(
-			'tables' => array( 'templates' => 'cn_templates'),
-			'fields' => array( 'templates.tmp_name', 'templates.tmp_id' ),
-			'conds'  => array( 'templates.tmp_name' . $dbr->buildLike( $likeArray ) ),
+			'tables' => array( 'ads' => 'pr_ads'),
+			'fields' => array( 'ads.ad_name', 'ads.ad_id' ),
+			'conds'  => array( 'ads.ad_name' . $dbr->buildLike( $likeArray ) ),
 		);
 	}
 
@@ -64,7 +64,7 @@ class TemplatePager extends ReverseChronologicalPager {
 	 * @return string
 	 */
 	function getIndexField() {
-		return 'templates.tmp_id';
+		return 'ads.ad_id';
 	}
 
 	/**
@@ -92,8 +92,8 @@ class TemplatePager extends ReverseChronologicalPager {
 		}
 
 		// Preview
-		$banner = Banner::fromName( $row->tmp_name );
-		$bannerRenderer = new BannerRenderer( $this->getContext(), $banner );
+		$banner = Ad::fromName( $row->tmp_name );
+		$bannerRenderer = new AdRenderer( $this->getContext(), $banner );
 
 		$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
 			$bannerRenderer->linkTo() . "<br>" . $bannerRenderer->previewFieldSet()

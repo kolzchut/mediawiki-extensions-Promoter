@@ -1,15 +1,15 @@
 <?php
 
-class BannerRenderer {
+class AdRenderer {
 	/**
 	 * @var IContextSource $context
 	 */
 	protected $context;
 
 	/**
-	 * @var Banner $banner
+	 * @var Ad $ad
 	 */
-	protected $banner;
+	protected $ad;
 
 	/**
 	 * Campaign in which context the rendering is taking place.  Empty during preview.
@@ -20,40 +20,40 @@ class BannerRenderer {
 
 	protected $mixinController = null;
 
-	function __construct( IContextSource $context, Banner $banner, $campaignName = null, AllocationContext $allocContext = null ) {
+	function __construct( IContextSource $context, Ad $ad, $campaignName = null, AllocationContext $allocContext = null ) {
 		$this->context = $context;
 
-		$this->banner = $banner;
+		$this->ad = $ad;
 		$this->campaignName = $campaignName;
 
 		if ( $allocContext === null ) {
 			/**
-			 * This should only be used when banners are previewed in management forms.
+			 * This should only be used when ads are previewed in management forms.
 			 * TODO: set realistic context in the admin ui, drawn from the campaign
 			 * configuration and current translation settings.
 			 */
-			$this->allocContext = new AllocationContext( 'XX', 'en', 'wikipedia', true, 'desktop', 0 );
+			$this->allocContext = new AllocationContext( true );
 		} else {
 			$this->allocContext = $allocContext;
 		}
 
-		$this->mixinController = new MixinController( $this->context, $this->banner->getMixins(), $allocContext );
+		//$this->mixinController = new MixinController( $this->context, $this->ad->getMixins(), $allocContext );
 
 		//FIXME: it should make sense to do this:
 		// $this->mixinController->registerMagicWord( 'campaign', array( $this, 'getCampaign' ) );
-		// $this->mixinController->registerMagicWord( 'banner', array( $this, 'getBanner' ) );
+		// $this->mixinController->registerMagicWord( 'ad', array( $this, 'getAd' ) );
 	}
 
 	function linkTo() {
 		return Linker::link(
-			SpecialPage::getTitleFor( 'CentralNoticeBanners', "edit/{$this->banner->getName()}" ),
-			htmlspecialchars( $this->banner->getName() ),
-			array( 'class' => 'cn-banner-title' )
+			SpecialPage::getTitleFor( 'PromoterAds', "edit/{$this->ad->getName()}" ),
+			htmlspecialchars( $this->ad->getName() ),
+			array( 'class' => 'pr-ad-title' )
 		);
 	}
 
 	/**
-	 * Render the banner as an html fieldset
+	 * Render the ad as an html fieldset
 	 */
 	function previewFieldSet() {
 		global $wgNoticeBannerPreview;
@@ -62,32 +62,32 @@ class BannerRenderer {
 			return '';
 		}
 
-		$bannerName = $this->banner->getName();
+		$adName = $this->ad->getName();
 		$lang = $this->context->getLanguage()->getCode();
 
-		$previewUrl = $wgNoticeBannerPreview . "{$bannerName}/{$bannerName}_{$lang}.png";
+		$previewUrl = $wgNoticeBannerPreview . "{$adName}/{$adName}_{$lang}.png";
 		$preview = Html::element(
 			'img',
 			array(
 				 'src' => $previewUrl,
-				 'alt' => $bannerName,
+				 'alt' => $adName,
 			)
 		);
 
-		$label = $this->context->msg( 'centralnotice-preview', $lang )->text();
+		$label = $this->context->msg( 'promoter-preview', $lang )->text();
 
 		return Xml::fieldset(
 			$label,
 			$preview,
 			array(
-				 'class' => 'cn-bannerpreview',
-				 'id' => Sanitizer::escapeId( "cn-banner-preview-{$this->banner->getName()}" ),
+				 'class' => 'pr-adpreview',
+				 'id' => Sanitizer::escapeId( "pr-ad-preview-{$this->ad->getName()}" ),
 			)
 		);
 	}
 
 	/**
-	 * Get the body of the banner, with all transformations applied.
+	 * Get the body of the ad, with all transformations applied.
 	 *
 	 * FIXME: "->inLanguage( $context->getLanguage() )" is necessary due to a bug in DerivativeContext
 	 */
@@ -98,14 +98,14 @@ class BannerRenderer {
 			$parentLang = $lang->getParentLanguage();
 		}
 
-		$bannerHtml = $this->context->msg( $this->banner->getDbKey() )->inLanguage( $parentLang )->text();
-		$bannerHtml .= $this->getResourceLoaderHtml();
-		$bannerHtml = $this->substituteMagicWords( $bannerHtml );
+		$adHtml = $this->context->msg( $this->ad->getDbKey() )->inLanguage( $parentLang )->text();
+		$adHtml .= $this->getResourceLoaderHtml();
+		$adHtml = $this->substituteMagicWords( $adHtml );
 
 		if ( $wgNoticeUseLanguageConversion ) {
-			$bannerHtml = $parentLang->getConverter()->convertTo( $bannerHtml, $lang->getCode() );
+			$adHtml = $parentLang->getConverter()->convertTo( $adHtml, $lang->getCode() );
 		}
-		return $bannerHtml;
+		return $adHtml;
 	}
 
 	function getPreloadJs() {
@@ -153,15 +153,15 @@ class BannerRenderer {
 	}
 
 	function getMagicWords() {
-		$words = array( 'banner', 'campaign' );
-		$words = array_merge( $words, $this->mixinController->getMagicWords() );
+		$words = array( 'ad', 'campaign' );
+		//$words = array_merge( $words, $this->mixinController->getMagicWords() );
 		return $words;
 	}
 
 	protected function renderMagicWord( $re_matches ) {
 		$field = $re_matches[1];
-		if ( $field === 'banner' ) {
-			return $this->banner->getName();
+		if ( $field === 'ad' ) {
+			return $this->ad->getName();
 		} elseif ( $field === 'campaign' ) {
 			return $this->campaignName;
 		}
@@ -175,7 +175,7 @@ class BannerRenderer {
 			return $value;
 		}
 
-		$bannerMessage = $this->banner->getMessageField( $field );
-		return $bannerMessage->toHtml( $this->context );
+		$adMessage = $this->ad->getMessageField( $field );
+		return $adMessage->toHtml( $this->context );
 	}
 }
