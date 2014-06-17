@@ -485,7 +485,7 @@ class Promoter extends SpecialPage {
 
 
 					// Handle adding of ads to the campaign
-					$adsToAdd = $request->getArray( 'addTemplates' );
+					$adsToAdd = $request->getArray( 'addAds' );
 					if ( $adsToAdd ) {
 						$weight = $request->getArray( 'weight' );
 						foreach ( $adsToAdd as $adName ) {
@@ -557,13 +557,13 @@ class Promoter extends SpecialPage {
 		}
 
 		$output_detail = $this->campaignDetailForm( $campaign );
-		$output_assigned = $this->assignedTemplatesForm( $campaign );
-		$output_templates = $this->addTemplatesForm( $campaign );
+		$output_assigned = $this->assignedAdsForm( $campaign );
+		$output_ads = $this->addAdsForm( $campaign );
 
 		$htmlOut .= $output_detail;
 
 		// Catch for no ads so that we don't double message
-		if ( $output_assigned == '' && $output_templates == '' ) {
+		if ( $output_assigned == '' && $output_ads == '' ) {
 			$htmlOut .= $this->msg( 'promoter-no-ads' )->escaped();
 			$htmlOut .= Xml::element( 'p' );
 			$newPage = $this->getTitleFor( 'CampaignAd', 'add' );
@@ -577,12 +577,12 @@ class Promoter extends SpecialPage {
 			$htmlOut .= $this->msg( 'promoter-no-ads-assigned' )->escaped();
 			$htmlOut .= Xml::closeElement( 'fieldset' );
 			if ( $this->editable ) {
-				$htmlOut .= $output_templates;
+				$htmlOut .= $output_ads;
 			}
 		} else {
 			$htmlOut .= $output_assigned;
 			if ( $this->editable ) {
-				$htmlOut .= $output_templates;
+				$htmlOut .= $output_ads;
 			}
 		}
 		if ( $this->editable ) {
@@ -605,7 +605,7 @@ class Promoter extends SpecialPage {
 	/**
 	 * Create form for managing campaign settings (start date, end date, languages, etc.)
 	 */
-	function campaignDetailForm( $campaign ) {
+	function campaignDetailForm( $campaignNameOrId ) {
 
 		if ( $this->editable ) {
 			$readonly = array();
@@ -613,7 +613,7 @@ class Promoter extends SpecialPage {
 			$readonly = array( 'disabled' => 'disabled' );
 		}
 
-		$campaign = Campaign::getCampaignSettings( $campaign );
+		$campaign = Campaign::getCampaignSettings( $campaignNameOrId );
 
 		if ( $campaign ) {
 			// If there was an error, we'll need to restore the state of the form
@@ -633,7 +633,7 @@ class Promoter extends SpecialPage {
 
 			// Build Html
 			$htmlOut = '';
-			$htmlOut .= Xml::tags( 'h2', null, $this->msg( 'promoter-campaign-heading', $campaign )->text() );
+			$htmlOut .= Xml::tags( 'h2', null, $this->msg( 'promoter-campaign-heading', $campaignNameOrId )->text() );
 			$htmlOut .= Xml::openElement( 'table', array( 'cellpadding' => 9 ) );
 
 			// Rows
@@ -692,7 +692,7 @@ class Promoter extends SpecialPage {
 	/**
 	 * Create form for managing ads assigned to a campaign
 	 */
-	function assignedTemplatesForm( $campaign ) {
+	function assignedAdsForm( $campaign ) {
 
 		$dbr = PRDatabase::getDb();
 		$res = $dbr->select(
@@ -739,7 +739,7 @@ class Promoter extends SpecialPage {
 
 		// Build Assigned ads HTML
 		$htmlOut = Html::hidden( 'change', 'weight' );
-		$htmlOut .= Xml::fieldset( $this->msg( 'promoter-assigned-templates' )->text() );
+		$htmlOut .= Xml::fieldset( $this->msg( 'promoter-assigned-ads' )->text() );
 
 		// Equal weight ads
 		$htmlOut .= Xml::openElement( 'tr' );
@@ -775,7 +775,7 @@ class Promoter extends SpecialPage {
 			if ( $this->editable ) {
 				// Remove
 				$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
-					Xml::check( 'removeTemplates[]', false, array( 'value' => $row->ad_name ) )
+					Xml::check( 'removeAdss[]', false, array( 'value' => $row->ad_name ) )
 				);
 			}
 
@@ -818,9 +818,9 @@ class Promoter extends SpecialPage {
 	/**
 	 * Create form for adding ads to a campaign
 	 */
-	function addTemplatesForm( $campaign ) {
+	function addAdsForm( $campaign ) {
 		// Sanitize input on search key and split out terms
-		$searchTerms = $this->sanitizeSearchTerms( $this->getRequest()->getText( 'tplsearchkey' ) );
+		$searchTerms = $this->sanitizeSearchTerms( $this->getRequest()->getText( 'adsearchkey' ) );
 
 		$pager = new PromoterPager( $this, $searchTerms );
 
@@ -831,13 +831,13 @@ class Promoter extends SpecialPage {
 		$htmlOut .= Html::openElement( 'fieldset', array( 'id' => 'pr-ad-searchbox' ) );
 		$htmlOut .= Html::element( 'legend', null, $this->msg( 'promoter-filter-ad-banner' )->text() );
 
-		$htmlOut .= Html::element( 'label', array( 'for' => 'tplsearchkey' ), $this->msg( 'promoter-filter-ad-prompt' )->text() );
-		$htmlOut .= Html::input( 'tplsearchkey', $searchTerms );
+		$htmlOut .= Html::element( 'label', array( 'for' => 'adsearchkey' ), $this->msg( 'promoter-filter-ad-prompt' )->text() );
+		$htmlOut .= Html::input( 'adsearchkey', $searchTerms );
 		$htmlOut .= Html::element(
 			'input',
 			array(
 				'type'=> 'submit',
-				'name'=> 'template-search',
+				'name'=> 'ad-search',
 				'value' => $this->msg( 'promoter-filter-ad-submit' )->text()
 			)
 		);
