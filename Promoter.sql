@@ -5,10 +5,10 @@
 CREATE TABLE IF NOT EXISTS /*_*/pr_campaigns (
   cmp_id int NOT NULL PRIMARY KEY AUTO_INCREMENT,
   cmp_name varchar(255) NOT NULL,
-  page_id int unsigned NOT NULL,
+  cmp_cat_page_id int unsigned NOT NULL,
   cmp_enabled tinyint(1) NOT NULL DEFAULT '0',
   cmp_archived tinyint(1) NOT NULL DEFAULT '0',
-  cmp_add_general_ads tinyint(1) NOT NULL DEFAULT '0'
+  cmp_use_general_ads tinyint(1) NOT NULL DEFAULT '0'
 ) /*$wgDBTableOptions*/;
 
 

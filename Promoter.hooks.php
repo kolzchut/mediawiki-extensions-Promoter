@@ -49,13 +49,15 @@ function efWikiRightsPromoterSetup() {
 	$wgAutoloadClasses[ 'AdDataException' ] = $includeDir . 'Ad.php';
 	$wgAutoloadClasses[ 'AdContentException' ] = $includeDir . 'Ad.php';
 	$wgAutoloadClasses[ 'AdExistenceException' ] = $includeDir . 'Ad.php';
+	$wgAutoloadClasses[ 'AdMessage' ] = $includeDir . 'AdMessage.php';
+	$wgAutoloadClasses[ 'AdRenderer' ] = $includeDir . 'AdRenderer.php';
+
+	$wgAutoloadClasses[ 'SpecialPromoterAds' ] = $specialDir . 'SpecialPromoterAds.php';
+	$wgAutoloadClasses[ 'PRAdPager' ] = $includeDir . 'PRAdPager.php';
 
 	$wgAutoloadClasses[ 'HTMLPromoterAd' ] = $htmlFormDir . 'HTMLPromoterAd.php';
 	$wgAutoloadClasses[ 'HTMLPromoterAdMessage' ] = $htmlFormDir . 'HTMLPromoterAdMessage.php';
 
-	$wgAutoloadClasses[ 'AdMessage' ] = $includeDir . 'AdMessage.php';
-	$wgAutoloadClasses[ 'AdChooser' ] = $includeDir . 'AdChooser.php';
-	$wgAutoloadClasses[ 'AdRenderer' ] = $includeDir . 'AdRenderer.php';
 
 	$wgAutoloadClasses[ 'Campaign' ] = $includeDir . 'Campaign.php';
 	$wgAutoloadClasses[ 'AllocationContext' ] = $includeDir . 'AllocationContext.php';
@@ -63,22 +65,11 @@ function efWikiRightsPromoterSetup() {
 	$wgAutoloadClasses[ 'PRDatabasePatcher' ] = $dir . 'patches/PRDatabasePatcher.php';
 	$wgAutoloadClasses[ 'PRDatabase' ] = $includeDir . 'PRDatabase.php';
 
-
 	$wgAutoloadClasses[ 'AdPager' ] = $dir . 'AdPager.php';
 	$wgAutoloadClasses[ 'PromoterPager' ] = $dir . 'PromoterPager.php';
-	$wgAutoloadClasses[ 'SpecialCampaignTemplate' ] = $specialDir . 'SpecialCampaignTemplate.php';
-	$wgAutoloadClasses[ 'SpecialPromoterAds' ] = $specialDir . 'SpecialPromoterAds.php';
-	$wgAutoloadClasses[ 'PRAdPager' ] = $includeDir . 'PRAdPager.php';
-
 
 	// Register special pages
 	$wgSpecialPages[ 'Promoter' ] = 'Promoter';
 	$wgSpecialPageGroups[ 'Promoter' ] = 'wiki'; // Wiki data and tools
-	$wgSpecialPages[ 'CampaignTemplate' ] = 'SpecialCampaignTemplate';
 	$wgSpecialPages[ 'PromoterAds'] = 'SpecialPromoterAds';
-
-	//$wgSpecialPages[ 'GlobalAllocation' ] = 'SpecialGlobalAllocation';
-	//$wgSpecialPages[ 'AdAllocation' ] = 'SpecialAdAllocation';
-	//$wgSpecialPages[ 'PromoterLogs' ] = 'SpecialPromoterLogs';
-
 }

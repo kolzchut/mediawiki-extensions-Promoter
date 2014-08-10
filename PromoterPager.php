@@ -79,11 +79,11 @@ class PromoterPager extends AdPager {
 		if ( $this->editable ) {
 			// Add box
 			$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
-				Xml::check( 'addTemplates[]', '', array( 'value' => $row->ad_name ) )
+				Xml::check( 'addAds[]', '', array( 'value' => $row->ad_name ) )
 			);
 			// Weight select
-			$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top', 'class' => 'cn-weight' ),
-				Xml::listDropDown( "weight[$row->tmp_id]",
+			$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top', 'class' => 'pr-weight' ),
+				Xml::listDropDown( "weight[$row->ad_id]",
 					Promoter::dropDownList(
 						$this->msg( 'promoter-weight' )->text(), range( 0, 100, 5 )
 					),
@@ -96,13 +96,13 @@ class PromoterPager extends AdPager {
 
 		// Link and Preview
 		$ad = Ad::fromName( $row->ad_name );
-		$bannerRenderer = new AdRenderer( $this->getContext(), $ad );
+		$adRenderer = new AdRenderer( $this->getContext(), $ad );
 
 		$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
-			$bannerRenderer->linkTo() . "<br>" . $bannerRenderer->previewFieldSet()
+			$adRenderer->linkTo() . "<br>" . $adRenderer->previewFieldSet()
 		);
 
-		// End banner row
+		// End ad row
 		$htmlOut .= Xml::closeElement( 'tr' );
 
 		return $htmlOut;
@@ -121,12 +121,12 @@ class PromoterPager extends AdPager {
 			$htmlOut .= Xml::element( 'th', array( 'align' => 'left', 'width' => '5%' ),
 				$this->msg( 'promoter-add' )->text()
 			);
-			$htmlOut .= Xml::element( 'th', array( 'align' => 'left', 'width' => '5%', 'class' => 'cn-weight' ),
+			$htmlOut .= Xml::element( 'th', array( 'align' => 'left', 'width' => '5%', 'class' => 'pr-weight' ),
 				$this->msg( 'promoter-weight' )->text()
 			);
 		}
 		$htmlOut .= Xml::element( 'th', array( 'align' => 'left' ),
-			$this->msg( 'promoter-templates' )->text()
+			$this->msg( 'promoter-ads' )->text()
 		);
 		$htmlOut .= Xml::closeElement( 'tr' );
 		return $htmlOut;

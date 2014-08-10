@@ -31,7 +31,7 @@ class Promoter extends SpecialPage {
 		$this->promoterError = false;
 
 		// Begin Campaigns tab content
-		$out->addHTML( Xml::openElement( 'div', array( 'id' => 'preferences' ) ) );
+		$out->addHTML( Xml::openElement( 'div', array( 'id' => 'pr-preferences' ) ) );
 
 		$method = $request->getVal( 'method' );
 
@@ -53,7 +53,8 @@ class Promoter extends SpecialPage {
 					if ( $campaignName == '' ) {
 						$this->showError( 'promoter-null-string' );
 					} else {
-						$result = Campaign::addCampaign( $campaignName, '0', $this->getUser() );
+						//$result = Campaign::addCampaign( $campaignName, '0', '0', '0', $this->getUser() );
+						$result = Campaign::addCampaign( $campaignName, '0', '0', $this->getUser() );
 						if ( is_string( $result ) ) {
 							$this->showError( $result );
 						}
@@ -77,7 +78,9 @@ class Promoter extends SpecialPage {
 						$allInitialCampaignSettings[ $campaignName ] = $settings;
 					}
 
+					/*
 					// Handle locking/unlocking campaigns
+
 					$lockedCampaigns = $request->getArray( 'locked' );
 					if ( $lockedCampaigns ) {
 						// Build list of campaigns to lock
@@ -96,7 +99,9 @@ class Promoter extends SpecialPage {
 						foreach ( $allCampaigns as $campaign ) {
 							Campaign::setBooleanCampaignSetting( $campaign, 'locked', 0 );
 						}
+
 					}
+					*/
 
 					// Handle enabling/disabling campaigns
 					$enabledCampaigns = $request->getArray( 'enabled' );
@@ -201,11 +206,11 @@ class Promoter extends SpecialPage {
 		$dbr = PRDatabase::getDb();
 		$res = $dbr->select( 'pr_campaigns',
 			array(
-				'page_id',
 				'cmp_name',
+				//'cmp_cat_page_id',
 				'cmp_enabled',
 				'cmp_archived',
-				'cmp_add_general_ads',
+				'cmp_use_general_ads',
 			),
 			array(),
 			__METHOD__,
@@ -216,7 +221,7 @@ class Promoter extends SpecialPage {
 		$htmlOut = '';
 
 		// Begin Manage campaigns fieldset
-		$htmlOut .= Xml::openElement( 'fieldset', array( 'class' => 'prefsection' ) );
+		$htmlOut .= Xml::openElement( 'div', array( 'class' => 'prefsection' ) );
 
 		// If there are campaigns to show...
 		if ( $res->numRows() >= 1 ) {
@@ -227,7 +232,7 @@ class Promoter extends SpecialPage {
 			$htmlOut .= Xml::element( 'h2', null, $this->msg( 'promoter-manage' )->text() );
 
 			// Filters
-			$htmlOut .= Xml::openElement( 'div', array( 'class' => 'pr-formsection-emphasis' ) );
+			$htmlOut .= Xml::openElement( 'div', array( 'class' => 'pr-formsection' ) );
 			$htmlOut .= Xml::checkLabel(
 				$this->msg( 'promoter-archive-show' )->text(),
 				'promoter-showarchived',
@@ -248,8 +253,8 @@ class Promoter extends SpecialPage {
 			// Table headers
 			$headers = array(
 				$this->msg( 'promoter-campaign-name' )->escaped(),
-				//$this->msg( 'promoter-start-timestamp' )->escaped(),
-				//$this->msg( 'promoter-end-timestamp' )->escaped(),
+				//$this->msg( 'promoter-campaign-linked-to' )->escaped(),
+				$this->msg( 'promoter-campaign-general-ads' )->escaped(),
 				$this->msg( 'promoter-enabled' )->escaped(),
 				$this->msg( 'promoter-archive-campaign' )->escaped()
 			);
@@ -259,6 +264,7 @@ class Promoter extends SpecialPage {
 			foreach ( $res as $row ) {
 				$rowIsEnabled = ( $row->cmp_enabled == '1' );
 				$rowIsArchived = ( $row->cmp_archived == '1' );
+				$rowUseGeneralAds = ( $row->cmp_use_general_ads == '1' );
 
 				$rowCells = '';
 
@@ -276,20 +282,30 @@ class Promoter extends SpecialPage {
 				);
 
 				/*
-				// Date and time calculations
-				$start_timestamp = wfTimestamp( TS_UNIX, $row->cmp_start );
-				$end_timestamp = wfTimestamp( TS_UNIX, $row->cmp_end );
-
-				// Start
-				$rowCells .= Html::rawElement( 'td', array( 'class' => 'pr-date-column' ),
-					date( '<\b>Y-m-d</\b> H:i', $start_timestamp )
-				);
-
-				// End
-				$rowCells .= Html::rawElement( 'td', array( 'class' => 'pr-date-column' ),
-					date( '<\b>Y-m-d</\b> H:i', $end_timestamp )
+				// Assigned category / page
+				$catTitle = Title::newFromID( $row->cmp_cat_page_id );
+				$catName = $catTitle ? $catTitle->getText() : $this->msg( 'promoter-no-assigned-cat' )->text();
+				$rowCells .= Html::rawElement( 'td', array(),
+					Linker::link(
+						$catTitle,
+						htmlspecialchars( $catName ),
+						array(),
+						array()
+					)
 				);
 				*/
+
+				// General ads
+				$rowCells .= Html::rawElement( 'td', array( 'data-sort-value' => (int)$rowUseGeneralAds ),
+					Xml::check(
+						'generalads[]',
+						$rowUseGeneralAds,
+						array_replace(
+							( !$this->editable || $rowIsArchived ) ? $readonly : array(),
+							array( 'value' => $row->cmp_name, 'class' => 'noshiftselect mw-pr-input-check-sort' )
+						)
+					)
+				);
 
 				// Enabled
 				$rowCells .= Html::rawElement( 'td', array( 'data-sort-value' => (int)$rowIsEnabled ),
@@ -317,13 +333,7 @@ class Promoter extends SpecialPage {
 
 				// If campaign is currently active, set special class on table row.
 				$classes = array();
-				if (
-					$rowIsEnabled
-					/* &&
-					wfTimestamp() > wfTimestamp( TS_UNIX, $row->cmp_start ) &&
-					wfTimestamp() < wfTimestamp( TS_UNIX, $row->cmp_end )
-					*/
-				) {
+				if ( $rowIsEnabled ) {
 					$classes[] = 'pr-active-campaign';
 				}
 				if ( $rowIsArchived ) {
@@ -336,11 +346,12 @@ class Promoter extends SpecialPage {
 			$htmlOut .= Xml::closeElement( 'table' );
 
 			if ( $this->editable ) {
-				$htmlOut .= Xml::openElement( 'div', array( 'class' => 'pr-buttons pr-formsection-emphasis' ) );
+				$htmlOut .= Xml::openElement( 'div', array( 'class' => 'pr-buttons pr-formsection' ) );
 				$htmlOut .= Xml::submitButton( $this->msg( 'promoter-modify' )->text(),
 					array(
 						'id'   => 'promotersubmit',
-						'name' => 'promotersubmit'
+						'name' => 'promotersubmit',
+						'class' => 'btn'
 					)
 				);
 				$htmlOut .= Xml::closeElement( 'div' );
@@ -352,8 +363,8 @@ class Promoter extends SpecialPage {
 			$htmlOut .= $this->msg( 'promoter-no-campaigns-exist' )->escaped();
 		}
 
-		// End Manage Campaigns fieldset
-		$htmlOut .= Xml::closeElement( 'fieldset' );
+		// End Manage Campaigns form
+		$htmlOut .= Xml::closeElement( 'div' );
 
 		if ( $this->editable ) {
 			$request = $this->getRequest();
@@ -368,75 +379,54 @@ class Promoter extends SpecialPage {
 				*/
 			}
 
-			// Begin Add a campaign fieldset
-			$htmlOut .= Xml::openElement( 'fieldset', array( 'class' => 'prefsection' ) );
-
+			// Begin Add a campaign form
 			// Form for adding a campaign
-			$htmlOut .= Xml::openElement( 'form', array( 'method' => 'post' ) );
 			$htmlOut .= Xml::element( 'h2', null, $this->msg( 'promoter-add-campaign' )->text() );
+			$htmlOut .= Xml::openElement( 'form', array(
+					'method' => 'post',
+					'class' => 'form-inline',
+					'role' => 'form'
+				)
+			);
 			$htmlOut .= Html::hidden( 'title', $this->getTitle()->getPrefixedText() );
 			$htmlOut .= Html::hidden( 'method', 'addCampaign' );
 
-			$htmlOut .= Xml::openElement( 'table', array( 'cellpadding' => 9 ) );
-
 			// Name
-			$htmlOut .= Xml::openElement( 'tr' );
-			$htmlOut .= Xml::tags( 'td', array(), $this->msg( 'promoter-campaign-name' )->escaped() );
-			$htmlOut .= Xml::tags( 'td', array(),
-				Xml::input( 'campaignName', 25, $request->getVal( 'campaignName' ) ) );
-			$htmlOut .= Xml::closeElement( 'tr' );
-			/*
-			// Start Date
-			$htmlOut .= Xml::openElement( 'tr' );
-			$htmlOut .= Xml::tags( 'td', array(), $this->msg( 'promoter-start-date' )->escaped() );
-			$htmlOut .= Xml::tags( 'td', array(), $this->dateSelector( 'start', $this->editable, $start ) );
-			$htmlOut .= Xml::closeElement( 'tr' );
-			// Start Time
-			$htmlOut .= Xml::openElement( 'tr' );
-			$htmlOut .= Xml::tags( 'td', array(), $this->msg( 'promoter-start-time' )->escaped() );
-			$htmlOut .= $this->timeSelectorTd( 'start', $this->editable, $start );
-			$htmlOut .= Xml::closeElement( 'tr' );
-			*/
+			$htmlOut .= Xml::openElement( 'div', array(	'class' => 'form-group' ) );
+			$htmlOut .= Xml::label( $this->msg( 'promoter-campaign-name' )->escaped(), 'campaignName', array(
+					'class' => 'sr-only'
+				)
+			);
+			$htmlOut .= Xml::input( 'campaignName', 25, $request->getVal( 'campaignName' ), array(
+					'id' => 'campaignName',
+					'placeholder' => $this->msg( 'promoter-campaign-name' )->escaped(),
+					'class' => 'form-control'
+				)
+			);
+			$htmlOut .= Xml::closeElement( 'div' );
 
-			$htmlOut .= Xml::closeElement( 'table' );
+			// Use general ads
+			$htmlOut .= Xml::openElement( 'div', array(	'class' => 'checkbox' ) );
+			$htmlOut .= Xml::openElement( 'label', array() );
+			$htmlOut .= Xml::check( 'generalads', false, array() );
+			$htmlOut .= $this->msg( 'promoter-campaign-general-ads' )->escaped();
+			$htmlOut .= Xml::closeElement( 'label' );
+			$htmlOut .= Xml::closeElement( 'div' );
+
 			$htmlOut .= Html::hidden( 'change', 'weight' );
 			$htmlOut .= Html::hidden( 'authtoken', $this->getUser()->getEditToken() );
 
 			// Submit button
-			$htmlOut .= Xml::tags( 'div',
-				array( 'class' => 'pr-buttons' ),
-				Xml::submitButton( $this->msg( 'promoter-modify' )->text() )
+			$htmlOut .= Xml::submitButton( $this->msg( 'promoter-modify' )->text(), array(
+					'class' => 'btn'
+				)
 			);
-
+			// End Add a campaign form
 			$htmlOut .= Xml::closeElement( 'form' );
-
-			// End Add a campaign fieldset
-			$htmlOut .= Xml::closeElement( 'fieldset' );
 		}
 
 		// Output HTML
 		$this->getOutput()->addHTML( $htmlOut );
-	}
-
-	/**
-	 * Retrieve jquery.ui.datepicker date and homebrew time,
-	 * and return as a MW timestamp string.
-	 */
-	function getDateTime( $prefix ) {
-		global $wgRequest;
-		// Check whether the user left the date field blank.
-		// Interpret any form of "empty" as a blank value.
-		$manual_entry = $wgRequest->getVal( "{$prefix}Date" );
-		if ( !$manual_entry ) {
-			return null;
-		}
-
-		$datestamp = $wgRequest->getVal( "{$prefix}Date_timestamp" );
-		$timeArray = $wgRequest->getArray( $prefix );
-		$timestamp = substr( $datestamp, 0, 8 ) .
-			$timeArray[ 'hour' ] .
-			$timeArray[ 'min' ] . '00';
-		return $timestamp;
 	}
 
 	/**
@@ -461,7 +451,7 @@ class Promoter extends SpecialPage {
 		$request = $this->getRequest();
 
 		if ( $this->editable && $request->wasPosted() ) {
-			// If what we're doing is actually serious (ie: not updating the banner
+			// If what we're doing is actually serious (ie: not updating the ad
 			// filter); process the request. Recall that if the serious request
 			// succeeds, the page will be reloaded again.
 			if ( $request->getCheck( 'ad-search' ) == false ) {
@@ -481,6 +471,13 @@ class Promoter extends SpecialPage {
 						Campaign::setBooleanCampaignSetting( $campaign, 'enabled', 1 );
 					} else {
 						Campaign::setBooleanCampaignSetting( $campaign, 'enabled', 0 );
+					}
+
+					// Handle enabling/disabling use of global ads
+					if ( $request->getCheck( 'generalads' ) ) {
+						Campaign::setBooleanCampaignSetting( $campaign, 'use_general_ads', 1 );
+					} else {
+						Campaign::setBooleanCampaignSetting( $campaign, 'use_general_ads', 0 );
 					}
 
 
@@ -541,8 +538,8 @@ class Promoter extends SpecialPage {
 
 		$htmlOut = '';
 
-		// Begin Campaign detail fieldset
-		$htmlOut .= Xml::openElement( 'fieldset', array( 'class' => 'prefsection' ) );
+		// Begin Campaign detail form
+		$htmlOut .= Xml::openElement( 'div', array( 'class' => 'prefsection' ) );
 
 		if ( $this->editable ) {
 			$htmlOut .= Xml::openElement( 'form',
@@ -598,7 +595,7 @@ class Promoter extends SpecialPage {
 		if ( $this->editable ) {
 			$htmlOut .= Xml::closeElement( 'form' );
 		}
-		$htmlOut .= Xml::closeElement( 'fieldset' );
+		$htmlOut .= Xml::closeElement( 'div' );
 		$this->getOutput()->addHTML( $htmlOut );
 	}
 
@@ -620,15 +617,16 @@ class Promoter extends SpecialPage {
 			$request = $this->getRequest();
 
 			if ( $request->wasPosted() ) {
-				//$start = $this->getDateTime( 'start' );
-				//$end = $this->getDateTime( 'end' );
 				$isEnabled = $request->getCheck( 'enabled' );
 				$isArchived = $request->getCheck( 'archived' );
+				$useGeneralAds = $request->getCheck( 'generalads' );
+				//$campaignNameOrId = $request->getText( 'campaign' );
+				//$catPageId = $request->getInt( 'catPageId' );
 			} else { // Defaults
-				//$start = $campaign[ 'start' ];
-				//$end = $campaign[ 'end' ];
 				$isEnabled = ( $campaign[ 'enabled' ] == '1' );
 				$isArchived = ( $campaign[ 'archived' ] == '1' );
+				$useGeneralAds = ( $campaign[ 'useGeneralAds' ] == '1' );
+				//$catPageId = (int)$campaign[ 'catPageId' ];
 			}
 
 			// Build Html
@@ -638,29 +636,41 @@ class Promoter extends SpecialPage {
 
 			// Rows
 
-			/*
-				// Start Date
-				$htmlOut .= Xml::openElement( 'tr' );
-				$htmlOut .= Xml::tags( 'td', array(), $this->msg( 'promoter-start-date' )->escaped() );
-				$htmlOut .= Xml::tags( 'td', array(), $this->dateSelector( 'start', $this->editable, $start ) );
-				$htmlOut .= Xml::closeElement( 'tr' );
-				// Start Time
-				$htmlOut .= Xml::openElement( 'tr' );
-				$htmlOut .= Xml::tags( 'td', array(), $this->msg( 'promoter-start-time' )->escaped() );
-				$htmlOut .= $this->timeSelectorTd( 'start', $this->editable, $start );
-				$htmlOut .= Xml::closeElement( 'tr' );
+			// Allow changing campaign name
+			$htmlOut .= Xml::openElement( 'tr' );
+			$htmlOut .= Xml::tags( 'td', array(),
+				Xml::label( $this->msg( 'promoter-campaign-name' )->text(), 'campaign' ) );
+			$htmlOut .= Xml::tags( 'td', array(),
+				Xml::input( 'campaign', 30, $campaignNameOrId, array_replace( $readonly,
+						array( 'id' => 'campaign' ) )
+				)
+			);
+			$htmlOut .= Xml::closeElement( 'tr' );
 
-				// End Date
-				$htmlOut .= Xml::openElement( 'tr' );
-				$htmlOut .= Xml::tags( 'td', array(), $this->msg( 'promoter-end-date' )->escaped() );
-				$htmlOut .= Xml::tags( 'td', array(), $this->dateSelector( 'end', $this->editable, $end ) );
-				$htmlOut .= Xml::closeElement( 'tr' );
-				// End Time
-				$htmlOut .= Xml::openElement( 'tr' );
-				$htmlOut .= Xml::tags( 'td', array(), $this->msg( 'promoter-end-time' )->escaped() );
-				$htmlOut .= $this->timeSelectorTd( 'end', $this->editable, $end );
-				$htmlOut .= Xml::closeElement( 'tr' );
+			/*
+			// Linked to Category / Page
+			$catTitle = Title::newFromID( $catPageId );
+			$catName = $catTitle ? $catTitle->getText() : $this->msg( 'promoter-no-assigned-cat' )->text();
+			$htmlOut .= Xml::openElement( 'tr' );
+			$htmlOut .= Xml::tags( 'td', array(),
+				Xml::label( $this->msg( 'promoter-campaign-linked-to' )->text(), 'catPageId' ) );
+			$htmlOut .= Xml::tags( 'td', array(),
+				Xml::input( 'catPageId', 30, $catName, array_replace( $readonly,
+						array( 'id' => 'catPageId' ) )
+				)
+			);
+			$htmlOut .= Xml::closeElement( 'tr' );
 			*/
+
+			// Use general ads
+			$htmlOut .= Xml::openElement( 'tr' );
+			$htmlOut .= Xml::tags( 'td', array(),
+				Xml::label( $this->msg( 'promoter-campaign-general-ads' )->text(), 'enabled' ) );
+			$htmlOut .= Xml::tags( 'td', array(),
+				Xml::check( 'generalads', $useGeneralAds,
+					array_replace( $readonly,
+						array( 'value' => $campaignNameOrId, 'id' => 'generalads' ) ) ) );
+			$htmlOut .= Xml::closeElement( 'tr' );
 
 			// Enabled
 			$htmlOut .= Xml::openElement( 'tr' );
@@ -669,7 +679,7 @@ class Promoter extends SpecialPage {
 			$htmlOut .= Xml::tags( 'td', array(),
 				Xml::check( 'enabled', $isEnabled,
 					array_replace( $readonly,
-						array( 'value' => $campaign, 'id' => 'enabled' ) ) ) );
+						array( 'value' => $campaignNameOrId, 'id' => 'enabled' ) ) ) );
 			$htmlOut .= Xml::closeElement( 'tr' );
 
 			if ( $this->editable ) {
@@ -679,7 +689,7 @@ class Promoter extends SpecialPage {
 					Xml::label( $this->msg( 'promoter-archive-campaign' )->text(), 'archive' ) );
 				$htmlOut .= Xml::tags( 'td', array(),
 					Xml::check( 'archive', $isArchived,
-						array( 'value' => $campaign, 'id' => 'archive' ) ) );
+						array( 'value' => $campaignNameOrId, 'id' => 'archive' ) ) );
 				$htmlOut .= Xml::closeElement( 'tr' );
 			}
 			$htmlOut .= Xml::closeElement( 'table' );
@@ -729,9 +739,9 @@ class Promoter extends SpecialPage {
 
 		$weights = array();
 
-		$banners = array();
+		$ads = array();
 		foreach ( $res as $row ) {
-			$banners[] = $row;
+			$ads[] = $row;
 
 			$weights[] = $row->adl_weight;
 		}
@@ -763,19 +773,21 @@ class Promoter extends SpecialPage {
 		}
 		$htmlOut .= Xml::element( 'th', array( 'align' => 'left', 'width' => '5%', 'class' => 'pr-weight' ),
 			$this->msg( 'promoter-weight' )->text() );
+		/*
 		$htmlOut .= Xml::element( 'th', array( 'align' => 'left', 'width' => '5%' ),
 			$this->msg( 'promoter-bucket' )->text() );
+		*/
 		$htmlOut .= Xml::element( 'th', array( 'align' => 'left', 'width' => '70%' ),
-			$this->msg( 'promoter-templates' )->text() );
+			$this->msg( 'promoter-ads' )->text() );
 
 		// Table rows
-		foreach ( $banners as $row ) {
+		foreach ( $ads as $row ) {
 			$htmlOut .= Xml::openElement( 'tr' );
 
 			if ( $this->editable ) {
 				// Remove
 				$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
-					Xml::check( 'removeAdss[]', false, array( 'value' => $row->ad_name ) )
+					Xml::check( 'removeAds[]', false, array( 'value' => $row->ad_name ) )
 				);
 			}
 
@@ -786,8 +798,8 @@ class Promoter extends SpecialPage {
 
 
 			// Ad
-			$banner = Ad::fromName( $row->ad_name );
-			$renderer = new AdRenderer( $this->getContext(), $banner );
+			$ad = Ad::fromName( $row->ad_name );
+			$renderer = new AdRenderer( $this->getContext(), $ad );
 			$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
 				$renderer->linkTo() . '<br/>' .
 				$renderer->previewFieldSet()
@@ -829,7 +841,7 @@ class Promoter extends SpecialPage {
 
 		// Ad search box
 		$htmlOut .= Html::openElement( 'fieldset', array( 'id' => 'pr-ad-searchbox' ) );
-		$htmlOut .= Html::element( 'legend', null, $this->msg( 'promoter-filter-ad-banner' )->text() );
+		$htmlOut .= Html::element( 'legend', array( 'class' => 'sr-only' ), $this->msg( 'promoter-filter-ad-header' )->text() );
 
 		$htmlOut .= Html::element( 'label', array( 'for' => 'adsearchkey' ), $this->msg( 'promoter-filter-ad-prompt' )->text() );
 		$htmlOut .= Html::input( 'adsearchkey', $searchTerms );

@@ -5,16 +5,16 @@ class PRAdPager extends ReverseChronologicalPager {
 	/** @var bool True if the form is to be created with editable elements */
 	protected $editable = false;
 
-	/** @var string Space separated strings to filter banner titles on */
+	/** @var string Space separated strings to filter ad titles on */
 	protected $filter = '';
 
-	/** @var array HTMLFormFields to add to the results before every banner entry */
+	/** @var array HTMLFormFields to add to the results before every ad entry */
 	protected $prependPrototypes = array();
 
-	/** @var array HTMLFormFields to add to the results after every banner entry */
+	/** @var array HTMLFormFields to add to the results after every ad entry */
 	protected $appendPrototypes = array();
 
-	/** @var string 'Section' attribute to apply to the banner elements generated */
+	/** @var string 'Section' attribute to apply to the ad elements generated */
 	protected $formSection = null;
 
 	/**
@@ -55,7 +55,7 @@ class PRAdPager extends ReverseChronologicalPager {
 		parent::getNavigationBar();
 
 		$this->mNavigationBar = array(
-			'class' => 'HTMLBannerPagerNavigation',
+			'class' => 'HTMLAdPagerNavigation',
 			'value' => $this->mNavigationBar
 		);
 
@@ -96,7 +96,7 @@ class PRAdPager extends ReverseChronologicalPager {
 	}
 
 	/**
-	 * Sort the banner list by ad_id (generally equals reverse chronological)
+	 * Sort the ad list by ad_id (generally equals reverse chronological)
 	 *
 	 * @return string
 	 */
@@ -125,7 +125,7 @@ class PRAdPager extends ReverseChronologicalPager {
 			}
 		}
 
-		// Now do the banner
+		// Now do the ad
 		$retval["pr-ad-list-element-$adId"] = array(
 			'class' => 'HTMLPromoterAd',
 			'ad' => $adName,
@@ -195,7 +195,7 @@ class PRAdPager extends ReverseChronologicalPager {
 	}
 }
 
-class HTMLBannerPagerNavigation extends HTMLFormField {
+class HTMLAdPagerNavigation extends HTMLFormField {
 	/** Empty - no validation can be done on a navigation element */
 	function validate( $value, $alldata ) { return true; }
 

@@ -7,93 +7,108 @@
  * @licence GNU General Public Licence 2.0 or later
  */
 
-#preferences fieldset.prefsection {
+#pr-formsection-preview legend,
+#pr-formsection-header legend,
+#pr-formsection-form-actions legend {
+	display: none;
+}
+
+#pr-preferences .prefsection table {
+	width: 100%;
+}
+
+#pr-preferences fieldset.prefsection {
 	margin:0;
 	padding: 1em;
 	border-top: 1px solid;
 }
-#preferences fieldset.prefsection:first-child {
+#pr-preferences fieldset.prefsection:first-child {
 	border-top: none;
 }
-#preferences fieldset.prefsection h2 {
+#pr-preferences fieldset.prefsection h2 {
 	border:none;
 }
-#preferences div.pr-pager {
+#pr-preferences div.pr-pager {
 	margin:1em 0;
 }
-#preferences div.pr-error {
+#pr-preferences div.pr-error {
 	color:#AA0000;
 	margin:1em;
 }
-#preferences fieldset.prefsection div.pr-error {
+#pr-preferences fieldset.prefsection div.pr-error {
 	margin:0;
 }
-#preferences table#envpicker {
+#pr-preferences table#envpicker {
 	margin-bottom: 1em;
 }
-#preferences table#envpicker td {
+#pr-preferences table#envpicker td {
 	white-space:nowrap;
 }
-#preferences .pr-date-column {
+#pr-preferences .pr-date-column {
 	white-space:nowrap;
 }
-#preferences td.pr-timepicker {
+#pr-preferences td.pr-timepicker {
 	text-align: left; /* To ensure RTL flipping */
 }
-#preferences input#clone {
+#pr-preferences input#clone {
 	margin-left:0.25em;
 }
-#preferences fieldset.prefsection fieldset.pr-adpreview {
+#pr-preferences fieldset.prefsection fieldset.pr-adpreview {
 	border: 1px solid;
 	margin-top: 0;
 }
-#preferences div#fundraisingInterface {
+#pr-preferences div#fundraisingInterface {
 	margin-left:1.6em;
 	margin-right:1.6em;
 }
-#preferences div#pr-log-filters-container {
+#pr-preferences div#pr-log-filters-container {
 	margin: 1em 0;
 }
-#preferences table {
+
+/*
+#pr-preferences table {
 	width: auto;
 }
-#preferences div#pr-log-filters table td {
+*/
+
+
+#pr-preferences div#pr-log-filters table td {
 	padding: 0.5em;
 }
-#preferences table#pr-campaign-logs td.primary {
+#pr-preferences table#pr-campaign-logs td.primary {
 	white-space: nowrap;
 	background-color: #F0F0F0;
 }
-#preferences .pr-new-value {
+#pr-preferences .pr-new-value {
 	color: #006400;
 }
-#preferences .pr-old-value {
+#pr-preferences .pr-old-value {
 	color: #8B0000;
 }
-#preferences .pr-log-label {
+#pr-preferences .pr-log-label {
 	font-weight: bold;
 }
-#preferences .pr-filter-buttons {
+#pr-preferences .pr-filter-buttons {
 	margin-right: 0.5em;
 }
-#preferences #pr-log-switcher label {
+#pr-preferences #pr-log-switcher label {
 	margin-right: 1em;
 }
-#preferences #pr-template-searchbox {
+#pr-preferences #pr-template-searchbox {
     border: 1px solid #CCCCCC;
     line-height: 1.5em;
     margin: 1em 0;
     padding: 0 1em 1em;
     display: block;
 }
-#preferences #pr-template-searchbox legend {
+#pr-preferences #pr-template-searchbox legend {
     font-size: 95%;
     color: black;
 }
-#preferences #pr-template-searchbox label,input {
+#pr-preferences #pr-template-searchbox label,input {
     margin-right: 0.25em;
 }
-#preferences a.pr-ad-title {
+#pr-preferences a.pr-ad-title {
 	font-size: large;
 	margin-top: 1em;
 }
@@ -120,15 +135,15 @@ select.pr-multiselect {
 }
 
 /* Vector-specific definitions */
-body.skin-vector #preferences fieldset.prefsection {
+body.skin-vector #pr-preferences fieldset.prefsection {
 	border-color:#CCCCCC;
 }
-body.skin-vector #preferences fieldset.prefsection fieldset.pr-adpreview {
+body.skin-vector #pr-preferences fieldset.prefsection fieldset.pr-adpreview {
 	border-color:#CCCCCC;
 }
 
 /* Monobook-specific definitions */
-body.skin-monobook #preferences fieldset.prefsection {
+body.skin-monobook #pr-preferences fieldset.prefsection {
 	border-color:#AAAAAA;
 }
 

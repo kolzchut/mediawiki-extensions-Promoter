@@ -12,9 +12,7 @@
 	margin: 0;
 	padding: 0;
 }
-#pr-formsection-preview legend {
-	display: none;
-}
+
 
 div.separate-form-element {
 	margin: 0.5em 0;
@@ -24,9 +22,6 @@ fieldset#pr-formsection-form-actions {
 	padding: 0.5em;
 	background-color: #F9F9F9;
 	border: 1px solid #2F6FAB;
-}
-fieldset#pr-formsection-form-actions legend {
-	display: none;
 }
 .pr-formbutton {
 	clear: none;

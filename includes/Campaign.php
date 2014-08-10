@@ -5,9 +5,14 @@ class Campaign {
 	protected $id = null;
 	protected $name = null;
 
+	/** @var int the page / category the campaign is linked to */
+	//protected $catPageId = null;
+
+	/** @var bool True if the campaign should use general ads as well */
+	protected $useGeneralAds = null;
+
 	/** @var bool True if the campaign is enabled for showing */
 	protected $enabled = null;
-
 
 	/** @var bool True if the campaign has been moved to the archive */
 	protected $archived = null;
@@ -85,6 +90,20 @@ class Campaign {
 		return $this->archived;
 	}
 
+	/**
+	 * Returns whether the campaign uses general ads
+	 *
+	 * @throws CampaignExistenceException If lazy loading failed.
+	 * @return bool
+	 */
+	public function isUsingGeneralAds() {
+		if ( $this->useGeneralAds === null ) {
+			$this->loadBasicSettings();
+		}
+
+		return $this->useGeneralAds;
+	}
+
 
 	/**
 	 * Load basic campaign settings from the database table pr_campaigns
@@ -109,8 +128,8 @@ class Campaign {
 			array(
 				 'cmp_id',
 				 'cmp_name',
-				 //'cmp_start',
-				 //'cmp_end',
+				 //'cmp_cat_page_id',
+				 'cmp_use_general_ads',
 				 'cmp_enabled',
 				 'cmp_archived',
 			),
@@ -118,10 +137,10 @@ class Campaign {
 			__METHOD__
 		);
 		if ( $row ) {
-			//$this->start = new MWTimestamp( $row->cmp_start );
-			//$this->end = new MWTimestamp( $row->cmp_end );
+			$this->useGeneralAds = (bool)$row->cmp_use_general_ads;
 			$this->enabled = (bool)$row->cmp_enabled;
 			$this->archived = (bool)$row->cmp_archived;
+			//$this->catPageId = (int)$row->cmp_cat_page_id;
 		} else {
 			throw new CampaignExistenceException(
 				"Campaign could not be retrieved from database with id '{$this->id}' or name '{$this->name}'"
@@ -203,8 +222,8 @@ class Campaign {
 			array('campaigns' => 'pr_campaigns'),
 			array(
 				'cmp_id',
-				//'cmp_start',
-				//'cmp_end',
+				//'cmp_cat_page_id',
+				'cmp_use_general_ads',
 				'cmp_enabled',
 				'cmp_archived',
 			),
@@ -213,8 +232,8 @@ class Campaign {
 		);
 		if ( $row ) {
 			$campaign = array(
-				//'start'     => $row->cmp_start,
-				//'end'       => $row->cmp_end,
+				//'catPageId' => $row->cmp_cat_page_id,
+				'useGeneralAds' => $row->cmp_use_general_ads,
 				'enabled'   => $row->cmp_enabled,
 				'archived'  => $row->cmp_archived,
 			);
@@ -222,6 +241,7 @@ class Campaign {
 			return false;
 		}
 
+		/*
 		$adsIn = Ad::getCampaignAds( $row->cmp_id, true );
 		$adsOut = array();
 		// All we want are the ad names and weights
@@ -231,7 +251,7 @@ class Campaign {
 		}
 		// Encode into a JSON string for storage
 		$campaign[ 'ads' ] = FormatJson::encode( $adsOut );
-
+*/
 		return $campaign;
 	}
 
@@ -254,13 +274,15 @@ class Campaign {
 	 * Add a new campaign to the database
 	 *
 	 * @param $campaignName        string: Name of the campaign
+	 * @param $catPageId		   int: Page / Category the campaign is linked to
 	 * @param $enabled           int: Boolean setting, 0 or 1
 	 * @param $user              User adding the campaign
 	 *
 	 * @throws MWException
 	 * @return int|string campaignId on success, or message key for error
 	 */
-	static function addCampaign( $campaignName, $enabled, $user ) {
+	//	static function addCampaign( $campaignName, $catPageId = 0, $useGeneralAds, $enabled, $user ) {
+	static function addCampaign( $campaignName, $useGeneralAds, $enabled, $user ) {
 		$campaignName = trim( $campaignName );
 		if ( Campaign::campaignExists( $campaignName ) ) {
 			return 'promoter-campaign-exists';
@@ -272,9 +294,9 @@ class Campaign {
 
 		$dbw->insert( 'pr_campaigns',
 			array( 'cmp_name'    => $campaignName,
+				//'cmp_cat_page_id' => $catPageId,
+				'cmp_use_general_ads' => $useGeneralAds,
 				'cmp_enabled' => $enabled,
-				//'cmp_start'   => $dbw->timestamp( $startTs ),
-				//'cmp_end'     => $dbw->timestamp( $endTs ),
 			)
 		);
 		$cmp_id = $dbw->insertId();

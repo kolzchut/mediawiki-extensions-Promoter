@@ -56,16 +56,16 @@ class AdRenderer {
 	 * Render the ad as an html fieldset
 	 */
 	function previewFieldSet() {
-		global $wgNoticeBannerPreview;
+		global $wgPromoterAdPreview;
 
-		if ( !$wgNoticeBannerPreview ) {
+		if ( !$wgPromoterAdPreview ) {
 			return '';
 		}
 
 		$adName = $this->ad->getName();
 		$lang = $this->context->getLanguage()->getCode();
 
-		$previewUrl = $wgNoticeBannerPreview . "{$adName}/{$adName}_{$lang}.png";
+		$previewUrl = $wgPromoterAdPreview . "{$adName}/{$adName}_{$lang}.png";
 		$preview = Html::element(
 			'img',
 			array(

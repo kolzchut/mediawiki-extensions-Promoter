@@ -35,6 +35,10 @@
 	display: none;
 }
 
+#pr-ad-manager label:empty {
+	display: none;
+}
+
 /* --- Ad management header --- */
 /* General header */
 #pr-ad-manager #pr-formsection-header {

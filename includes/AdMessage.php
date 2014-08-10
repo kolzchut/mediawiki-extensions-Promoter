@@ -1,8 +1,8 @@
 <?php
 
 class AdMessage {
-	function __construct( $banner_name, $name ) {
-		$this->ad_name = $banner_name;
+	function __construct( $ad_name, $name ) {
+		$this->ad_name = $ad_name;
 		$this->name = $name;
 	}
 
@@ -12,9 +12,9 @@ class AdMessage {
 
 	/**
 	 * Obtains the key of the message as stored in the database. This varies depending on namespace
-	 *  - in the MediaWiki namespace messages are Centralnotice-{banner name}-{message name}/{lang}
+	 *  - in the MediaWiki namespace messages are Promoter-{ad name}-{message name}/{lang}
 	 *  -- except for the content language which is stored without the /{lang} extension
-	 *  - in the CN Ad namespace messages are {banner name}-{message name}/{lang}
+	 *  - in the PR Ad namespace messages are {ad name}-{message name}/{lang}
 	 *
 	 * @param string|null $lang      Language code
 	 * @param int         $namespace Namespace to get key for
@@ -94,9 +94,9 @@ class AdMessage {
 			if ( class_exists( 'ContentHandler' ) ) {
 				// MediaWiki 1.21+
 				$content = ContentHandler::makeContent( $text, $title );
-				$result = $wikiPage->doEditContent( $content, '/* CN admin */', EDIT_FORCE_BOT );
+				$result = $wikiPage->doEditContent( $content, '/* PR admin */', EDIT_FORCE_BOT );
 			} else {
-				$wikiPage->doEdit( $translation, '/* CN admin */', EDIT_FORCE_BOT );
+				$wikiPage->doEdit( $translation, '/* PR admin */', EDIT_FORCE_BOT );
 			}
 
 			return $wikiPage;
@@ -109,32 +109,32 @@ class AdMessage {
 			&& ( $lang === $wgLanguageCode )
 			&& AdMessageGroup::isUsingGroupReview()
 		) {
-			$this->protectMessageInCnNamespaces(
-				$savePage( $this->getTitle( $lang, NS_CN_BANNER ), $translation ),
+			$this->protectMessageInPrNamespaces(
+				$savePage( $this->getTitle( $lang, NS_PR_AD ), $translation ),
 				$user
 			);
 		}
 	}
 
 	/**
-	 * Protects a message entry in the CNBanner namespace.
+	 * Protects a message entry in the PRAd namespace.
 	 * The protection lasts for infinity and acts for group
-	 * @ref $wgNoticeProtectGroup
+	 * @ref $wgPromoterProtectGroup
 	 *
 	 * This really is intended only for use on the original source language
-	 * because those messages are set via the CN UI; not the translate UI.
+	 * because those messages are set via the PR UI; not the translate UI.
 	 *
 	 * @param WikiPage $page Page containing the message to protect
 	 * @param User     $user User doing the protection (ie: the last one to edit the page)
 	 */
-	protected function protectMessageInCnNamespaces( $page, $user ) {
-		global $wgNoticeProtectGroup;
+	protected function protectMessageInPrNamespaces( $page, $user ) {
+		global $wgPromoterProtectGroup;
 
 		if ( !$page->getTitle()->getRestrictions( 'edit' ) ) {
 			$var = false;
 
 			$page->doUpdateRestrictions(
-				array( 'edit' => $wgNoticeProtectGroup, 'move' => $wgNoticeProtectGroup ),
+				array( 'edit' => $wgPromoterProtectGroup, 'move' => $wgPromoterProtectGroup ),
 				array( 'edit' => 'infinity', 'move' => 'infinity' ),
 				$var,
 				'Auto protected by Promoter -- Only edit via Special:Promoter.',

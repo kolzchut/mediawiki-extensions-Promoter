@@ -101,7 +101,7 @@ class HTMLPromoterAd extends HTMLInfoField {
 				array( 'class' => 'pr-ad-list-element-label-text' )
 			);
 			$html .= ' (' . Linker::link(
-				SpecialPage::getTitleFor( 'Random' ),
+				SpecialPage::getTitleFor( 'Randompage' ),
 				$this->msg( 'promoter-live-preview' ),
 				array( 'class' => 'pr-ad-list-element-label-text' ),
 				array(

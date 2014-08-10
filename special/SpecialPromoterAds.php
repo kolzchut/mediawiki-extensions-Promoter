@@ -74,7 +74,7 @@ class SpecialPromoterAds extends Promoter {
 					$this->adName = $parts[1];
 					$this->showAdEditor();
 				} else {
-					throw new ErrorPageError( 'campaigntemplate', 'promoter-generic-error' );
+					throw new ErrorPageError( 'campaignad', 'promoter-generic-error' );
 				}
 				break;
 
@@ -85,13 +85,13 @@ class SpecialPromoterAds extends Promoter {
 					$this->adName = $parts[1];
 					$this->showAllLanguages();
 				} else {
-					throw new ErrorPageError( 'campaigntemplate', 'promoter-generic-error' );
+					throw new ErrorPageError( 'campaignad', 'promoter-generic-error' );
 				}
 				break;
 
 			default:
 				// Something went wrong; display error page
-				throw new ErrorPageError( 'campaigntemplate', 'promoter-generic-error' );
+				throw new ErrorPageError( 'campaignad', 'promoter-generic-error' );
 				break;
 		}
 	}
@@ -140,6 +140,7 @@ class SpecialPromoterAds extends Promoter {
 			'adNameLike' => array(
 				'section' => 'header/ad-search',
 				'class' => 'HTMLTextField',
+				//'cssclass' => 'form-control',
 				'placeholder' => wfMessage( 'promoter-filter-ad-prompt' ),
 				'filter-callback' => array( $this, 'sanitizeSearchTerms' ),
 				'default' => $filter,
@@ -147,6 +148,7 @@ class SpecialPromoterAds extends Promoter {
 			'filterSubmit' => array(
 				'section' => 'header/ad-search',
 				'class' => 'HTMLSubmitField',
+				//'cssclass' => 'btn',
 				'default' => wfMessage( 'promoter-filter-ad-submit' )->text(),
 			)
 		);
@@ -156,12 +158,14 @@ class SpecialPromoterAds extends Promoter {
 			'selectAllAds' => array(
 				'section' => 'header/ad-bulk-manage',
 				'class' => 'HTMLCheckField',
+				//'cssclass' => 'checkbox',
 				'disabled' => !$this->editable,
 			),
 			/* TODO: Actually enable this feature
 			'archiveSelectedAds' => array(
 				'section' => 'header/ad-bulk-manage',
 				'class' => 'HTMLButtonField',
+				'cssclass' => 'btn',
 				'default' => 'Archive',
 				'disabled' => !$this->editable,
 			),
@@ -169,18 +173,21 @@ class SpecialPromoterAds extends Promoter {
 			'deleteSelectedAds' => array(
 				'section' => 'header/ad-bulk-manage',
 				'class' => 'HTMLButtonField',
+				//'cssclass' => 'btn danger ',
 				'default' => wfMessage( 'promoter-remove' )->text(),
 				'disabled' => !$this->editable,
 			),
 			'addNewAd' => array(
 				'section' => 'header/one-off',
 				'class' => 'HTMLButtonField',
+				//'cssclass' => 'btn',
 				'default' => wfMessage( 'promoter-add-ad' )->text(),
 				'disabled' => !$this->editable,
 			),
 			'newAdName' => array(
 				'section' => 'addAd',
 				'class' => 'HTMLTextField',
+				//'cssclass' => 'form-control',
 				'disabled' => !$this->editable,
 				'label' => wfMessage( 'promoter-ad-name' )->text(),
 			),
@@ -239,6 +246,8 @@ class SpecialPromoterAds extends Promoter {
 						$retval = Ad::addAd(
 							$this->adName,
 							"<!-- Empty ad -->",
+							null,
+							null,
 							$this->getUser(),
 							false,
 							false
@@ -298,7 +307,7 @@ class SpecialPromoterAds extends Promoter {
 		}
 		$out->setPageTitle( $this->adName );
 		$out->setSubtitle( Linker::link(
-				SpecialPage::getTitleFor( 'Random' ),
+				SpecialPage::getTitleFor( 'Randompage' ),
 				$this->msg( 'promoter-live-preview' ),
 				array( 'class' => 'pr-ad-list-element-label-text' ),
 				array(
@@ -326,18 +335,18 @@ class SpecialPromoterAds extends Promoter {
 		$formDescriptor = $this->generateAdEditForm( $this->adName );
 
 		$htmlForm = new PromoterHtmlForm( $formDescriptor, $this->getContext(), 'promoter' );
-		$htmlForm->setSubmitCallback( array( $this, 'processEditAd' ) )->setId( 'pr-promoter-editor' );
+		$htmlForm->setSubmitCallback( array( $this, 'processEditAd' ) )->setId( 'pr-ad-editor' );
 
 		// Push the form back to the user
 		$htmlForm->suppressDefaultSubmit()->
-			setId( 'pr-promoter-editor' )->
+			setId( 'pr-ad-editor' )->
 			setDisplayFormat( 'div' )->
 			prepareForm()->
 			displayForm( $formResult );
 	}
 
 	protected function generateAdEditForm() {
-		global $wgNoticeMixins, $wgNoticeUseTranslateExtension, $wgLanguageCode;
+		global /* $wgNoticeMixins, */ $wgNoticeUseTranslateExtension, $wgLanguageCode;
 
 		$languages = Language::fetchLanguageNames( $this->getLanguage()->getCode() );
 		array_walk( $languages, function( &$val, $index ) { $val = "$index - $val"; } );
@@ -357,17 +366,19 @@ class SpecialPromoterAds extends Promoter {
 		);
 
 		/* --- Ad Settings --- */
+		/*
 		$formDescriptor['ad-class'] = array(
 			'section' => 'settings',
 			'type' => 'selectorother',
 			'disabled' => !$this->editable,
 			'label-message' => 'promoter-ad-class',
 			'help-message' => 'promoter-ad-class-desc',
-			//'options' => Ad::getAllUsedCategories(),
+			'options' => Ad::getAllUsedCategories(),
 			'size' => 30,
 			'maxlength'=> 255,
 			//'default' => $ad->getCategory(),
 		);
+		*/
 
 		$selected = array();
 		if ( $adSettings[ 'anon' ] === 1 ) { $selected[] = 'anonymous'; }
@@ -384,7 +395,8 @@ class SpecialPromoterAds extends Promoter {
 			'default' => $selected,
 			'cssclass' => 'separate-form-element',
 		);
-/*
+
+		/*
 		$mixinNames = array_keys( $wgNoticeMixins );
 		$availableMixins = array_combine( $mixinNames, $mixinNames );
 		$selectedMixins = array_keys( $ad->getMixins() );
@@ -398,7 +410,8 @@ class SpecialPromoterAds extends Promoter {
 			'options' => $availableMixins,
 			'default' => $selectedMixins,
 		);
-*/
+		*/
+
 
 		/* --- Translatable Messages Section --- */
 		$messages = $ad->getMessageFieldsFromCache( $ad->getBodyContent() );
@@ -452,6 +465,8 @@ class SpecialPromoterAds extends Promoter {
 		}
 
 		/* -- The ad editor -- */
+
+/*
 		$formDescriptor[ 'ad-magic-words' ] = array(
 			'section' => 'edit-ad',
 			'class' => 'HTMLInfoField',
@@ -461,12 +476,15 @@ class SpecialPromoterAds extends Promoter {
 				$this->msg( 'promoter-edit-ad-summary' )->escaped() ),
 			'rawrow' => true,
 		);
+*/
 
 		$renderer = new AdRenderer( $this->getContext(), $ad );
 		$magicWords = $renderer->getMagicWords();
 		foreach ( $magicWords as &$word ) {
 			$word = '{{{' . $word . '}}}';
 		}
+
+		/*
 		$formDescriptor[ 'ad-mixin-words' ] = array(
 			'section' => 'edit-ad',
 			'type' => 'info',
@@ -476,7 +494,9 @@ class SpecialPromoterAds extends Promoter {
 				)->text(),
 			'rawrow' => true,
 		);
+		*/
 
+		/*
 		$buttons = array();
 		// TODO: Fix this gawdawful method of inserting the close button
 		$buttons[ ] =
@@ -493,12 +513,37 @@ class SpecialPromoterAds extends Promoter {
 					rawParams( $this->getLanguage()->commaList( $buttons ) )->
 					escaped() ),
 		);
+		*/
+
+
+		$formDescriptor[ 'ad-title' ] = array(
+			'section' => 'edit-ad',
+			'type' => 'text',
+			//'placeholder' => '<!-- ad heading -->',
+			'default' => $ad->getCaption(),
+			'label-message' => 'promoter-ad-title',
+			'cssclass' => 'separate-form-element'
+		);
+
+		$formDescriptor[ 'ad-link' ] = array(
+			'section' => 'edit-ad',
+			'type' => 'text',
+			'placeholder' => 'שם העמוד',
+			'default' => $ad->getMainLink(),
+			'label-message' => 'promoter-ad-link',
+			'cssclass' => 'separate-form-element'
+		);
+
+		if ( !$this->editable ) {
+			$formDescriptor[ 'ad-title' ][ 'readonly' ] = true;
+			$formDescriptor[ 'ad-link' ][ 'readonly' ] = true;
+		}
 
 		$formDescriptor[ 'ad-body' ] = array(
 			'section' => 'edit-ad',
 			'type' => 'textarea',
 			'readonly' => !$this->editable,
-			'hidelabel' => true,
+			'label-message' => 'promoter-ad-body',
 			'placeholder' => '<!-- blank ad -->',
 			'default' => $ad->getBodyContent(),
 			'cssclass' => 'separate-form-element'
@@ -630,6 +675,7 @@ class SpecialPromoterAds extends Promoter {
 				// Nothing was requested, so do nothing
 				break;
 		}
+
 	}
 
 	protected function processSaveAdAction( $formData ) {
@@ -650,19 +696,14 @@ class SpecialPromoterAds extends Promoter {
 		}
 
 		/* --- Ad settings --- */
-		if ( array_key_exists( 'priority-langs', $formData ) ) {
-			$prioLang = $formData[ 'priority-langs' ];
-			if ( !is_array( $prioLang ) ) {
-				$prioLang = array( $prioLang );
-			}
-		} else {
-			$prioLang = array();
-		}
-
-		$ad->setAllocation(
+				$ad->setAllocation(
 			in_array( 'anonymous', $formData[ 'display-to' ] ),
 			in_array( 'registered', $formData[ 'display-to' ] )
 		);
+
+		$ad->setCaption( $formData['ad-title'] );
+		$ad->setMainLink( $formData['ad-link'] );
+
 		//$ad->setCategory( $formData[ 'ad-class' ] );
 		$ad->setBodyContent( $formData[ 'ad-body' ] );
 

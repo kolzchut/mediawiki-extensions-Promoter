@@ -59,7 +59,7 @@ class AdPager extends ReverseChronologicalPager {
 	}
 
 	/**
-	 * Sort the banner list by tmp_id (generally equals reverse chronological)
+	 * Sort the ad list by ad_id (generally equals reverse chronological)
 	 *
 	 * @return string
 	 */
@@ -68,7 +68,7 @@ class AdPager extends ReverseChronologicalPager {
 	}
 
 	/**
-	 * Generate the content of each table row (1 row = 1 banner)
+	 * Generate the content of each table row (1 row = 1 ad)
 	 *
 	 * @param $row object: database row
 	 *
@@ -76,15 +76,15 @@ class AdPager extends ReverseChronologicalPager {
 	 */
 	function formatRow( $row ) {
 
-		// Begin banner row
+		// Begin ad row
 		$htmlOut = Xml::openElement( 'tr' );
 
 		if ( $this->editable ) {
 			// Remove box
 			$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
-				Xml::check( 'removeTemplates[]', false,
+				Xml::check( 'removeAds[]', false,
 					array(
-						'value'    => $row->tmp_name,
+						'value'    => $row->ad_name,
 						'onchange' => $this->onRemoveChange
 					)
 				)
@@ -92,14 +92,14 @@ class AdPager extends ReverseChronologicalPager {
 		}
 
 		// Preview
-		$banner = Ad::fromName( $row->tmp_name );
-		$bannerRenderer = new AdRenderer( $this->getContext(), $banner );
+		$ad = Ad::fromName( $row->ad_name );
+		$adRenderer = new AdRenderer( $this->getContext(), $ad );
 
 		$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
-			$bannerRenderer->linkTo() . "<br>" . $bannerRenderer->previewFieldSet()
+			$adRenderer->linkTo() . "<br>" . $adRenderer->previewFieldSet()
 		);
 
-		// End banner row
+		// End ad row
 		$htmlOut .= Xml::closeElement( 'tr' );
 
 		return $htmlOut;
@@ -120,7 +120,7 @@ class AdPager extends ReverseChronologicalPager {
 			);
 		}
 		$htmlOut .= Xml::element( 'th', array( 'align' => 'left' ),
-			$this->msg( 'promoter-templates' )->text()
+			$this->msg( 'promoter-ads' )->text()
 		);
 		$htmlOut .= Xml::closeElement( 'tr' );
 		return $htmlOut;
@@ -137,7 +137,7 @@ class AdPager extends ReverseChronologicalPager {
 		if ( $this->editable ) {
 			$htmlOut .= Html::hidden( 'authtoken', $this->getUser()->getEditToken() );
 			$htmlOut .= Xml::tags( 'div',
-				array( 'class' => 'cn-buttons' ),
+				array( 'class' => 'pr-buttons' ),
 				Xml::submitButton( $this->msg( 'promoter-modify' )->text() )
 			);
 		}

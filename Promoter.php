@@ -17,7 +17,7 @@ $wgExtensionCredits[ 'other' ][] = array(
 		'Dror S. ([http://www.kolzchut.org.il Kol-Zchut])',
 		'...',
 	),
-	'version'        => '1.0.0',
+	'version'        => '0.1.0',
 	'url'            => '',
 	'descriptionmsg' => 'wrpromoter-desc',
 	'license-name' => 'GPLv2',

@@ -87,6 +87,12 @@ class Ad {
 	/** @var string Wikitext content of the ad */
 	protected $bodyContent = '';
 
+	/** @var string Heading/caption of the ad */
+	protected $adCaption = '';
+
+	/** @var string Main link of the ad */
+	protected $adLink = '';
+
 	protected $runTranslateJob = false;
 	//</editor-fold>
 
@@ -213,6 +219,39 @@ class Ad {
 		return $this;
 	}
 
+
+	public function getCaption() {
+		$this->populateBasicData();
+		return $this->adCaption;
+	}
+
+	public function setCaption( $value ) {
+		$this->populateBasicData();
+
+		if ( $this->adCaption !== $value ) {
+			$this->setBasicDataDirty();
+			$this->adCaption = $value;
+		}
+
+		return $this;
+	}
+
+	public function getMainLink() {
+		$this->populateBasicData();
+		return $this->adLink;
+	}
+
+	public function setMainLink( $value ) {
+		$this->populateBasicData();
+
+		if ( $this->adLink !== $value ) {
+			$this->setBasicDataDirty();
+			$this->adLink = $value;
+		}
+
+		return $this;
+	}
+
 	/**
 	 * Get the ad category.
 	 *
@@ -318,6 +357,8 @@ class Ad {
 			array(
 				 'ad_id',
 				 'ad_name',
+				 'ad_title',
+				 'ad_mainlink',
 				 'ad_display_anon',
 				 'ad_display_user',
 				 //'ad_archived',
@@ -333,6 +374,8 @@ class Ad {
 			$this->name = $row->ad_name;
 			$this->allocateAnon = (bool)$row->ad_display_anon;
 			$this->allocateLoggedIn = (bool)$row->ad_display_user;
+			$this->adCaption = $row->ad_title;
+			$this->adLink = $row->ad_mainlink;
 			//$this->archived = (bool)$row->ad_archived;
 			//$this->category = $row->ad_category;
 		} else {
@@ -375,6 +418,8 @@ class Ad {
 				array(
 					 'ad_display_anon'    => (int)$this->allocateAnon,
 					 'ad_display_user' => (int)$this->allocateLoggedIn,
+					 'ad_title' => $this->adCaption,
+					 'ad_mainlink' => $this->adLink
 					 //'ad_archived'        => $this->archived,
 					 //'ad_category'        => $this->category,
 				),
@@ -598,6 +643,24 @@ class Ad {
 	}
 
 	/**
+	 * Get the heading/caption for the ad.
+	 *
+	 * @return string HTML
+	 */
+	public function getAdCaption() {
+		return $this->adCaption;
+	}
+
+	/**
+	 * Get the main link for the ad.
+	 *
+	 * @return string HTML
+	 */
+	public function getAdLink() {
+		return $this->adLink;
+	}
+
+	/**
 	 * Get the raw body HTML for the ad.
 	 *
 	 * @return string HTML
@@ -645,7 +708,6 @@ class Ad {
 	}
 
 	protected function saveBodyContent() {
-		global $wgNoticeUseTranslateExtension;
 
 		if ( $this->dirtyFlags['content'] ) {
 			$wikiPage = new WikiPage( $this->getTitle() );
@@ -883,6 +945,9 @@ class Ad {
 		$destAd->setAllocation( $this->allocateToAnon(), $this->allocateToLoggedIn() );
 		$destAd->setCategory( $this->getCategory() );
 		//$destAd->setMixins( array_keys( $this->getMixins() ) );
+
+		$destAd->setCaption( $this->getCaption() );
+		$destAd->setMainLink( $this->getMainLink() );
 
 		$destAd->setBodyContent( $this->getBodyContent() );
 
@@ -1134,12 +1199,14 @@ class Ad {
 	 * @param $user             User causing the change
 	 * @param $displayAnon      integer flag for display to anonymous users
 	 * @param $displayAccount   integer flag for display to logged in users
+	 * @param $caption			string caption/heading of ad
+	 * @param $mainlink			string main link for the ad (link caption to page)
 	 * @param $mixins           array list of mixins (optional)
 	 * @param $priorityLangs    array Array of priority languages for the translate extension
 	 *
 	 * @return bool true or false depending on whether ad was successfully added
 	 */
-	static function addAd( $name, $body, $user, $displayAnon, $displayAccount,
+	static function addAd( $name, $body, $caption, $mainlink, $user, $displayAnon, $displayAccount,
 						  $mixins = array(), $priorityLangs = array()
 	) {
 		if ( $name == '' || !Ad::isValidAdName( $name ) || $body == '' ) {
@@ -1152,9 +1219,14 @@ class Ad {
 		}
 
 		$ad->setAllocation( $displayAnon, $displayAccount );
+
+
+		$ad->setCaption( $caption );
+		$ad->setMainLink( $mainlink );
+
 		$ad->setBodyContent( $body );
 
-		array_walk( $landingPages, function ( &$x ) { $x = trim( $x ); } );
+		//array_walk( $landingPages, function ( &$x ) { $x = trim( $x ); } );
 
 		//$ad->setMixins( $mixins );
 
@@ -1206,7 +1278,7 @@ class Ad {
 	 * @return bool True if valid
 	 */
 	static function isValidAdName( $name ) {
-		return preg_match( '/^[A-Za-z0-9_]+$/', $name );
+		return preg_match( '/^[A-Za-zא-ת0-9_]+$/', $name );
 	}
 
 	/**
