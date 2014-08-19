@@ -117,17 +117,17 @@ $wgResourceModules[ 'ext.promoter.adStats' ] = array(
 	'remoteExtPath' => $promoterRemoteExtPath,
 	'scripts'       => 'ext.promoter.adStats/adStats.js',
 );
+*/
+
+
 $wgResourceModules[ 'ext.promoter.adController' ] = array(
-	'localBasePath' => $dir . '/modules/ext.promoter.adController',
-	'remoteExtPath' => 'Promoter/modules/ext.promoter.adController',
-	'styles'        => 'adController.css',
+	'localBasePath' => $promoterLocalBasePath . '/ext.promoter.adController',
+	'remoteExtPath' => $promoterRemoteExtPath . '/ext.promoter.adController',
+	'styles'        => 'adController.less',
 	'scripts'       => 'adController.js',
 	'position'      => 'top',
-	'dependencies'  => array(
-		'jquery.cookie',
-	),
 );
-*/
+
 
 $wgResourceModules[ 'ext.promoter.adminUi.campaignManager' ] = array(
 	'localBasePath' => $promoterLocalBasePath,

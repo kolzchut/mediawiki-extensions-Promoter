@@ -8,7 +8,7 @@ class AllocationContext {
 
 
 	/**
-	 * All criteria are required for banner requests, but when AllocationContext's
+	 * All criteria are required for ad requests, but when AllocationContext's
 	 * are created internally, some criteria may be null to allow special filtering.
 	 *
 	 * @param boolean $anonymous

@@ -36,10 +36,12 @@ $wgHooks[ 'SkinTemplateNavigation::SpecialPage' ][ ] = array( 'Promoter::addNavi
  */
 function efWikiRightsPromoterSetup() {
 	global $wgHooks, $wgAutoloadClasses, $wgSpecialPages,
-		   $wgSpecialPageGroups, $wgScript;
+		   $wgSpecialPageGroups, $wgAPIModules, $wgAPIListModules,
+		   $wgScript;
 
 	$dir = __DIR__ . '/';
 	$specialDir = $dir . 'special/';
+	$apiDir = $dir . 'api/';
 	$includeDir = $dir . 'includes/';
 	$htmlFormDir = $includeDir . '/HtmlFormElements/';
 
@@ -50,9 +52,12 @@ function efWikiRightsPromoterSetup() {
 	$wgAutoloadClasses[ 'AdContentException' ] = $includeDir . 'Ad.php';
 	$wgAutoloadClasses[ 'AdExistenceException' ] = $includeDir . 'Ad.php';
 	$wgAutoloadClasses[ 'AdMessage' ] = $includeDir . 'AdMessage.php';
+	$wgAutoloadClasses[ 'AdChooser' ] = $includeDir . 'AdChooser.php';
 	$wgAutoloadClasses[ 'AdRenderer' ] = $includeDir . 'AdRenderer.php';
 
 	$wgAutoloadClasses[ 'SpecialPromoterAds' ] = $specialDir . 'SpecialPromoterAds.php';
+	$wgAutoloadClasses[ 'SpecialAdLoader' ] = $specialDir . 'SpecialAdLoader.php';
+	$wgAutoloadClasses[ 'SpecialAdRandom' ] = $specialDir . 'SpecialAdRandom.php';
 	$wgAutoloadClasses[ 'PRAdPager' ] = $includeDir . 'PRAdPager.php';
 
 	$wgAutoloadClasses[ 'HTMLPromoterAd' ] = $htmlFormDir . 'HTMLPromoterAd.php';
@@ -65,11 +70,56 @@ function efWikiRightsPromoterSetup() {
 	$wgAutoloadClasses[ 'PRDatabasePatcher' ] = $dir . 'patches/PRDatabasePatcher.php';
 	$wgAutoloadClasses[ 'PRDatabase' ] = $includeDir . 'PRDatabase.php';
 
+	$wgAutoloadClasses[ 'ApiPromoterAllocations' ] = $apiDir . 'ApiPromoterAllocations.php';
+	$wgAutoloadClasses[ 'ApiPromoterQueryCampaign' ] = $apiDir . 'ApiPromoterQueryCampaign.php';
+	//$wgAutoloadClasses[ 'ApiPromoterLogs' ] = $apiDir . 'ApiPromoterLogs.php';
+
+	$wgAPIModules[ 'promoterallocations' ] = 'ApiPromoterAllocations';
+	$wgAPIModules[ 'promoterquerycampaign' ] = 'ApiPromoterQueryCampaign';
+
 	$wgAutoloadClasses[ 'AdPager' ] = $dir . 'AdPager.php';
 	$wgAutoloadClasses[ 'PromoterPager' ] = $dir . 'PromoterPager.php';
 
+	// Register hooks
+		//$wgHooks[ 'MakeGlobalVariablesScript' ][ ] = 'efPromoterDefaults';
+		$wgHooks[ 'BeforePageDisplay' ][ ] = 'efPromoterLoader';
+		$wgHooks[ 'SkinHelenaSidebarButtons' ][ ] = 'efPromoterDisplay';
+		//$wgHooks[ 'ResourceLoaderGetConfigVars' ][] = 'efResourceLoaderGetConfigVars';
+
 	// Register special pages
+	$wgSpecialPages[ 'AdLoader' ] = 'SpecialAdLoader';
+	$wgSpecialPages[ 'AdRandom' ] = 'SpecialAdRandom';
+
 	$wgSpecialPages[ 'Promoter' ] = 'Promoter';
 	$wgSpecialPageGroups[ 'Promoter' ] = 'wiki'; // Wiki data and tools
 	$wgSpecialPages[ 'PromoterAds'] = 'SpecialPromoterAds';
+}
+
+/**
+ * BeforePageDisplay hook handler
+ * This function adds the banner controller
+ *
+ * @param $out  OutputPage
+ * @param $skin Skin
+ * @return bool
+ */
+function efPromoterLoader( $out, $skin ) {
+	// Insert the ad controller
+	$out->addModules( 'ext.promoter.adController' );
+	return true;
+}
+
+/**
+ * SkinHelenaSidebarButtons hook handler
+ * This function outputs the ad div.
+ *
+ * @param $notice string
+ * @return bool
+ */
+function efPromoterDisplay( &$skin, &$buttons ) {
+	$buttons .= HTML::openElement( 'div', array( 'id' => 'sidebarPromotion' ) );
+	$buttons .= '<div id="promoter"><header class="header"><span class="icon pull-right"></span>שאלה לגבי הפנסיה?</header>'
+		. '<div class="content">באתר משרד הכלכלה תמצאו שאלות ותשובות בנושא חובת הפנסיה לעובדים במשק בית.<div class="mainlink">לפרטים נוספים...</div></div></div>';
+	$buttons .= HTML::closeElement( 'div' );
+	return true;
 }

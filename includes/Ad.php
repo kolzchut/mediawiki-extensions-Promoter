@@ -70,7 +70,7 @@ class Ad {
 	protected $allocateAnon = false;
 
 	/** @var bool True if the ad should be allocated to logged in users. */
-	protected $allocateLoggedIn = false;
+	protected $allocateUser = false;
 
 	/** @var string Category that the ad belongs to. Will be special value expanded. */
 	protected $category = '{{{campaign}}}';
@@ -194,9 +194,9 @@ class Ad {
 	 *
 	 * @return bool
 	 */
-	public function allocateToLoggedIn() {
+	public function allocateToUser() {
 		$this->populateBasicData();
-		return $this->allocateLoggedIn;
+		return $this->allocateUser;
 	}
 
 	/**
@@ -210,10 +210,10 @@ class Ad {
 	public function setAllocation( $anon, $loggedIn ) {
 		$this->populateBasicData();
 
-		if ( ( $this->allocateAnon !== $anon ) || ( $this->allocateLoggedIn !== $loggedIn ) ) {
+		if ( ( $this->allocateAnon !== $anon ) || ( $this->allocateUser !== $loggedIn ) ) {
 			$this->setBasicDataDirty();
 			$this->allocateAnon = $anon;
-			$this->allocateLoggedIn = $loggedIn;
+			$this->allocateUser = $loggedIn;
 		}
 
 		return $this;
@@ -373,7 +373,7 @@ class Ad {
 			$this->id = (int)$row->ad_id;
 			$this->name = $row->ad_name;
 			$this->allocateAnon = (bool)$row->ad_display_anon;
-			$this->allocateLoggedIn = (bool)$row->ad_display_user;
+			$this->allocateUser = (bool)$row->ad_display_user;
 			$this->adCaption = $row->ad_title;
 			$this->adLink = $row->ad_mainlink;
 			//$this->archived = (bool)$row->ad_archived;
@@ -417,7 +417,7 @@ class Ad {
 			$db->update( 'pr_ads',
 				array(
 					 'ad_display_anon'    => (int)$this->allocateAnon,
-					 'ad_display_user' => (int)$this->allocateLoggedIn,
+					 'ad_display_user' => (int)$this->allocateUser,
 					 'ad_title' => $this->adCaption,
 					 'ad_mainlink' => $this->adLink
 					 //'ad_archived'        => $this->archived,
@@ -942,7 +942,7 @@ class Ad {
 			throw new AdExistenceException( "Ad by that name already exists!" );
 		}
 
-		$destAd->setAllocation( $this->allocateToAnon(), $this->allocateToLoggedIn() );
+		$destAd->setAllocation( $this->allocateToAnon(), $this->allocateToUser() );
 		$destAd->setCategory( $this->getCategory() );
 		//$destAd->setMixins( array_keys( $this->getMixins() ) );
 
@@ -1137,8 +1137,7 @@ class Ad {
 
 		$details = array(
 			'anon'             => (int)$ad->allocateToAnon(),
-			'user'          => (int)$ad->allocateToLoggedIn(),
-			//'controller_mixin' => implode( ",", array_keys( $ad->getMixins() ) ),
+			'user'          => (int)$ad->allocateToUser(),
 		);
 
 		return $details;
@@ -1198,7 +1197,7 @@ class Ad {
 	 * @param $body             string content of ad
 	 * @param $user             User causing the change
 	 * @param $displayAnon      integer flag for display to anonymous users
-	 * @param $displayAccount   integer flag for display to logged in users
+	 * @param $displayUser   integer flag for display to logged in users
 	 * @param $caption			string caption/heading of ad
 	 * @param $mainlink			string main link for the ad (link caption to page)
 	 * @param $mixins           array list of mixins (optional)
@@ -1206,7 +1205,7 @@ class Ad {
 	 *
 	 * @return bool true or false depending on whether ad was successfully added
 	 */
-	static function addAd( $name, $body, $caption, $mainlink, $user, $displayAnon, $displayAccount,
+	static function addAd( $name, $body, $caption, $mainlink, $user, $displayAnon, $displayUser,
 						  $mixins = array(), $priorityLangs = array()
 	) {
 		if ( $name == '' || !Ad::isValidAdName( $name ) || $body == '' ) {
@@ -1218,7 +1217,7 @@ class Ad {
 			return 'promoter-ad-exists';
 		}
 
-		$ad->setAllocation( $displayAnon, $displayAccount );
+		$ad->setAllocation( $displayAnon, $displayUser );
 
 
 		$ad->setCaption( $caption );

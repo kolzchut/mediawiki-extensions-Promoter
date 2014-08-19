@@ -246,7 +246,7 @@ class Promoter extends SpecialPage {
 				array(
 					'cellpadding' => 9,
 					'width'       => '100%',
-					'class'       => 'wikitable sortable'
+					'class'       => 'table table-striped table-hover sortable'
 				)
 			);
 

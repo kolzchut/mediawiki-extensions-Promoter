@@ -27,6 +27,9 @@ $dir = __DIR__;
 
 /* Configuration */
 
+// Server-side banner cache timeout in seconds
+$wgPromoterAdMaxAge = 600;
+
 /** @var $wgPromoterTabifyPages array Declare all pages that should be tabified as PR pages */
 $wgPromoterTabifyPages = array(
 	/* Left side 'namespace' tabs */

@@ -37,6 +37,10 @@ form#pr-ad-editor .mw-input {
 	margin-left: 1em;
 }
 
+form#pr-ad-editor textarea {
+	width: auto; // Override default style of 100%
+}
+
 #pr-formsection-clone-ad {
 	border: none;
 	display: none;

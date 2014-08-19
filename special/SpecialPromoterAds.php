@@ -24,10 +24,7 @@ class SpecialPromoterAds extends Promoter {
 
 		// Load things that may have been serialized into the session
 		$this->adFilterString = $this->getPRSessionVar( 'adFilterString', '' );
-		$this->adLanguagePreview = $this->getPRSessionVar(
-			'adLanguagePreview',
-			$this->getLanguage()->getCode()
-		);
+
 	}
 
 	function __destruct() {
@@ -78,17 +75,11 @@ class SpecialPromoterAds extends Promoter {
 				}
 				break;
 
+			/*
 			case 'preview':
-				// Preview all available translations
-				// Display the ad editor form
-				if ( array_key_exists( 1, $parts ) ) {
-					$this->adName = $parts[1];
-					$this->showAllLanguages();
-				} else {
-					throw new ErrorPageError( 'campaignad', 'promoter-generic-error' );
-				}
-				break;
 
+				break;
+			*/
 			default:
 				// Something went wrong; display error page
 				throw new ErrorPageError( 'campaignad', 'promoter-generic-error' );
@@ -312,7 +303,6 @@ class SpecialPromoterAds extends Promoter {
 				array( 'class' => 'pr-ad-list-element-label-text' ),
 				array(
 					 'ad' => $this->adName,
-					 'uselang' => $this->adLanguagePreview,
 					 'force' => '1',
 				)
 			) );
@@ -346,12 +336,6 @@ class SpecialPromoterAds extends Promoter {
 	}
 
 	protected function generateAdEditForm() {
-		global /* $wgNoticeMixins, */ $wgNoticeUseTranslateExtension, $wgLanguageCode;
-
-		$languages = Language::fetchLanguageNames( $this->getLanguage()->getCode() );
-		array_walk( $languages, function( &$val, $index ) { $val = "$index - $val"; } );
-		$languages = array_flip( $languages );
-
 		$ad = Ad::fromName( $this->adName );
 		$adSettings = $ad->getAdSettings( $this->adName, true );
 
@@ -362,7 +346,6 @@ class SpecialPromoterAds extends Promoter {
 			'section' => 'preview',
 			'class' => 'HTMLPromoterAd',
 			'ad' => $this->adName,
-			'language' => $this->adLanguagePreview,
 		);
 
 		/* --- Ad Settings --- */
@@ -382,101 +365,22 @@ class SpecialPromoterAds extends Promoter {
 
 		$selected = array();
 		if ( $adSettings[ 'anon' ] === 1 ) { $selected[] = 'anonymous'; }
-		if ( $adSettings[ 'account' ] === 1 ) { $selected[] = 'registered'; }
+		if ( $adSettings[ 'user' ] === 1 ) { $selected[] = 'user'; }
 		$formDescriptor[ 'display-to' ] = array(
 			'section' => 'settings',
 			'type' => 'multiselect',
 			'disabled' => !$this->editable,
 			'label-message' => 'promoter-ad-display',
 			'options' => array(
-				$this->msg( 'promoter-ad-logged-in' )->text() => 'registered',
+				$this->msg( 'promoter-ad-user' )->text() => 'user',
 				$this->msg( 'promoter-ad-anonymous' )->text() => 'anonymous'
 			),
 			'default' => $selected,
 			'cssclass' => 'separate-form-element',
 		);
 
-		/*
-		$mixinNames = array_keys( $wgNoticeMixins );
-		$availableMixins = array_combine( $mixinNames, $mixinNames );
-		$selectedMixins = array_keys( $ad->getMixins() );
-		$formDescriptor['mixins'] = array(
-			'section' => 'settings',
-			'type' => 'multiselect',
-			'disabled' => !$this->editable,
-			'label-message' => 'promoter-ad-mixins',
-			'help-message' => 'promoter-ad-mixins-help',
-			'cssclass' => 'separate-form-element',
-			'options' => $availableMixins,
-			'default' => $selectedMixins,
-		);
-		*/
-
-
-		/* --- Translatable Messages Section --- */
-		$messages = $ad->getMessageFieldsFromCache( $ad->getBodyContent() );
-
-		if ( $messages ) {
-			// Only show this part of the form if messages exist
-
-			$formDescriptor[ 'translate-language' ] = array(
-				'section' => 'ad-messages',
-				'class' => 'LanguageSelectHeaderElement',
-				'label-message' => 'promoter-language',
-				'options' => $languages,
-				'default' => $this->adLanguagePreview,
-				'cssclass' => 'separate-form-element',
-			);
-
-			$messageReadOnly = false;
-			if ( $wgNoticeUseTranslateExtension && ( $this->adLanguagePreview !== $wgLanguageCode ) ) {
-				$messageReadOnly = true;
-			}
-			foreach ( $messages as $messageName => $count ) {
-				if ( $wgNoticeUseTranslateExtension ) {
-					// Create per message link to the translate extension
-					$title = SpecialPage::getTitleFor( 'Translate' );
-					$label = Xml::tags( 'td', null,
-						Linker::link( $title, htmlspecialchars( $messageName ), array(), array(
-								'group' => AdMessageGroup::getTranslateGroupName( $ad->getName() ),
-								'task' => 'view'
-							)
-						)
-					);
-				} else {
-					$label = htmlspecialchars( $messageName );
-				}
-
-				$formDescriptor[ "message-$messageName" ] = array(
-					'section' => 'ad-messages',
-					'class' => 'HTMLPromoterAdMessage',
-					'label-raw' => $label,
-					'ad' => $this->adName,
-					'message' => $messageName,
-					'language' => $this->adLanguagePreview,
-					'cssclass' => 'separate-form-element',
-				);
-
-				if ( !$this->editable || $messageReadOnly ) {
-					$formDescriptor[ "message-$messageName" ][ 'readonly' ] = true;
-				}
-			}
-
-		}
 
 		/* -- The ad editor -- */
-
-/*
-		$formDescriptor[ 'ad-magic-words' ] = array(
-			'section' => 'edit-ad',
-			'class' => 'HTMLInfoField',
-			'default' => Html::rawElement(
-				'div',
-				array( 'class' => 'separate-form-element' ),
-				$this->msg( 'promoter-edit-ad-summary' )->escaped() ),
-			'rawrow' => true,
-		);
-*/
 
 		$renderer = new AdRenderer( $this->getContext(), $ad );
 		$magicWords = $renderer->getMagicWords();
@@ -484,41 +388,11 @@ class SpecialPromoterAds extends Promoter {
 			$word = '{{{' . $word . '}}}';
 		}
 
-		/*
-		$formDescriptor[ 'ad-mixin-words' ] = array(
-			'section' => 'edit-ad',
-			'type' => 'info',
-			'default' => $this->msg(
-					'promoter-edit-ad-magicwords',
-					$this->getLanguage()->listToText( $magicWords )
-				)->text(),
-			'rawrow' => true,
-		);
-		*/
-
-		/*
-		$buttons = array();
-		// TODO: Fix this gawdawful method of inserting the close button
-		$buttons[ ] =
-			'<a href="#" onclick="mw.promoter.adminUi.adEditor.insertButton(\'close\');return false;">' .
-				$this->msg( 'promoter-close-button' )->text() . '</a>';
-		$formDescriptor[ 'ad-insert-button' ] = array(
-			'section' => 'edit-ad',
-			'class' => 'HTMLInfoField',
-			'rawrow' => true,
-			'default' => Html::rawElement(
-				'div',
-				array( 'class' => 'ad-editing-top-hint separate-form-element' ),
-				$this->msg( 'promoter-insert' )->
-					rawParams( $this->getLanguage()->commaList( $buttons ) )->
-					escaped() ),
-		);
-		*/
-
-
 		$formDescriptor[ 'ad-title' ] = array(
 			'section' => 'edit-ad',
 			'type' => 'text',
+			'readonly' => !$this->editable,
+			'required' => true,
 			//'placeholder' => '<!-- ad heading -->',
 			'default' => $ad->getCaption(),
 			'label-message' => 'promoter-ad-title',
@@ -528,6 +402,8 @@ class SpecialPromoterAds extends Promoter {
 		$formDescriptor[ 'ad-link' ] = array(
 			'section' => 'edit-ad',
 			'type' => 'text',
+			'readonly' => !$this->editable,
+			//'required' => true,
 			'placeholder' => 'שם העמוד',
 			'default' => $ad->getMainLink(),
 			'label-message' => 'promoter-ad-link',
@@ -542,7 +418,10 @@ class SpecialPromoterAds extends Promoter {
 		$formDescriptor[ 'ad-body' ] = array(
 			'section' => 'edit-ad',
 			'type' => 'textarea',
+			'rows' => 5,
+			'cols' => 45, // Same as the regular inputs
 			'readonly' => !$this->editable,
+			'required' => true,
 			'label-message' => 'promoter-ad-body',
 			'placeholder' => '<!-- blank ad -->',
 			'default' => $ad->getBodyContent(),
@@ -626,12 +505,6 @@ class SpecialPromoterAds extends Promoter {
 	public function processEditAd( $formData ) {
 		// First things first! Figure out what the heck we're actually doing!
 		switch ( $formData[ 'action' ] ) {
-			case 'update-lang':
-				$newLanguage = $formData[ 'translate-language' ];
-				$this->setPRSessionVar( 'adLanguagePreview', $newLanguage );
-				$this->adLanguagePreview = $newLanguage;
-				break;
-
 			case 'delete':
 				if ( !$this->editable ) {
 					return null;
@@ -679,82 +552,31 @@ class SpecialPromoterAds extends Promoter {
 	}
 
 	protected function processSaveAdAction( $formData ) {
-		global $wgNoticeUseTranslateExtension, $wgLanguageCode;
-
 		$ad = Ad::fromName( $this->adName );
 
-		/* --- Update the translations --- */
-		// But only if we aren't using translate or if the preview language is the content language
-		if ( !$wgNoticeUseTranslateExtension || ( $this->adLanguagePreview === $wgLanguageCode ) ) {
-			foreach( $formData as $key => $value ) {
-				if ( strpos( $key, 'message-' ) === 0 ) {
-					$messageName = substr( $key, strlen( 'message-' ) );
-					$adMessage = $ad->getMessageField( $messageName );
-					$adMessage->update( $value, $this->adLanguagePreview, $this->getUser() );
-				}
+		foreach( $formData as $key => $value ) {
+			if ( strpos( $key, 'message-' ) === 0 ) {
+				$messageName = substr( $key, strlen( 'message-' ) );
+				$adMessage = $ad->getMessageField( $messageName );
+				$adMessage->update( $value, $this->adLanguagePreview, $this->getUser() );
 			}
 		}
 
 		/* --- Ad settings --- */
 				$ad->setAllocation(
 			in_array( 'anonymous', $formData[ 'display-to' ] ),
-			in_array( 'registered', $formData[ 'display-to' ] )
+			in_array( 'user', $formData[ 'display-to' ] )
 		);
 
 		$ad->setCaption( $formData['ad-title'] );
 		$ad->setMainLink( $formData['ad-link'] );
-
-		//$ad->setCategory( $formData[ 'ad-class' ] );
 		$ad->setBodyContent( $formData[ 'ad-body' ] );
-
-		//$ad->setMixins( $formData['mixins'] );
 
 		$ad->save( $this->getUser() );
 
 		return null;
 	}
 
-	/**
-	 * Preview all available translations of a ad
-	 */
-	protected function showAllLanguages() {
-		$out = $this->getOutput();
-
-		if ( !Ad::isValidAdName( $this->adName ) ) {
-			$out->addHTML(
-				Xml::element( 'div', array( 'class' => 'error' ), wfMessage( 'promoter-generic-error' ) )
-			);
-			return;
-		}
-		$out->setPageTitle( $this->adName );
-
-		// Large amounts of memory apparently required to do this
-		ini_set( 'memory_limit', '120M' );
-
-		$ad = Ad::fromName( $this->adName );
-
-		// Pull all available text for a ad
-		$langs = $ad->getAvailableLanguages();
-		$htmlOut = '';
-
-		$langContext = new DerivativeContext( $this->getContext() );
-
-		foreach ( $langs as $lang ) {
-			// HACK: We need to unify these two contexts...
-			$langContext->setLanguage( $lang );
-			$allocContext = new AllocationContext( 'XX', $lang, 'wikipedia', true, 'desktop', 0 );
-			$adRenderer = new AdRenderer( $langContext, $ad, 'test', $allocContext );
-
-			// Link and Preview all available translations
-			$htmlOut .= Xml::tags(
-				'td',
-				array( 'valign' => 'top' ),
-				$adRenderer->previewFieldSet()
-			);
-		}
-
-		$this->getOutput()->addHtml( $htmlOut );
-	}
 }
 
 /**
@@ -767,65 +589,5 @@ class PromoterHtmlForm extends HTMLForm {
 	 */
 	function getBody() {
 		return $this->displaySection( $this->mFieldTree, '', 'pr-formsection-' );
-	}
-}
-
-/**
- * Acts as a header to the translatable ad message list
- *
- * Class LanguageSelectHeaderElement
- */
-class LanguageSelectHeaderElement extends HTMLSelectField {
-	public function getInputHTML( $value ) {
-		global $wgContLang;
-
-		$html = Xml::openElement( 'table', array( 'class' => 'pr-message-table' ) );
-		$html .= Xml::openElement( 'tr' );
-
-		$html .= Xml::element( 'td', array( 'class' => 'pr-message-text-origin-header' ),
-			$wgContLang->fetchLanguageName( $wgContLang->getCode() )
-		);
-
-		$html .= Xml::openElement( 'td', array( 'class' => 'pr-message-text-native-header' ) );
-		$html .= parent::getInputHTML( $value );
-		$html .= Xml::closeElement( 'td' );
-
-		$html .= Xml::closeElement( 'tr' );
-		$html .= Xml::closeElement( 'table' );
-
-		return $html;
-	}
-}
-
-class HTMLLargeMultiSelectField extends HTMLMultiSelectField {
-	public function getInputHTML( $value ) {
-		if ( !is_array( $value ) ) {
-			$value = array( $value );
-		}
-
-		$options = "\n";
-		foreach ( $this->mParams[ 'options' ] as $name => $optvalue ) {
-			$options .= Xml::option(
-				$name,
-				$optvalue,
-				in_array( $optvalue, $value )
-			) . "\n";
-		}
-
-		$properties = array(
-			'multiple' => 'multiple',
-			'id' => $this->mID,
-			'name' => "$this->mName[]",
-		);
-
-		if ( !empty( $this->mParams[ 'disabled' ] ) ) {
-			$properties[ 'disabled' ] = 'disabled';
-		}
-
-		if ( !empty( $this->mParams[ 'cssclass' ] ) ) {
-			$properties[ 'class' ] = $this->mParams[ 'cssclass' ];
-		}
-
-		return Xml::tags( 'select', $properties, $options );
 	}
 }
