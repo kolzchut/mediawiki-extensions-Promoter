@@ -236,12 +236,10 @@ class SpecialPromoterAds extends Promoter {
 					} else {
 						$retval = Ad::addAd(
 							$this->adName,
-							"<!-- Empty ad -->",
+							"",
 							null,
 							null,
-							$this->getUser(),
-							false,
-							false
+							$this->getUser()
 						);
 
 						if ( $retval ) {
@@ -382,16 +380,9 @@ class SpecialPromoterAds extends Promoter {
 
 		/* -- The ad editor -- */
 
-		$renderer = new AdRenderer( $this->getContext(), $ad );
-		$magicWords = $renderer->getMagicWords();
-		foreach ( $magicWords as &$word ) {
-			$word = '{{{' . $word . '}}}';
-		}
-
 		$formDescriptor[ 'ad-title' ] = array(
 			'section' => 'edit-ad',
 			'type' => 'text',
-			'readonly' => !$this->editable,
 			'required' => true,
 			//'placeholder' => '<!-- ad heading -->',
 			'default' => $ad->getCaption(),
@@ -402,7 +393,6 @@ class SpecialPromoterAds extends Promoter {
 		$formDescriptor[ 'ad-link' ] = array(
 			'section' => 'edit-ad',
 			'type' => 'text',
-			'readonly' => !$this->editable,
 			//'required' => true,
 			'placeholder' => 'שם העמוד',
 			'default' => $ad->getMainLink(),
@@ -420,13 +410,18 @@ class SpecialPromoterAds extends Promoter {
 			'type' => 'textarea',
 			'rows' => 5,
 			'cols' => 45, // Same as the regular inputs
-			'readonly' => !$this->editable,
 			'required' => true,
 			'label-message' => 'promoter-ad-body',
 			'placeholder' => '<!-- blank ad -->',
 			'default' => $ad->getBodyContent(),
 			'cssclass' => 'separate-form-element'
 		);
+
+		if( !$this->editable ) {
+			foreach( $formDescriptor as $item ) {
+				$item['readonly'] = 'readonly';
+			}
+		}
 
 		$links = array();
 		foreach( $ad->getIncludedTemplates() as $titleObj ) {
@@ -554,16 +549,8 @@ class SpecialPromoterAds extends Promoter {
 	protected function processSaveAdAction( $formData ) {
 		$ad = Ad::fromName( $this->adName );
 
-		foreach( $formData as $key => $value ) {
-			if ( strpos( $key, 'message-' ) === 0 ) {
-				$messageName = substr( $key, strlen( 'message-' ) );
-				$adMessage = $ad->getMessageField( $messageName );
-				$adMessage->update( $value, $this->adLanguagePreview, $this->getUser() );
-			}
-		}
-
 		/* --- Ad settings --- */
-				$ad->setAllocation(
+		$ad->setAllocation(
 			in_array( 'anonymous', $formData[ 'display-to' ] ),
 			in_array( 'user', $formData[ 'display-to' ] )
 		);

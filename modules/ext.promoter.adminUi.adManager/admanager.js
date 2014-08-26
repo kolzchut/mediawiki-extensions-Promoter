@@ -50,16 +50,17 @@
 				dialogObj = $('<form></form>');
 
 			// Implement the functionality
-			buttons[ cancelButtonText ] = function() { $(this).dialog("close"); };
 			buttons[ okButtonText ] = function() {
 				var formobj = $('#pr-ad-manager')[0];
 				formobj.wpaction.value = 'create';
 				formobj.wpnewAdName.value = $(this)[0].wpnewAdName.value;
 				formobj.submit();
 			};
+			buttons[ cancelButtonText ] = function() { $(this).dialog("close"); };
+
 
 			// Create the dialog by copying the textfield element into a new form
-			dialogObj[0].name = 'addAdDialog';
+			dialogObj[0].name = dialogObj[0].id = 'addAdDialog';
 			dialogObj.append( $( '#pr-formsection-addAd' ).children( 'div' ).clone().show() )
 				.dialog( {
 					title: mw.message( 'promoter-add-new-ad-title' ).text(),

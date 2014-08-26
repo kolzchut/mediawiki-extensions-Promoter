@@ -85,3 +85,7 @@ fieldset #pr-formsection-header-one-off {
 .ui-dialog-content legend {
 	display: none;
 }
+
+#addAdDialog #mw-input-wpnewAdName {
+	width: 100%;
+}

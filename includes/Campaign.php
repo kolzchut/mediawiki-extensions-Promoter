@@ -8,9 +8,6 @@ class Campaign {
 	/** @var int the page / category the campaign is linked to */
 	//protected $catPageId = null;
 
-	/** @var bool True if the campaign should use general ads as well */
-	protected $useGeneralAds = null;
-
 	/** @var bool True if the campaign is enabled for showing */
 	protected $enabled = null;
 
@@ -91,21 +88,6 @@ class Campaign {
 	}
 
 	/**
-	 * Returns whether the campaign uses general ads
-	 *
-	 * @throws CampaignExistenceException If lazy loading failed.
-	 * @return bool
-	 */
-	public function isUsingGeneralAds() {
-		if ( $this->useGeneralAds === null ) {
-			$this->loadBasicSettings();
-		}
-
-		return $this->useGeneralAds;
-	}
-
-
-	/**
 	 * Load basic campaign settings from the database table pr_campaigns
 	 *
 	 * @throws CampaignExistenceException If the campaign doesn't exist
@@ -128,24 +110,35 @@ class Campaign {
 			array(
 				 'cmp_id',
 				 'cmp_name',
-				 //'cmp_cat_page_id',
-				 'cmp_use_general_ads',
 				 'cmp_enabled',
 				 'cmp_archived',
 			),
 			$selector,
 			__METHOD__
 		);
+
+		/*
+		echo '<pre dir="ltr">';
+		print_r($row);
+		echo '</pre>';
+		*/
+
 		if ( $row ) {
-			$this->useGeneralAds = (bool)$row->cmp_use_general_ads;
+			$this->id = (int)$row->cmp_id;
+			$this->name = $row->cmp_name;
 			$this->enabled = (bool)$row->cmp_enabled;
 			$this->archived = (bool)$row->cmp_archived;
-			//$this->catPageId = (int)$row->cmp_cat_page_id;
 		} else {
 			throw new CampaignExistenceException(
 				"Campaign could not be retrieved from database with id '{$this->id}' or name '{$this->name}'"
 			);
 		}
+
+		/*
+		echo '<pre dir="ltr">';
+		print_r($this);
+		echo '</pre>';
+		*/
 	}
 
 	/**
@@ -162,49 +155,48 @@ class Campaign {
 		return (bool)$dbr->selectRow( 'pr_campaigns', 'cmp_name', array( 'cmp_name' => $eCampaignName ) );
 	}
 
+
 	/**
-	 * Returns a list of campaigns. May be filtered on optional constraints.
-	 * By default returns only enabled and active campaigns in all projects, languages and
-	 * countries.
+	 * Return all ads bound to the campaign
 	 *
-	 * @param bool $enabled If true, select only active campaigns. If false select all.
-	 * @param bool $archived If true: only archived; false: only active; null; all.
-	 *
-	 * @return array Array of campaign IDs that matched the filter.
+	 * @return array a 2D array of ads with associated weights and settings
 	 */
-	static function getCampaigns( $enabled = true, $archived = false ) {
-		$campaign = array();
-		$conds = array();
-		// Database setup
+	function getAds() {
 		$dbr = PRDatabase::getDb();
 
-		// Therefore... construct the common components : pr_campaigns
+		$ads = array();
 
-		$tables = array( 'campaigns' => 'pr_campaigns' );
-
-		if ( $enabled ) {
-			$conds[ 'cmp_enabled' ] = 1;
-		}
-
-		if ( $archived === true ) {
-			$conds[ 'cmp_archived' ] = 1;
-		} elseif ( $archived === false ) {
-			$conds[ 'cmp_archived' ] = 0;
-		}
-
-		// Pull the campaign IDs
 		$res = $dbr->select(
-			$tables,
-			'cmp_id',
-			$conds,
-			__METHOD__
+		// Aliases (keys) are needed to avoid problems with table prefixes
+			array(
+				'ads' => 'pr_ads',
+				'adlinks' => 'pr_adlinks',
+			),
+			array(
+				'ad_name',
+				'adl_weight',
+				'ad_display_anon',
+				'ad_display_user',
+			),
+			array(
+				'adlinks.cmp_id' => $this->getId(),
+				'adlinks.ad_id = ads.ad_id'
+			),
+			__METHOD__,
+			array(),
+			array()
 		);
+
 		foreach ( $res as $row ) {
-			$campaign[ ] = $row->cmp_id;
+			$ads[] = array(
+				'name'             => $row->ad_name, // name of the ad
+				'weight'           => intval( $row->adl_weight ), // weight assigned to the ad
+				'display_anon'     => intval( $row->ad_display_anon ), // display to anonymous users?
+				'display_user'     => intval( $row->ad_display_user ), // display to logged in users?
+			);
 		}
 
-
-		return $campaign;
+		return $ads;
 	}
 
 	/**
@@ -222,8 +214,6 @@ class Campaign {
 			array('campaigns' => 'pr_campaigns'),
 			array(
 				'cmp_id',
-				//'cmp_cat_page_id',
-				'cmp_use_general_ads',
 				'cmp_enabled',
 				'cmp_archived',
 			),
@@ -232,8 +222,6 @@ class Campaign {
 		);
 		if ( $row ) {
 			$campaign = array(
-				//'catPageId' => $row->cmp_cat_page_id,
-				'useGeneralAds' => $row->cmp_use_general_ads,
 				'enabled'   => $row->cmp_enabled,
 				'archived'  => $row->cmp_archived,
 			);
@@ -241,8 +229,8 @@ class Campaign {
 			return false;
 		}
 
-		/*
-		$adsIn = Ad::getCampaignAds( $row->cmp_id, true );
+		$campaignObj = new Campaign( $campaignName );
+		$adsIn = $campaignObj->getAds();
 		$adsOut = array();
 		// All we want are the ad names and weights
 		foreach ( $adsIn as $key => $row ) {
@@ -251,7 +239,7 @@ class Campaign {
 		}
 		// Encode into a JSON string for storage
 		$campaign[ 'ads' ] = FormatJson::encode( $adsOut );
-*/
+
 		return $campaign;
 	}
 
@@ -274,15 +262,15 @@ class Campaign {
 	 * Add a new campaign to the database
 	 *
 	 * @param $campaignName        string: Name of the campaign
-	 * @param $catPageId		   int: Page / Category the campaign is linked to
 	 * @param $enabled           int: Boolean setting, 0 or 1
 	 * @param $user              User adding the campaign
 	 *
 	 * @throws MWException
+	 * @internal param int $catPageId : Page / Category the campaign is linked to
 	 * @return int|string campaignId on success, or message key for error
 	 */
-	//	static function addCampaign( $campaignName, $catPageId = 0, $useGeneralAds, $enabled, $user ) {
-	static function addCampaign( $campaignName, $useGeneralAds, $enabled, $user ) {
+	//	static function addCampaign( $campaignName, $catPageId = 0, $enabled, $user ) {
+	static function addCampaign( $campaignName, $enabled, $user ) {
 		$campaignName = trim( $campaignName );
 		if ( Campaign::campaignExists( $campaignName ) ) {
 			return 'promoter-campaign-exists';
@@ -294,8 +282,6 @@ class Campaign {
 
 		$dbw->insert( 'pr_campaigns',
 			array( 'cmp_name'    => $campaignName,
-				//'cmp_cat_page_id' => $catPageId,
-				'cmp_use_general_ads' => $useGeneralAds,
 				'cmp_enabled' => $enabled,
 			)
 		);
@@ -499,9 +485,9 @@ class Campaign {
 	/**
 	 * Updates the weight of a ad in a campaign.
 	 *
-	 * @param $campaignName Name of the campaign to update
-	 * @param $adId   		ID of the ad in the campaign
-	 * @param $weight       New ad weight
+	 * @param $campaignName String Name of the campaign to update
+	 * @param $adId   		Int ID of the ad in the campaign
+	 * @param $weight       Int New ad weight
 	 */
 	static function updateWeight( $campaignName, $adId, $weight ) {
 		$dbw = PRDatabase::getDb();
@@ -518,3 +504,4 @@ class Campaign {
 }
 
 class CampaignExistenceException extends MWException {}
+

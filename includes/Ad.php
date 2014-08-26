@@ -33,8 +33,6 @@
  *
  * @see AdChooser
  * @see AdMessage
- * @see AdRenderer
- * @see AdMixin
  */
 class Ad {
 	/**
@@ -52,11 +50,8 @@ class Ad {
 		'content' => null,
 		'messages' => null,
 		'basic' => null,
-		'mixins' => null,
-		'prioritylang' => null,
 	);
 
-	//<editor-fold desc="Properties">
 	// !!! NOTE !!! It is not recommended to use directly. It is almost always more
 	//              correct to use the accessor/setter function.
 
@@ -72,17 +67,9 @@ class Ad {
 	/** @var bool True if the ad should be allocated to logged in users. */
 	protected $allocateUser = false;
 
-	/** @var string Category that the ad belongs to. Will be special value expanded. */
-	protected $category = '{{{campaign}}}';
-
 	/** @var bool True if archived and hidden from default view. */
 	protected $archived = false;
 
-	/** @var string[] Names of enabled mixins  */
-	protected $mixins = array();
-
-	/** @var string[] Language codes considered a priority for translation.  */
-	protected $priorityLanguages = array();
 
 	/** @var string Wikitext content of the ad */
 	protected $bodyContent = '';
@@ -93,8 +80,12 @@ class Ad {
 	/** @var string Main link of the ad */
 	protected $adLink = '';
 
-	protected $runTranslateJob = false;
 	//</editor-fold>
+
+	/**
+	 * @var string Pattern for bool
+	 */
+	const BOOLEAN_PARAM_FILTER = '/true|false/';
 
 	//<editor-fold desc="Constructors">
 	/**
@@ -253,73 +244,6 @@ class Ad {
 	}
 
 	/**
-	 * Get the ad category.
-	 *
-	 * The category is the name of the cookie stored on the users computer. In this way
-	 * ads in the same category may share settings.
-	 *
-	 * @return string
-	 */
-	public function getCategory() {
-		$this->populateBasicData();
-		return $this->category;
-	}
-
-	/**
-	 * Set the ad category.
-	 *
-	 * @see Ad->getCategory()
-	 *
-	 * @param string $value
-	 *
-	 * @return $this
-	 */
-	public function setCategory( $value ) {
-		$this->populateBasicData();
-
-		if ( $this->category !== $value ) {
-			$this->setBasicDataDirty();
-			$this->category = $value;
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Obtain an array of all categories currently seen attached to ads
-	 * @return string[]
-	 */
-	public static function getAllUsedCategories() {
-		$db = PRDatabase::getDb();
-		$res = $db->select(
-			'pr_ads',
-			'ad_category',
-			'',
-			__METHOD__,
-			array( 'DISTINCT', 'ORDER BY ad_category ASC' )
-		);
-
-		$categories = array();
-		foreach ( $res as $row ) {
-			$categories[$row->ad_category] = $row->ad_category;
-		}
-		return $categories;
-	}
-
-	/**
-	 * Remove invalid characters from a category string that has been magic
-	 * word expanded.
-	 *
-	 * @param $cat Category string to sanitize
-	 *
-	 * @return string
-	 */
-	public static function sanitizeRenderedCategory( $cat ) {
-		return preg_replace( '/[^a-zA-Z0-9_]/', '', $cat );
-	}
-
-
-	/**
 	 * Should the ad be considered archived and hidden from default view
 	 *
 	 * @return bool
@@ -377,7 +301,6 @@ class Ad {
 			$this->adCaption = $row->ad_title;
 			$this->adLink = $row->ad_mainlink;
 			//$this->archived = (bool)$row->ad_archived;
-			//$this->category = $row->ad_category;
 		} else {
 			$keystr = array();
 			foreach ( $selector as $key => $value ) {
@@ -432,196 +355,6 @@ class Ad {
 	}
 	//</editor-fold>
 
-	//<editor-fold desc="Mixin management">
-	/**
-	 * @return array Keys are names of enabled mixins; valeus are mixin params.
-	 * @see $wgNoticeMixins
-	 */
-	public function getMixins() {
-		$this->populateMixinData();
-		return $this->mixins;
-	}
-
-	/**
-	 * Set the ad mixins to enable.
-	 *
-	 * @param array $mixins Names of mixins to enable on this ad. Valid values
-	 * come from @see $wgNoticeMixins
-	 *
-	 * @throws MWException
-	 * @return $this
-	 */
-	function setMixins( $mixins ) {
-		global $wgNoticeMixins;
-
-		$this->populateMixinData();
-
-		$mixins = array_unique( $mixins );
-		sort( $mixins );
-
-		if ( $this->mixins != $mixins ) {
-			$this->markMixinDataDirty();
-		}
-
-		$this->mixins = array();
-		foreach ( $mixins as $mixin ) {
-			if ( !array_key_exists( $mixin, $wgNoticeMixins ) ) {
-				throw new MWException( "Mixin does not exist: {$mixin}" );
-			}
-			$this->mixins[$mixin] = $wgNoticeMixins[$mixin];
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Populates mixin data from the pr_ad_mixins table.
-	 *
-	 * @throws MWException
-	 */
-	protected function populateMixinData() {
-		global $wgCampaignMixins;
-
-		if ( $this->dirtyFlags['mixins'] !== null ) {
-			return;
-		}
-
-		$dbr = PRDatabase::getDb();
-
-		$result = $dbr->select( 'pr_ad_mixins', 'mixin_name',
-			array(
-				 "ad_id" => $this->getId(),
-			),
-			__METHOD__
-		);
-
-		$this->mixins = array();
-		foreach ( $result as $row ) {
-			if ( !array_key_exists( $row->mixin_name, $wgCampaignMixins ) ) {
-				// We only want to warn here otherwise we'd never be able to
-				// edit the ad to fix the issue! The editor should warn
-				// when a deprecated mixin is being used; but also when we
-				// do deprecate something we should make sure nothing is using
-				// it!
-				wfLogWarning( "Mixin does not exist: {$row->mixin_name}, included from ad {$this->name}" );
-			}
-			$this->mixins[$row->mixin_name] = $wgCampaignMixins[$row->mixin_name];
-		}
-
-		$this->markMixinDataDirty( false );
-	}
-
-	/**
-	 * Sets the flag which will force saving of mixin data upon next save()
-	 */
-	protected function markMixinDataDirty( $dirty = true ) {
-		return (bool)wfSetVar( $this->dirtyFlags['mixins'], $dirty, true );
-	}
-
-	/**
-	 * @param DatabaseBase $db
-	 */
-	protected function saveMixinData( $db ) {
-		if ( $this->dirtyFlags['mixins'] ) {
-			$db->delete( 'pr_ad_mixins',
-				array( 'ad_id' => $this->getId() ),
-				__METHOD__
-			);
-
-			foreach ( $this->mixins as $name => $params ) {
-				$name = trim( $name );
-				if ( !$name ) {
-					continue;
-				}
-				$db->insert( 'pr_ad_mixins',
-					array(
-						 'ad_id' => $this->getId(),
-						 'page_id' => 0,	// TODO: What were we going to use this for again?
-						 'mixin_name' => $name,
-					),
-					__METHOD__
-				);
-			}
-		}
-	}
-	//</editor-fold>
-
-	//<editor-fold desc="Priority languages">
-	/**
-	 * Returns language codes that are considered a priority for translations.
-	 *
-	 * If a language is in this list it means that the translation UI will promote
-	 * translating them, and discourage translating other languages.
-	 *
-	 * @return string[]
-	 */
-	public function getPriorityLanguages() {
-		$this->populatePriorityLanguageData();
-		return $this->priorityLanguages;
-	}
-
-	/**
-	 * Set language codes that should be considered a priority for translation.
-	 *
-	 * If a language is in this list it means that the translation UI will promote
-	 * translating them, and discourage translating other languages.
-	 *
-	 * @param string[] $languageCodes
-	 *
-	 * @return $this
-	 */
-	public function setPriorityLanguages( $languageCodes ) {
-		$this->populatePriorityLanguageData();
-
-		$languageCodes = array_unique( (array)$languageCodes );
-		sort( $languageCodes );
-
-		if ( $this->priorityLanguages != $languageCodes ) {
-			$this->priorityLanguages = $languageCodes;
-			$this->markPriorityLanguageDataDirty();
-		}
-
-		return $this;
-	}
-
-	protected function populatePriorityLanguageData() {
-		global $wgNoticeUseTranslateExtension;
-
-		if ( $this->dirtyFlags['prioritylang'] !== null ) {
-			return;
-		}
-
-		if ( $wgNoticeUseTranslateExtension ) {
-			$langs = TranslateMetadata::get(
-				AdMessageGroup::getTranslateGroupName( $this->getName() ),
-				'prioritylangs'
-			);
-			if ( !$langs ) {
-				// If priority langs is not set; TranslateMetadata::get will return false
-				$langs = '';
-			}
-			$this->priorityLanguages = explode( ',', $langs );
-		}
-		$this->markPriorityLanguageDataDirty( false );
-	}
-
-	protected function markPriorityLanguageDataDirty( $dirty = true ) {
-		return (bool)wfSetVar( $this->dirtyFlags['prioritylang'], $dirty, true );
-	}
-
-	protected function savePriorityLanguageData() {
-		global $wgNoticeUseTranslateExtension;
-
-		if ( $wgNoticeUseTranslateExtension && $this->dirtyFlags['prioritylang'] ) {
-			TranslateMetadata::set(
-				AdMessageGroup::getTranslateGroupName( $this->getName() ),
-				'prioritylangs',
-				implode( ',', $this->priorityLanguages )
-			);
-		}
-	}
-	//</editor-fold>
-
 	//<editor-fold desc="Ad body content">
 	public function getDbKey() {
 		$name = $this->getName();
@@ -640,24 +373,6 @@ class Ad {
 	 */
 	public function getIncludedTemplates() {
 		return $this->getTitle()->getTemplateLinksFrom();
-	}
-
-	/**
-	 * Get the heading/caption for the ad.
-	 *
-	 * @return string HTML
-	 */
-	public function getAdCaption() {
-		return $this->adCaption;
-	}
-
-	/**
-	 * Get the main link for the ad.
-	 *
-	 * @return string HTML
-	 */
-	public function getAdLink() {
-		return $this->adLink;
 	}
 
 	/**
@@ -719,114 +434,6 @@ class Ad {
 	}
 	//</editor-fold>
 
-	//<editor-fold desc="Ad message fields">
-	function getMessageField( $field_name ) {
-		return new AdMessage( $this->getName(), $field_name );
-	}
-
-	/**
-	 * Returns all the message fields in an ad
-	 * @see Ad::extractMessageFields()
-	 *
-	 * @param bool|string $bodyContent If a string will regenerate cache object from the string
-	 *
-	 * @return array|mixed
-	 */
-	function getMessageFieldsFromCache( $bodyContent = false ) {
-		global $wgMemc;
-
-		$key = wfMemcKey( 'promoter', 'adfields', $this->getName() );
-		$data = false;
-		if ( $bodyContent === false ) {
-			$data = $wgMemc->get( $key );
-		}
-
-		if ( $data !== false ) {
-			$data = json_decode( $data, true );
-		} else {
-			$data = $this->extractMessageFields( $bodyContent );
-			$wgMemc->set( $key, json_encode( $data ) );
-		}
-
-		return $data;
-	}
-
-	/**
-	 * Extract the raw fields and field names from the ad body source.
-	 * @param string $body The unparsed body source of the ad
-	 * @return array
-	 */
-	function extractMessageFields( $body = null ) {
-		global $wgParser;
-
-		if ( $body === null ) {
-			$body = $this->getBodyContent();
-		}
-
-		$expanded = $wgParser->parse(
-			$body, $this->getTitle(), ParserOptions::newFromContext( RequestContext::getMain() )
-		)->getText();
-
-		// Also search the preload js for fields.
-		$renderer = new AdRenderer( RequestContext::getMain(), $this );
-		//$expanded .= $renderer->getPreloadJsRaw();
-
-		// Extract message fields from the ad body
-		$fields = array();
-		$allowedChars = Title::legalChars();
-		// We're using a janky custom syntax to pass arguments to a field message:
-		// "{{{fieldname:arg1|arg2}}}"
-		$allowedChars = str_replace( ':', '', $allowedChars );
-		preg_match_all( "/{{{([$allowedChars]+)(:[^}]*)?}}}/u", $expanded, $fields );
-
-		// Remove duplicate keys and count occurrences
-		$unique_fields = array_unique( array_flip( $fields[1] ) );
-		$fields = array_intersect_key( array_count_values( $fields[1] ), $unique_fields );
-
-		$fields = array_diff_key( $fields, array_flip( $renderer->getMagicWords() ) );
-
-		return $fields;
-	}
-
-	/**
-	 * Returns a list of messages that are either published or in the PRAd translation
-	 *
-	 * @param bool $inTranslation If true and using group translation this will return
-	 * all the messages that are in the translation system
-	 *
-	 * @return array A list of languages with existing field translations
-	 */
-	function getAvailableLanguages( $inTranslation = false ) {
-		global $wgLanguageCode;
-		$availableLangs = array();
-
-		// Bit of an ugly hack to get just the ad prefix
-		$prefix = $this->getMessageField( '' )->getDbKey( null, $inTranslation ? NS_PR_AD : NS_MEDIAWIKI );
-
-		$db = PRDatabase::getDb();
-		$result = $db->select( 'page',
-			'page_title',
-			array(
-				 'page_namespace' => $inTranslation ? NS_PR_AD : NS_MEDIAWIKI,
-				 'page_title' . $db->buildLike( $prefix, $db->anyString() ),
-			),
-			__METHOD__
-		);
-		while ( $row = $result->fetchRow() ) {
-			if ( preg_match( "/\Q{$prefix}\E([^\/]+)(?:\/([a-z_]+))?/", $row['page_title'], $matches ) ) {
-				$field = $matches[1];
-				if ( isset( $matches[2] ) ) {
-					$lang = $matches[2];
-				} else {
-					$lang = $wgLanguageCode;
-				}
-				$availableLangs[$lang] = true;
-			}
-		}
-		return array_keys( $availableLangs );
-	}
-	//</editor-fold>
-
 	//<editor-fold desc="Ad actions">
 	//<editor-fold desc="Saving">
 	/**
@@ -865,15 +472,6 @@ class Ad {
 			// Clear the dirty flags
 			foreach ( $this->dirtyFlags as $flag => &$value ) { $value = false; }
 
-			if ( $this->runTranslateJob ) {
-				// Must be run after ad has finished saving due to some dependencies that
-				// exist in the render job.
-				// TODO: This will go away if we start tracking messages in database :)
-				MessageGroups::clearCache();
-				MessageIndexRebuildJob::newJob()->run();
-				$this->runTranslateJob = false;
-			}
-
 		} catch ( Exception $ex ) {
 			$db->rollback( __METHOD__ );
 			throw $ex;
@@ -909,8 +507,6 @@ class Ad {
 	 */
 	protected function saveAdInternal( $db ) {
 		$this->saveBasicData( $db );
-		//$this->saveMixinData( $db );
-		$this->savePriorityLanguageData();
 	}
 	//</editor-fold>
 
@@ -943,25 +539,11 @@ class Ad {
 		}
 
 		$destAd->setAllocation( $this->allocateToAnon(), $this->allocateToUser() );
-		$destAd->setCategory( $this->getCategory() );
-		//$destAd->setMixins( array_keys( $this->getMixins() ) );
 
 		$destAd->setCaption( $this->getCaption() );
 		$destAd->setMainLink( $this->getMainLink() );
 
 		$destAd->setBodyContent( $this->getBodyContent() );
-
-		// Populate the message fields
-		$langs = $this->getAvailableLanguages();
-		$fields = $this->extractMessageFields();
-		foreach ( $langs as $lang ) {
-			foreach ( $fields as $field => $count ) {
-				$text = $this->getMessageField( $field )->getContents( $lang );
-				if ( $text !== null ) {
-					$destAd->getMessageField( $field )->update( $text, $lang, $user );
-				}
-			}
-		}
 
 		// Save it!
 		$destAd->save( $user );
@@ -977,8 +559,6 @@ class Ad {
 	}
 
 	static function removeAd( $name, $user ) {
-		global $wgPromoterUseTranslateExtension;
-
 		$adObj = Ad::fromName( $name );
 		$id = $adObj->getId();
 		$dbr = PRDatabase::getDb();
@@ -1006,119 +586,9 @@ class Ad {
 			);
 			$pageId = $article->getPage()->getId();
 			$article->doDeleteArticle( 'Promoter automated removal' );
-
-			if ( $wgPromoterUseTranslateExtension ) {
-				// Remove any revision tags related to the ad
-				Ad::removeTag( 'ad:translate', $pageId );
-
-				// And the preferred language metadata if it exists
-				TranslateMetadata::set(
-					AdMessageGroup::getTranslateGroupName( $name ),
-					'prioritylangs',
-					false
-				);
-			}
 		}
 	}
 	//</editor-fold>
-
-	//<editor-fold desc=" Random stuff that still needs to die a hideous horrible death">
-	/**
-	 * Add a revision tag for the ad
-	 * @param string $tag The name of the tag
-	 * @param integer $revisionId ID of the revision
-	 * @param integer $pageId ID of the MediaWiki page for the ad
-	 * @param string $adId ID of ad this revtag belongs to
-	 * @throws MWException
-	 */
-	static function addTag( $tag, $revisionId, $pageId, $adId ) {
-		$dbw = PRDatabase::getDb();
-
-		if ( is_object( $revisionId ) ) {
-			throw new MWException( 'Got object, excepted id' );
-		}
-
-		// There should only ever be one tag applied to an ad object
-		Ad::removeTag( $tag, $pageId );
-
-		$conds = array(
-			'rt_page' => $pageId,
-			'rt_type' => RevTag::getType( $tag ),
-			'rt_revision' => $revisionId
-		);
-
-		if ( $adId !== null ) {
-			$conds['rt_value'] = $adId;
-		}
-
-		$dbw->insert( 'revtag', $conds, __METHOD__ );
-	}
-
-	/**
-	 * Make sure ad is not tagged with specified tag
-	 * @param string $tag The name of the tag
-	 * @param integer $pageId ID of the MediaWiki page for the ad
-	 * @throws MWException
-	 */
-	static protected function removeTag( $tag, $pageId ) {
-		$dbw = PRDatabase::getDb();
-
-		$conds = array(
-			'rt_page' => $pageId,
-			'rt_type' => RevTag::getType( $tag )
-		);
-		$dbw->delete( 'revtag', $conds, __METHOD__ );
-	}
-
-	/**
-	 * Given one or more campaign ids, return all ads bound to them
-	 *
-	 * @param array $campaigns list of campaign numeric IDs
-	 *
-	 * @return array a 2D array of ads with associated weights and settings
-	 */
-	static function getCampaignAds( $campaigns ) {
-		$dbr = PRDatabase::getDb();
-
-		$ads = array();
-
-		if ( $campaigns ) {
-			$res = $dbr->select(
-				// Aliases (keys) are needed to avoid problems with table prefixes
-				array(
-					'campaigns' => 'pr_campaigns',
-					'ads' => 'pr_ads',
-					'adlinks' => 'pr_adlinks',
-				),
-				array(
-					'ad_name',
-					'adl_weight',
-					'ad_display_anon',
-					'ad_display_user',
-					'cmp_name',
-				),
-				array(
-					'campaigns.cmp_id' => $campaigns,
-					'campaigns.cmp_id = adlinks.cmp_id',
-					'adlinks.ad_id = ads.ad_id'
-				),
-				__METHOD__,
-				array(),
-				array()
-			);
-
-			foreach ( $res as $row ) {
-				$ads[ ] = array(
-					'name'             => $row->ad_name, // name of the ad
-					'weight'           => intval( $row->adl_weight ), // weight assigned to the ad
-					'display_anon'     => intval( $row->ad_display_anon ), // display to anonymous users?
-					'display_user'     => intval( $row->ad_display_user ), // display to logged in users?
-					'campaign'         => $row->cmp_name, // campaign the ad is assigned to
-				);
-			}
-		}
-		return $ads;
-	}
 
 	/**
 	 * Return settings for an ad
@@ -1129,15 +599,14 @@ class Ad {
 	 * @throws MWException
 	 * @return array an array of ad settings
 	 */
-	static function getAdSettings( $adName, $detailed = true ) {
-		$ad = Ad::fromName( $adName );
-		if ( !$ad->exists() ) {
+	public function getAdSettings() {
+		if ( !$this->exists() ) {
 			throw new MWException( "Ad doesn't exist!" );
 		}
 
 		$details = array(
-			'anon'             => (int)$ad->allocateToAnon(),
-			'user'          => (int)$ad->allocateToUser(),
+			'anon' => (int)$this->allocateToAnon(),
+			'user' => (int)$this->allocateToUser(),
 		);
 
 		return $details;
@@ -1195,20 +664,17 @@ class Ad {
 	 *
 	 * @param $name             string name of ad
 	 * @param $body             string content of ad
+	 * @param $caption            string caption/heading of ad
+	 * @param $mainlink            string main link for the ad (link caption to page)
 	 * @param $user             User causing the change
-	 * @param $displayAnon      integer flag for display to anonymous users
-	 * @param $displayUser   integer flag for display to logged in users
-	 * @param $caption			string caption/heading of ad
-	 * @param $mainlink			string main link for the ad (link caption to page)
-	 * @param $mixins           array list of mixins (optional)
-	 * @param $priorityLangs    array Array of priority languages for the translate extension
+	 * @param bool|int $displayAnon integer flag for display to anonymous users
+	 * @param bool|int $displayUser integer flag for display to logged in users
 	 *
 	 * @return bool true or false depending on whether ad was successfully added
 	 */
-	static function addAd( $name, $body, $caption, $mainlink, $user, $displayAnon, $displayUser,
-						  $mixins = array(), $priorityLangs = array()
-	) {
-		if ( $name == '' || !Ad::isValidAdName( $name ) || $body == '' ) {
+	static function addAd( $name, $body, $caption, $mainlink, $user, $displayAnon = true, $displayUser = true	) {
+		//if ( $name == '' || !Ad::isValidAdName( $name ) || $body == '' ) {
+		if ( $name == '' || !Ad::isValidAdName( $name ) ) {
 			return 'promoter-null-string';
 		}
 
@@ -1224,10 +690,6 @@ class Ad {
 		$ad->setMainLink( $mainlink );
 
 		$ad->setBodyContent( $body );
-
-		//array_walk( $landingPages, function ( &$x ) { $x = trim( $x ); } );
-
-		//$ad->setMixins( $mixins );
 
 		$ad->save( $user );
 	}
@@ -1277,7 +739,11 @@ class Ad {
 	 * @return bool True if valid
 	 */
 	static function isValidAdName( $name ) {
-		return preg_match( '/^[A-Za-zא-ת0-9_]+$/', $name );
+		global $wgExperimentalHtmlIds;
+
+		$pattern = $wgExperimentalHtmlIds ? '/^[A-Za-zא-ת0-9_]+$/' : '/^[A-Za-z0-9_]+$/';
+
+		return preg_match( $pattern, $name );
 	}
 
 	/**
@@ -1301,6 +767,45 @@ class Ad {
 		} else {
 			return false;
 		}
+	}
+
+		/**
+		 * Get the body of the ad, with all transformations applied.
+		 */
+	 public function renderHtml() {
+		$adCaption = $this->getCaption();
+		$adBody = wfMessage( $this->getDbKey() )->text();
+		$adMainLink = $this->getMainLink();
+		$adMainLink = empty( $adMainLink ) ?
+			null : Skin::makeInternalOrExternalUrl( $this->getMainLink() );
+
+		 $adHtml = HTML::openElement( 'div', array( 'class' => 'promotion' ) );
+		 	$adHtml .= HTML::openElement( 'div', array( 'class' => 'header' ) );
+		 		$adHtml .= HTML::element( 'span', array( 'class' => 'icon pull-right' ) );
+		 		if( empty( $adMainLink ) ) {
+					$adHtml .= HTML::element( 'span', array( 'class' => 'caption' ), $adCaption );
+				} else {
+					$adHtml .= HTML::element( 'a', array( 'class' => 'caption', 'href' => $adMainLink ), $adCaption );
+				}
+
+		 	$adHtml .= HTML::closeElement( 'div' );
+		 	$adHtml .= HTML::element( 'div', array( 'class' => 'content' ), $adBody );
+		 	if( $adMainLink ) {
+				$adHtml .= HTML::openElement( 'div', array( 'class' => 'mainlink' ) );
+				$adHtml .= HTML::element( 'a', array( 'href' => $adMainLink ), 'לפרטים נוספים...' );
+				$adHtml .= HTML::closeElement( 'div' );
+			}
+		 $adHtml .= HTML::closeElement( 'div' );
+
+		 return $adHtml;
+	}
+
+	function linkToPreview() {
+		return Linker::link(
+			SpecialPage::getTitleFor( 'PromoterAds', "edit/{$this->getName()}" ),
+			htmlspecialchars( $this->getName() ),
+			array( 'class' => 'pr-ad-title' )
+		);
 	}
 }
 

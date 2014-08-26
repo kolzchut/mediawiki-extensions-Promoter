@@ -30,6 +30,9 @@ $dir = __DIR__;
 // Server-side banner cache timeout in seconds
 $wgPromoterAdMaxAge = 600;
 
+// Name of the fallback campaign
+$wgPromoterFallbackCampaign = 'general';
+
 /** @var $wgPromoterTabifyPages array Declare all pages that should be tabified as PR pages */
 $wgPromoterTabifyPages = array(
 	/* Left side 'namespace' tabs */

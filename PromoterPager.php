@@ -96,10 +96,9 @@ class PromoterPager extends AdPager {
 
 		// Link and Preview
 		$ad = Ad::fromName( $row->ad_name );
-		$adRenderer = new AdRenderer( $this->getContext(), $ad );
 
 		$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
-			$adRenderer->linkTo() . "<br>" . $adRenderer->previewFieldSet()
+			$ad->linkToPreview()
 		);
 
 		// End ad row

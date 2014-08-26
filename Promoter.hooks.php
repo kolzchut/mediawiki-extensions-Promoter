@@ -36,12 +36,10 @@ $wgHooks[ 'SkinTemplateNavigation::SpecialPage' ][ ] = array( 'Promoter::addNavi
  */
 function efWikiRightsPromoterSetup() {
 	global $wgHooks, $wgAutoloadClasses, $wgSpecialPages,
-		   $wgSpecialPageGroups, $wgAPIModules, $wgAPIListModules,
-		   $wgScript;
+		   $wgSpecialPageGroups, $wgScript;
 
 	$dir = __DIR__ . '/';
 	$specialDir = $dir . 'special/';
-	$apiDir = $dir . 'api/';
 	$includeDir = $dir . 'includes/';
 	$htmlFormDir = $includeDir . '/HtmlFormElements/';
 
@@ -56,7 +54,7 @@ function efWikiRightsPromoterSetup() {
 	$wgAutoloadClasses[ 'AdRenderer' ] = $includeDir . 'AdRenderer.php';
 
 	$wgAutoloadClasses[ 'SpecialPromoterAds' ] = $specialDir . 'SpecialPromoterAds.php';
-	$wgAutoloadClasses[ 'SpecialAdLoader' ] = $specialDir . 'SpecialAdLoader.php';
+	//$wgAutoloadClasses[ 'SpecialAdLoader' ] = $specialDir . 'SpecialAdLoader.php';
 	$wgAutoloadClasses[ 'SpecialAdRandom' ] = $specialDir . 'SpecialAdRandom.php';
 	$wgAutoloadClasses[ 'PRAdPager' ] = $includeDir . 'PRAdPager.php';
 
@@ -70,13 +68,6 @@ function efWikiRightsPromoterSetup() {
 	$wgAutoloadClasses[ 'PRDatabasePatcher' ] = $dir . 'patches/PRDatabasePatcher.php';
 	$wgAutoloadClasses[ 'PRDatabase' ] = $includeDir . 'PRDatabase.php';
 
-	$wgAutoloadClasses[ 'ApiPromoterAllocations' ] = $apiDir . 'ApiPromoterAllocations.php';
-	$wgAutoloadClasses[ 'ApiPromoterQueryCampaign' ] = $apiDir . 'ApiPromoterQueryCampaign.php';
-	//$wgAutoloadClasses[ 'ApiPromoterLogs' ] = $apiDir . 'ApiPromoterLogs.php';
-
-	$wgAPIModules[ 'promoterallocations' ] = 'ApiPromoterAllocations';
-	$wgAPIModules[ 'promoterquerycampaign' ] = 'ApiPromoterQueryCampaign';
-
 	$wgAutoloadClasses[ 'AdPager' ] = $dir . 'AdPager.php';
 	$wgAutoloadClasses[ 'PromoterPager' ] = $dir . 'PromoterPager.php';
 
@@ -84,15 +75,41 @@ function efWikiRightsPromoterSetup() {
 		//$wgHooks[ 'MakeGlobalVariablesScript' ][ ] = 'efPromoterDefaults';
 		$wgHooks[ 'BeforePageDisplay' ][ ] = 'efPromoterLoader';
 		$wgHooks[ 'SkinHelenaSidebarButtons' ][ ] = 'efPromoterDisplay';
-		//$wgHooks[ 'ResourceLoaderGetConfigVars' ][] = 'efResourceLoaderGetConfigVars';
+		$wgHooks[ 'ResourceLoaderGetConfigVars' ][] = 'efResourceLoaderGetConfigVars';
 
 	// Register special pages
-	$wgSpecialPages[ 'AdLoader' ] = 'SpecialAdLoader';
+	//$wgSpecialPages[ 'AdLoader' ] = 'SpecialAdLoader';
 	$wgSpecialPages[ 'AdRandom' ] = 'SpecialAdRandom';
 
 	$wgSpecialPages[ 'Promoter' ] = 'Promoter';
 	$wgSpecialPageGroups[ 'Promoter' ] = 'wiki'; // Wiki data and tools
 	$wgSpecialPages[ 'PromoterAds'] = 'SpecialPromoterAds';
+
+
+}
+
+
+
+/**
+ * ResourceLoaderGetConfigVars hook handler
+ * Send php config vars to js via ResourceLoader
+ *
+ * @param &$vars: variables to be added to the output of the startup module
+ * @return bool
+ */
+function efResourceLoaderGetConfigVars( &$vars ) {
+	global $wgContLang, $wgPromoterAdDispatcher, $wgScript;
+
+	// Making these calls too soon will causes issues with the namespace localisation cache. This seems
+	// to be just right. We require them at all because MW will 302 page requests made to non localised
+	// namespaces which results in wasteful extra calls.
+	if ( !$wgPromoterAdDispatcher ) {
+		$wgPromoterAdDispatcher = "{$wgScript}/{$wgContLang->specialPage( 'AdRandom' )}";
+	}
+	$vars[ 'wgPromoterAdDispatcher' ] = $wgPromoterAdDispatcher;
+
+
+	return true;
 }
 
 /**
@@ -111,15 +128,14 @@ function efPromoterLoader( $out, $skin ) {
 
 /**
  * SkinHelenaSidebarButtons hook handler
- * This function outputs the ad div.
+ * This function outputs the ad wrapper div.
  *
- * @param $notice string
+ * @param $skin
+ * @param $buttons
  * @return bool
  */
 function efPromoterDisplay( &$skin, &$buttons ) {
 	$buttons .= HTML::openElement( 'div', array( 'id' => 'sidebarPromotion' ) );
-	$buttons .= '<div id="promoter"><header class="header"><span class="icon pull-right"></span>שאלה לגבי הפנסיה?</header>'
-		. '<div class="content">באתר משרד הכלכלה תמצאו שאלות ותשובות בנושא חובת הפנסיה לעובדים במשק בית.<div class="mainlink">לפרטים נוספים...</div></div></div>';
 	$buttons .= HTML::closeElement( 'div' );
 	return true;
 }

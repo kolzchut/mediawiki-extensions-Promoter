@@ -207,10 +207,8 @@ class Promoter extends SpecialPage {
 		$res = $dbr->select( 'pr_campaigns',
 			array(
 				'cmp_name',
-				//'cmp_cat_page_id',
 				'cmp_enabled',
 				'cmp_archived',
-				'cmp_use_general_ads',
 			),
 			array(),
 			__METHOD__,
@@ -254,7 +252,6 @@ class Promoter extends SpecialPage {
 			$headers = array(
 				$this->msg( 'promoter-campaign-name' )->escaped(),
 				//$this->msg( 'promoter-campaign-linked-to' )->escaped(),
-				$this->msg( 'promoter-campaign-general-ads' )->escaped(),
 				$this->msg( 'promoter-enabled' )->escaped(),
 				$this->msg( 'promoter-archive-campaign' )->escaped()
 			);
@@ -264,7 +261,6 @@ class Promoter extends SpecialPage {
 			foreach ( $res as $row ) {
 				$rowIsEnabled = ( $row->cmp_enabled == '1' );
 				$rowIsArchived = ( $row->cmp_archived == '1' );
-				$rowUseGeneralAds = ( $row->cmp_use_general_ads == '1' );
 
 				$rowCells = '';
 
@@ -277,32 +273,6 @@ class Promoter extends SpecialPage {
 						array(
 							'method' => 'listCampaignDetail',
 							'campaign' => $row->cmp_name
-						)
-					)
-				);
-
-				/*
-				// Assigned category / page
-				$catTitle = Title::newFromID( $row->cmp_cat_page_id );
-				$catName = $catTitle ? $catTitle->getText() : $this->msg( 'promoter-no-assigned-cat' )->text();
-				$rowCells .= Html::rawElement( 'td', array(),
-					Linker::link(
-						$catTitle,
-						htmlspecialchars( $catName ),
-						array(),
-						array()
-					)
-				);
-				*/
-
-				// General ads
-				$rowCells .= Html::rawElement( 'td', array( 'data-sort-value' => (int)$rowUseGeneralAds ),
-					Xml::check(
-						'generalads[]',
-						$rowUseGeneralAds,
-						array_replace(
-							( !$this->editable || $rowIsArchived ) ? $readonly : array(),
-							array( 'value' => $row->cmp_name, 'class' => 'noshiftselect mw-pr-input-check-sort' )
 						)
 					)
 				);
@@ -405,14 +375,6 @@ class Promoter extends SpecialPage {
 			);
 			$htmlOut .= Xml::closeElement( 'div' );
 
-			// Use general ads
-			$htmlOut .= Xml::openElement( 'div', array(	'class' => 'checkbox' ) );
-			$htmlOut .= Xml::openElement( 'label', array() );
-			$htmlOut .= Xml::check( 'generalads', false, array() );
-			$htmlOut .= $this->msg( 'promoter-campaign-general-ads' )->escaped();
-			$htmlOut .= Xml::closeElement( 'label' );
-			$htmlOut .= Xml::closeElement( 'div' );
-
 			$htmlOut .= Html::hidden( 'change', 'weight' );
 			$htmlOut .= Html::hidden( 'authtoken', $this->getUser()->getEditToken() );
 
@@ -472,14 +434,6 @@ class Promoter extends SpecialPage {
 					} else {
 						Campaign::setBooleanCampaignSetting( $campaign, 'enabled', 0 );
 					}
-
-					// Handle enabling/disabling use of global ads
-					if ( $request->getCheck( 'generalads' ) ) {
-						Campaign::setBooleanCampaignSetting( $campaign, 'use_general_ads', 1 );
-					} else {
-						Campaign::setBooleanCampaignSetting( $campaign, 'use_general_ads', 0 );
-					}
-
 
 					// Handle adding of ads to the campaign
 					$adsToAdd = $request->getArray( 'addAds' );
@@ -619,13 +573,11 @@ class Promoter extends SpecialPage {
 			if ( $request->wasPosted() ) {
 				$isEnabled = $request->getCheck( 'enabled' );
 				$isArchived = $request->getCheck( 'archived' );
-				$useGeneralAds = $request->getCheck( 'generalads' );
 				//$campaignNameOrId = $request->getText( 'campaign' );
 				//$catPageId = $request->getInt( 'catPageId' );
 			} else { // Defaults
 				$isEnabled = ( $campaign[ 'enabled' ] == '1' );
 				$isArchived = ( $campaign[ 'archived' ] == '1' );
-				$useGeneralAds = ( $campaign[ 'useGeneralAds' ] == '1' );
 				//$catPageId = (int)$campaign[ 'catPageId' ];
 			}
 
@@ -661,16 +613,6 @@ class Promoter extends SpecialPage {
 			);
 			$htmlOut .= Xml::closeElement( 'tr' );
 			*/
-
-			// Use general ads
-			$htmlOut .= Xml::openElement( 'tr' );
-			$htmlOut .= Xml::tags( 'td', array(),
-				Xml::label( $this->msg( 'promoter-campaign-general-ads' )->text(), 'enabled' ) );
-			$htmlOut .= Xml::tags( 'td', array(),
-				Xml::check( 'generalads', $useGeneralAds,
-					array_replace( $readonly,
-						array( 'value' => $campaignNameOrId, 'id' => 'generalads' ) ) ) );
-			$htmlOut .= Xml::closeElement( 'tr' );
 
 			// Enabled
 			$htmlOut .= Xml::openElement( 'tr' );
@@ -799,10 +741,8 @@ class Promoter extends SpecialPage {
 
 			// Ad
 			$ad = Ad::fromName( $row->ad_name );
-			$renderer = new AdRenderer( $this->getContext(), $ad );
 			$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
-				$renderer->linkTo() . '<br/>' .
-				$renderer->previewFieldSet()
+				$ad->linkToPreview()
 			);
 
 			$htmlOut .= Xml::closeElement( 'tr' );
