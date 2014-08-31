@@ -22,6 +22,8 @@
  *
  * @file
  */
+/* jshint jquery:true */
+/* global mediaWiki */
 ( function ( $, mw ) {
 	"use strict";
 
