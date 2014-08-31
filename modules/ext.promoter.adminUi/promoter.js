@@ -40,19 +40,4 @@
 		}
 	};
 
-	// Switch among various log displays
-	window.switchLogs = function ( baseUrl, logType ) {
-		encodeURIComponent( logType );
-		window.location = baseUrl + '?log=' + logType;
-	};
-
-	window.addEventListener( 'message', receiveMessage, false );
-	function receiveMessage( event ) {
-		mw.log( event.data );
-		var remoteData = JSON.parse( event.data );
-		if ( remoteData.ad && remoteData.height ) {
-			$( "#pr-ad-preview-" + remoteData.ad + " iframe" ).height( remoteData.height );
-		}
-	}
-
 }( mediaWiki, jQuery ) );
