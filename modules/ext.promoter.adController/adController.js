@@ -153,6 +153,12 @@
 				return;
 			}
 
+			// === Do not load ads on main page for now (special case) ===
+			if ( mw.config.get( 'wgIsMainPage') === true ) {
+				mw.log( 'No ads on main page' );
+				return;
+			}
+
 			// === Create Deferred and Promise Objects ===
 			mw.promoter.deferredObjs.adLoaded = $.Deferred();
 			mw.promoter.events.adLoaded = mw.promoter.deferredObjs.adLoaded.promise();
