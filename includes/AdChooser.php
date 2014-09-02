@@ -24,10 +24,12 @@ class AdChooser {
 
 		if ( !Campaign::campaignExists( $campaignName ) || !$campaign->isEnabled() ) {
 			/* If the selected campaign doesn't exist or is disabled, fallback: */
-			if ( !Campaign::campaignExists( $wgPromoterFallbackCampaign ) ) {
-				throw new NoGeneralCampaign();
-			}
 			$campaign = new Campaign( $wgPromoterFallbackCampaign );
+			if ( !Campaign::campaignExists( $wgPromoterFallbackCampaign )  ) {
+				throw new NoFallbackCampaign();
+			} elseif ( !$campaign->isEnabled() ) {
+				throw new FallbackCampaignDisabled();
+			}
 		}
 
 		$this->campaignName = $campaign->getName();
@@ -133,9 +135,17 @@ class NoAdsMatchingCriteriaException extends MWException {
 	}
 }
 
-class NoGeneralCampaign extends MWException {
+class NoFallbackCampaign extends MWException {
 	function __construct() {
 		global $wgPromoterFallbackCampaign;
 		$this->message = get_called_class() . ": No campaign was found, not even the fallback '" . $wgPromoterFallbackCampaign ."' campaign";
 	}
 }
+
+class FallbackCampaignDisabled extends MWException {
+	function __construct() {
+		global $wgPromoterFallbackCampaign;
+		$this->message = get_called_class() . ": The fallback campaign, '" . $wgPromoterFallbackCampaign .",' is disabled";
+	}
+}
+

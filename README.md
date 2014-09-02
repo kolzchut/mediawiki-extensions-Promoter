@@ -4,7 +4,6 @@
 - A non-existant campaign fallbacks to a default campaign ($wgPromoterFallbackCampaign)
 - A disabled (inactive) campaign is the same as a non-existant one
 - An empty campaign prevents falling back to default
-- The fallback campaign cannot be disabled. The flag will have no effect.
 
 ## Misc
 - If you would like to use non-ansi names for ads, you must enable MediaWiki's $wgExperimentalHtmlIds (set it to 'true');
@@ -12,7 +11,6 @@
 
 
 ## Todo
-1. Option to disable the fallback campaign (through the UI)
 1. Option to rename campaign (critical!)
 1. Option to delete campaign (where did it go?)
 1. Currently there is no option for page-specific campaigns, only category-related ones;
@@ -29,3 +27,6 @@
 1. Being able to rename an ad would be nice...
 1. If an ad has a mainlink to the page the user is on, filter it out?
 
+
+## Changelog
+- 01-Sep-2014 Option to disable the fallback campaign (through the UI)
