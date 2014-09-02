@@ -74,7 +74,7 @@ function efWikiRightsPromoterSetup() {
 	// Register hooks
 		//$wgHooks[ 'MakeGlobalVariablesScript' ][ ] = 'efPromoterDefaults';
 		$wgHooks[ 'BeforePageDisplay' ][ ] = 'efPromoterLoader';
-		$wgHooks[ 'SkinHelenaSidebarButtons' ][ ] = 'efPromoterDisplay';
+		$wgHooks[ 'SkinHelenaSidebar::End' ][ ] = 'efPromoterDisplay';
 		$wgHooks[ 'ResourceLoaderGetConfigVars' ][] = 'efResourceLoaderGetConfigVars';
 
 	// Register special pages
@@ -127,15 +127,13 @@ function efPromoterLoader( $out, $skin ) {
 }
 
 /**
- * SkinHelenaSidebarButtons hook handler
+ * SkinHelenaSidebar::End hook handler
  * This function outputs the ad wrapper div.
  *
  * @param $skin
- * @param $buttons
  * @return bool
  */
-function efPromoterDisplay( &$skin, &$buttons ) {
-	$buttons .= HTML::openElement( 'div', array( 'id' => 'sidebarPromotion' ) );
-	$buttons .= HTML::closeElement( 'div' );
+function efPromoterDisplay( &$skin ) {
+	echo HTML::element( 'li', array( 'id' => 'sidebar-promotion' ) );
 	return true;
 }

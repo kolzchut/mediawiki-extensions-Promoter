@@ -113,7 +113,6 @@
 				cache: true
 			});
 		},
-		// TODO: move function definitions once controller cache has cleared
 		insertAd: function( adJson ) {
 			var url, targets;
 
@@ -123,7 +122,7 @@
 				// Ok, we have a ad!
 				// All conditions fulfilled, inject the ad
 				mw.promoter.adData.adName = adJson.adName;
-				$( 'div#sidebarPromotion' )
+				$( '#sidebar-promotion' )
 					.prepend( adJson.adHtml );
 
 				mw.promoter.adShown = true;
@@ -165,7 +164,7 @@
 
 			// === Final prep to loading ad ===
 			// Add the Promoter div so that insert ad has something to latch on to.
-			//$( '#sidebarPromotion' ).prepend();
+			//$( '#sidebar-promotion' ).prepend();
 
 			mw.promoter.loadAd();
 		}
