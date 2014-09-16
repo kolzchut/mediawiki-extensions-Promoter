@@ -128,7 +128,7 @@
 		trackAd: function( adName, campaign ) {
 			// Send hit
 			window._gaq = window._gaq || []; // Make sure there's a queue for GA
-			window._gaq.push( ['_trackEvent', 'ad-impressions', campaign, adName] );
+			window._gaq.push( ['_trackEvent', 'ad-impressions', campaign, adName, undefined, true] );
 
 			// And bind another event to a possible click...
 			$( '.mainlink > a, a.caption').click( function( e ) {
