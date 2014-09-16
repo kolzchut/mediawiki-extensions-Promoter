@@ -71,7 +71,7 @@
 		loadAd: function () {
 			if ( mw.promoter.data.getVars.ad ) {
 				// If we're forcing one ad
-				mw.promoter.loadTestingAd( mw.promoter.data.getVars.ad, 'none', 'testing' );
+				mw.promoter.loadTestingAd( mw.promoter.data.getVars.ad, 'testing' );
 			} else {
 				mw.promoter.loadRandomAd();
 			}
@@ -96,12 +96,10 @@
 			});
 		},
 		loadRandomAd: function () {
-			var RAND_MAX = 30;
 			var wgCategories = mw.config.get( 'wgCategories' );
 			var wrMainCategory = ( wgCategories.length > 1 ) ? wgCategories['1'] : null;
 			var adDispatchQuery = {
 				anonymous: mw.config.get( 'wgUserName' ) === null,
-				//slot: Math.floor( Math.random() * RAND_MAX ) + 1,
 				campaign: wrMainCategory,
 				debug: mw.promoter.data.getVars.debug
 			};
@@ -114,19 +112,30 @@
 			});
 		},
 		insertAd: function( adJson ) {
-			var url, targets;
-
-			if ( !adJson ) {
-				return;
-			} else {
-				// Ok, we have a ad!
+			if ( adJson ) {
+				// Ok, we have an ad!
 				// All conditions fulfilled, inject the ad
 				mw.promoter.adData.adName = adJson.adName;
-				$( '#sidebar-promotion' )
-					.prepend( adJson.adHtml );
+				$( '#sidebar-promotion' ).prepend( adJson.adHtml );
 
+				if( !mw.promoter.data.getVars.ad ) {
+					// not a forced preview of a specific ad, send analytics hit
+					mw.promoter.trackAd( adJson.adName, adJson.campaign );
+				}
 				mw.promoter.adShown = true;
 			}
+		},
+		trackAd: function( adName, campaign ) {
+			// Send hit
+			window._gaq = window._gaq || []; // Make sure there's a queue for GA
+			window._gaq.push( ['_trackEvent', 'ad-impressions', campaign, adName] );
+
+			// And bind another event to a possible click...
+			$( '.mainlink > a, a.caption').click( function( e ) {
+				e.preventDefault();
+				window._gaq.push( ['_trackEvent', 'ad-clicks', campaign, adName] );
+				setTimeout('document.location = "' + this.href + '"', 100)
+			});
 		},
 		loadQueryStringVariables: function () {
 			document.location.search.replace( /\??(?:([^=]+)=([^&]*)&?)/g, function ( str, p1, p2 ) {

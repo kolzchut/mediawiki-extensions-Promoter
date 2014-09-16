@@ -14,12 +14,11 @@ $wgExtensionCredits[ 'other' ][] = array(
 	'path'           => __FILE__,
 	'name'           => 'WikiRights Promoter',
 	'author'         => array(
-		'Dror S. ([http://www.kolzchut.org.il Kol-Zchut])',
-		'...',
+		'Dror S. ([http://www.kolzchut.org.il Kol-Zchut]), based on [https://mediawiki.org/wiki/Extension:CentralNotice Extension:CentralNotice]',
 	),
-	'version'        => '0.1.0',
-	'url'            => '',
-	'descriptionmsg' => 'wrpromoter-desc',
+	'version'        => '15-Sep-2014',
+	//'url'            => 'http://www.kolzchut.org.il/he/Project:Extensions/Promoter',
+	'descriptionmsg' => 'promoter-desc',
 	'license-name' => 'GPLv2',
 );
 
