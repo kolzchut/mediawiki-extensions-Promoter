@@ -134,7 +134,7 @@
 			$( '.mainlink > a, a.caption').click( function( e ) {
 				e.preventDefault();
 				window._gaq.push( ['_trackEvent', 'ad-clicks', campaign, adName] );
-				setTimeout('document.location = "' + this.href + '"', 100)
+				setTimeout('document.location = "' + this.href + '"', 100);
 			});
 		},
 		loadQueryStringVariables: function () {
