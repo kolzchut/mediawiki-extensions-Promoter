@@ -142,3 +142,28 @@ $wgResourceModules[ 'ext.promoter.adminUi.campaignManager' ] = array(
 	'messages'      => array( )
 );
 
+$wgResourceModules[ 'jquery.owl-carousel' ] = array(
+	'localBasePath' => $promoterLocalBasePath,
+	'remoteExtPath' => $promoterRemoteExtPath,
+	'dependencies' => array( ),
+	'scripts'       => 'jquery.owl-carousel/owl.carousel.js',
+	'styles'        => array(
+		'jquery.owl-carousel/owl.carousel.css',
+		'jquery.owl-carousel/owl.theme.default.css'
+	),
+	'messages'      => array( )
+);
+
+
+$wgResourceModules[ 'ext.promoter.gallery' ] = array(
+	'localBasePath' => $promoterLocalBasePath,
+	'remoteExtPath' => $promoterRemoteExtPath,
+	'dependencies' => array(
+		'jquery.owl-carousel'
+	),
+	'scripts'       => 'ext.promoter.gallery/initialize.js',
+	'styles'        => array(
+		'ext.promoter.gallery/gallery.less'
+	),
+	'messages'      => array( )
+);

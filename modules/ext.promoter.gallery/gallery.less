@@ -1,0 +1,74 @@
+/* 27-Oct-2014 By Dror S. [ffs] for MediaWiki's ResourceLoader */
+
+@import "mediawiki.mixins";
+
+@content-font-family: Arial, sans-serif;
+@heading-font-family: 'Na_OE_Pro-Regular', @content-font-family;
+@primary-color-blue: #4C728A;
+
+.promotion-gallery {
+	margin-bottom: 20px;
+
+	& > .gallery-controls {
+		float: right;
+		color: @primary-color-blue;
+	}
+
+	& > .header {
+		font-family: @heading-font-family;
+		font-size: 17px;
+		color: @primary-color-blue;
+	}
+	.owl-carousel {
+		background-color: #e3ebee;
+		padding: 10px;
+
+		& > .owl-controls {
+			display: none;
+		}
+	}
+
+	.owl-item {
+	border-right: 2px solid #9eb0bc;
+
+		&:first-child {
+			border-left: 2px solid #9eb0bc;
+		}
+	}
+
+	.promotion {
+		background-color: transparent;
+		//float: left;
+		//width: 33.333%;
+		//border-right: 2px solid #9eb0bc;
+		//padding: 10px 25px;
+
+		/*
+		&:first-child {
+			border-left: 2px solid #9eb0bc;
+		}
+		*/
+
+		& > .header {
+			margin-bottom: 0;
+			border-bottom: none;
+			color: @primary-color-blue;
+
+			& > .caption {
+				font-size: 16px;
+			}
+			& > .icon {
+				display: none;
+			}
+		}
+
+		.mainlink > a {
+			font-weight: normal;
+
+			#content & {
+				text-decoration: none;
+			}
+		}
+	}
+}
+

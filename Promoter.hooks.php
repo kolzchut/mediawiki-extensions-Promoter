@@ -54,8 +54,14 @@ function efWikiRightsPromoterSetup() {
 	$wgAutoloadClasses[ 'AdRenderer' ] = $includeDir . 'AdRenderer.php';
 
 	$wgAutoloadClasses[ 'SpecialPromoterAds' ] = $specialDir . 'SpecialPromoterAds.php';
-	//$wgAutoloadClasses[ 'SpecialAdLoader' ] = $specialDir . 'SpecialAdLoader.php';
+	$wgAutoloadClasses[ 'SpecialAdLoader' ] = $specialDir . 'SpecialAdLoader.php';
 	$wgAutoloadClasses[ 'SpecialAdRandom' ] = $specialDir . 'SpecialAdRandom.php';
+	$wgAutoloadClasses[ 'SpecialCampaignAdsLoader' ] = $specialDir . 'SpecialCampaignAdsLoader.php';
+
+	$wgAutoloadClasses[ 'AdLoaderException' ] = $specialDir . 'SpecialAdLoader.php';
+	$wgAutoloadClasses[ 'EmptyAdException' ] = $specialDir . 'SpecialAdLoader.php';
+	$wgAutoloadClasses[ 'MissingRequiredParamsException' ] = $specialDir . 'SpecialAdLoader.php';
+
 	$wgAutoloadClasses[ 'PRAdPager' ] = $includeDir . 'PRAdPager.php';
 
 	$wgAutoloadClasses[ 'HTMLPromoterAd' ] = $htmlFormDir . 'HTMLPromoterAd.php';
@@ -71,15 +77,19 @@ function efWikiRightsPromoterSetup() {
 	$wgAutoloadClasses[ 'AdPager' ] = $dir . 'AdPager.php';
 	$wgAutoloadClasses[ 'PromoterPager' ] = $dir . 'PromoterPager.php';
 
+	$wgAutoloadClasses[ 'PromoterGallery' ] = $dir . 'PromoterGallery.php';
+
 	// Register hooks
 		//$wgHooks[ 'MakeGlobalVariablesScript' ][ ] = 'efPromoterDefaults';
 		$wgHooks[ 'BeforePageDisplay' ][ ] = 'efPromoterLoader';
 		$wgHooks[ 'SkinHelenaSidebar::End' ][ ] = 'efPromoterDisplay';
 		$wgHooks[ 'ResourceLoaderGetConfigVars' ][] = 'efResourceLoaderGetConfigVars';
+		$wgHooks['ParserFirstCallInit'][] = 'PromoterGallery::onParserFirstCallInit';
 
 	// Register special pages
-	//$wgSpecialPages[ 'AdLoader' ] = 'SpecialAdLoader';
+	$wgSpecialPages[ 'AdLoader' ] = 'SpecialAdLoader';
 	$wgSpecialPages[ 'AdRandom' ] = 'SpecialAdRandom';
+	$wgSpecialPages[ 'CampaignAdsLoader' ] = 'SpecialCampaignAdsLoader';
 
 	$wgSpecialPages[ 'Promoter' ] = 'Promoter';
 	$wgSpecialPageGroups[ 'Promoter' ] = 'wiki'; // Wiki data and tools
