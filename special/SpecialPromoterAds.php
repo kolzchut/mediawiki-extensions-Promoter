@@ -301,7 +301,6 @@ class SpecialPromoterAds extends Promoter {
 				array( 'class' => 'pr-ad-list-element-label-text' ),
 				array(
 					 'ad' => $this->adName,
-					 'force' => '1',
 				)
 			) );
 

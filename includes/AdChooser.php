@@ -14,7 +14,8 @@ class AdChooser {
 	 * @param string $campaignName
 	 * @param bool $anonymous
 	 * @throws NoAdsMatchingCriteriaException
-	 * @throws NoGeneralCampaign
+	 * @throws NoFallbackCampaign
+	 * @throws FallbackCampaignDisabled
 	 */
 	function __construct( $campaignName, $anonymous = false ) {
 		global $wgPromoterFallbackCampaign;
@@ -82,14 +83,7 @@ class AdChooser {
 	/**
 	 * From the selected group of ads we wish to now filter only for those that
 	 * are relevant to the user. The ads choose if they display to anon/logged
-	 * out, what device, and what bucket. They must also take into account their
-	 * campaigns priority level.
-	 *
-	 * Logged In/Out and device are considered independent of the campaign priority
-	 * for allocation purposes so are filtered for first.
-	 *
-	 * Then we filter for campaign dependent variables -- primarily the priority
-	 * followed by the ad bucket.
+	 * out
 	 */
 	protected function filterAds() {
 		// Filter on Logged

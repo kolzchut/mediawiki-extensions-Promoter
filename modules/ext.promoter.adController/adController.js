@@ -118,7 +118,7 @@
 				mw.promoter.adData.adName = adJson.adName;
 				$( '#sidebar-promotion' ).prepend( adJson.adHtml );
 
-				if( !mw.promoter.data.getVars.ad ) {
+				if( mw.promoter.data.testing != true && !mw.promoter.data.getVars.ad ) {
 					// not a forced preview of a specific ad, send analytics hit
 					mw.promoter.trackAd( adJson.adName, adJson.campaign );
 				}

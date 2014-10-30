@@ -80,7 +80,11 @@
 	"promoter-delete-ad-confirm": "לא ניתן לשחזר את הפעולה הזאת.",
 	"promoter-delete-ad-cancel": "ביטול",
 	"promoter-ad-still-bound": "לא ניתן להסיר את הפרסומת \"$1\" כי היא עדיין מקושרת למסע פרסום.\nההסרה לא תתבצע.",
-	"promoter-clone-cancel": "ביטול"
+	"promoter-clone-cancel": "ביטול",
+
+	"adloader": "טעינת פרסומת",
+	"adrandom": "טעינת פרסומת אקראית מתוך קמפיין",
+	"campaignadsloader": "טעינת כל הפרסומות מתוך קמפיין"
 
 
 }

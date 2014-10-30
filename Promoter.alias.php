@@ -16,5 +16,12 @@ $specialPageAliases['en'] = array(
 	'AdController' => array( 'AdController' ),
 	'AdLoader' => array( 'AdLoader' ),
 	'AdRandom' => array( 'AdRandom' ),
+	'CampaignAdsLoader' => array( 'CampaignAdsLoader', 'Campaign Ads Loader' ),
+);
 
+/** Hebrew (עברית) */
+$specialPageAliases['he'] = array(
+	'AdLoader' => array( 'טעינת_פרסומת' ),
+	'AdRandom' => array( 'טעינת_פרסומת_אקראית' ),
+	'CampaignAdsLoader' => array( 'טעינת_פרסומות_קמפיין' ),
 );

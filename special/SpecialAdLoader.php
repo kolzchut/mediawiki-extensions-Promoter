@@ -1,13 +1,10 @@
 <?php
 /**
- * Renders ad contents as jsonp, making a random selection from a campaign
+ * Loads a specified ad, mainly for a forced preview
  */
-class SpecialAdRandom extends UnlistedSpecialPage {
-	/** @var boolean Is user anonymous */
-	public $anonymous;
-
-	/** @var string Name of the campaign that the ad belongs to.*/
-	public $campaignName;
+class SpecialAdLoader extends UnlistedSpecialPage {
+	/** @var string Name of the chosen ad */
+	public $adName;
 
 	/** @var boolean Should we display a page with ad preview? */
 	protected $isPreview;
@@ -15,7 +12,7 @@ class SpecialAdRandom extends UnlistedSpecialPage {
 
 	function __construct() {
 		// Register special page
-		parent::__construct( "AdRandom" );
+		parent::__construct( "AdLoader" );
 	}
 
 	function execute( $par ) {
@@ -25,9 +22,7 @@ class SpecialAdRandom extends UnlistedSpecialPage {
 		$error = false;
 
 		try {
-			$adChooser = new AdChooser( $this->campaignName, $this->anonymous );
-			$chosenAd = $adChooser->chooseAd();
-			$chosenAd = Ad::fromName( $chosenAd['name'] );
+			$chosenAd = Ad::fromName( $this->adName );
 			$html = $chosenAd->renderHtml();
 		} catch ( MWException $e ) {
 			wfDebugLog( 'Promoter', $e->getMessage() );
@@ -52,17 +47,12 @@ class SpecialAdRandom extends UnlistedSpecialPage {
 	}
 
 	function getParams() {
-		global $wgPromoterFallbackCampaign;
-
 		$request = $this->getRequest();
-
-		$anonymous = ( $this->getSanitized( 'anonymous', Ad::BOOLEAN_PARAM_FILTER ) === 'true' );
-		$campaignName = $request->getText( 'campaign' ) ?: $wgPromoterFallbackCampaign;
+		$adName = $request->getText( 'ad' ) ?: null;
 		$preview = ( $this->getSanitized( 'preview', Ad::BOOLEAN_PARAM_FILTER ) === 'true' );
 
 		$required_values = array(
-			$campaignName,
-			$anonymous
+			$adName
 		);
 		foreach ( $required_values as $value ) {
 			if ( is_null( $value ) || $value === '' ) {
@@ -70,8 +60,7 @@ class SpecialAdRandom extends UnlistedSpecialPage {
 			}
 		}
 
-		$this->anonymous = $anonymous;
-		$this->campaignName = $campaignName;
+		$this->adName = $adName;
 		$this->isPreview = $preview;
 	}
 
@@ -107,6 +96,7 @@ class SpecialAdRandom extends UnlistedSpecialPage {
 	 * @internal param string $adName
 	 * @return string of Javascript containing a call to insertAd()
 	 *   with JSON containing the ad content as the parameter
+	 * @throw SpecialAdLoaderException
 	 */
 	public function getJsData( Ad &$ad ) {
 		$adHtml = $ad->renderHtml();
@@ -120,7 +110,6 @@ class SpecialAdRandom extends UnlistedSpecialPage {
 			'adName' => $ad->getName(),
 			'adCaption' => $adCaption,
 			'adHtml' => $adHtml,
-			'campaign' => $this->campaignName,
 		);
 
 		$adJson = FormatJson::encode( $adArray );
@@ -141,8 +130,14 @@ class SpecialAdRandom extends UnlistedSpecialPage {
  *
  * @ingroup Exception
  */
-class AdRandomException extends MWException {
-	function __construct( $campaignName = '(none provided)' ) {
-		$this->message = get_called_class() . " while loading campaign: '{$campaignName}'";
+class AdLoaderException extends MWException {
+	function __construct( $adName = '(none provided)' ) {
+		$this->message = get_called_class() . " while loading ad: '{$adName}'";
 	}
+}
+
+class EmptyAdException extends AdLoaderException {
+}
+
+class MissingRequiredParamsException extends AdLoaderException {
 }
