@@ -33,13 +33,12 @@ class PromoterGallery {
 			return 'No campaign for this page';
 		}
 
-		$html = '<div class="promotion-gallery">';
-		$html .= <<<HTML
-<div class="gallery-controls">
-	<span class="owl-prev icon icon-chevron-right icon-large" title="הקודם"></span>
-	<span class="owl-next icon icon-chevron-left icon-large" title="הבא"></span>
-</div>
-HTML;
+		$html = '<div class="promotion-gallery">'
+			. '<div class="gallery-controls">'
+			. '<a href="#" class="owl-prev"><span class="icon icon-chevron-right icon-large" title="הקודם"></span></a>'
+			. '<a href="#" class="owl-next"><span class="icon icon-chevron-left icon-large" title="הבא"></span></a>'
+			. '</div>'
+		;
 		if( $args['title'] ) {
 			$html .= '<div class="header">' . $args['title'] . '</div>';
 		}

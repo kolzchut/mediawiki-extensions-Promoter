@@ -2,22 +2,41 @@
 
 @import "mediawiki.mixins";
 
+/* Copied verbatim from Helena/variables.less */
 @content-font-family: Arial, sans-serif;
 @heading-font-family: 'Na_OE_Pro-Regular', @content-font-family;
-@primary-color-blue: #4C728A;
+@content-color-lightblue: #4C728A;
+@link-color-blue: @content-color-lightblue;
+@link-hover-color-blue:      darken(@link-color-blue, 15%);
+/* /Copied */
+
+.gallery-controls a {
+	text-decoration: none !important;
+	color: @link-color-blue;
+
+	&:hover,
+	&:focus,
+	&:active,
+	&.active {
+		color: @link-hover-color-blue !important;
+	}
+}
+
+.gallery-controls a + a {
+	margin-left: 10px;
+}
 
 .promotion-gallery {
 	margin-bottom: 20px;
 
 	& > .gallery-controls {
 		float: right;
-		color: @primary-color-blue;
 	}
 
 	& > .header {
 		font-family: @heading-font-family;
 		font-size: 17px;
-		color: @primary-color-blue;
+		color: @content-color-lightblue;
 	}
 	.owl-carousel {
 		background-color: #e3ebee;
@@ -52,7 +71,7 @@
 		& > .header {
 			margin-bottom: 0;
 			border-bottom: none;
-			color: @primary-color-blue;
+			color: @content-color-lightblue;
 
 			& > .caption {
 				font-size: 16px;
