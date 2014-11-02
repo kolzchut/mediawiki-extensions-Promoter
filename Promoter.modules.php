@@ -159,7 +159,8 @@ $wgResourceModules[ 'ext.promoter.gallery' ] = array(
 	'localBasePath' => $promoterLocalBasePath,
 	'remoteExtPath' => $promoterRemoteExtPath,
 	'dependencies' => array(
-		'jquery.owl-carousel'
+		'jquery.owl-carousel',
+		'skins.helena.jquery.equalizeCols'
 	),
 	'scripts'       => 'ext.promoter.gallery/initialize.js',
 	'styles'        => array(
