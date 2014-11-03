@@ -30,10 +30,13 @@ class PromoterGallery {
 		} catch ( CampaignExistenceException $e ) {
 			wfDebugLog( 'Promoter', $e->getMessage() );
 			//@todo i18n
-			return 'No campaign for this page';
+			return '<span class="error">No campaign for this page</span>';
+		} catch ( MWException $e ) {
+			wfDebugLog( 'Promoter', $e->getMessage() );
+			return '<span class="error text-danger">An error occurred [' . $e->getMessage() . ']</span>';
 		}
 
-		$html = '<div class="promotion-gallery">'
+		$html = '<div class="promotion-gallery hidden-print">'
 			. '<div class="gallery-controls">'
 			. '<a href="#" class="owl-prev"><span class="icon icon-chevron-right icon-large" title="הקודם"></span></a>'
 			. '<a href="#" class="owl-next"><span class="icon icon-chevron-left icon-large" title="הבא"></span></a>'
@@ -43,7 +46,7 @@ class PromoterGallery {
 			$html .= '<div class="header">' . $args['title'] . '</div>';
 		}
 
-		$html .= '<div class="owl-carousel clearfix" tabindex="0">'
+		$html .= '<div class="owl-carousel clearfix hidden" tabindex="0">'
 			. implode( '', $renderedAds )
 			. '</div>'
 			. '</div>';
