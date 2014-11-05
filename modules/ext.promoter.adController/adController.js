@@ -46,6 +46,8 @@
 			testing: false
 		},
 
+		containerElement: '#sidebar-promotion',
+
 		/**
 		 * Custom data that the ad can play with
 		 */
@@ -116,7 +118,7 @@
 				// Ok, we have an ad!
 				// All conditions fulfilled, inject the ad
 				mw.promoter.adData.adName = adJson.adName;
-				$( '#sidebar-promotion' ).prepend( adJson.adHtml );
+				$( mw.promoter.containerElement ).prepend( adJson.adHtml );
 
 				if( mw.promoter.data.testing != true && !mw.promoter.data.getVars.ad ) {
 					// not a forced preview of a specific ad, send analytics hit
@@ -131,10 +133,14 @@
 			window._gaq.push( ['_trackEvent', 'ad-impressions', campaign, adName, undefined, true] );
 
 			// And bind another event to a possible click...
-			$( '.mainlink > a, a.caption').click( function( e ) {
-				e.preventDefault();
+			$( mw.promoter.containerElement).find('.mainlink > a, a.caption').click( function( e ) {
+				_gaq.push(['_set', 'hitCallback', function () {
+					document.location = e.target.href;	// Navigate on hit callback
+				}]);
 				window._gaq.push( ['_trackEvent', 'ad-clicks', campaign, adName] );
-				setTimeout('document.location = "' + this.href + '"', 100);
+
+				return !window._gat; // Prevent default nav only if GA is loaded
+				//setTimeout('document.location = "' + this.href + '"', 100);
 			});
 		},
 		loadQueryStringVariables: function () {
