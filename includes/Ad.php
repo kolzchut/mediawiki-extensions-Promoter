@@ -779,7 +779,7 @@ class Ad {
 		$adMainLink = empty( $adMainLink ) ?
 			null : Skin::makeInternalOrExternalUrl( $this->getMainLink() );
 
-		 $adHtml = HTML::openElement( 'div', array( 'class' => 'promotion' ) );
+		 $adHtml = HTML::openElement( 'div', array( 'class' => 'promotion', 'data-adname' => $this->getName() ) );
 		 	$adHtml .= HTML::openElement( 'div', array( 'class' => 'header' ) );
 		 		$adHtml .= HTML::element( 'span', array( 'class' => 'icon pull-right' ) );
 		 		if( empty( $adMainLink ) ) {

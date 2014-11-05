@@ -2,8 +2,8 @@
 
 class PromoterGallery {
 	static public function onParserFirstCallInit( Parser &$parser ) {
-		//$parser->setFunctionHook( 'promotergallery', array( $this, 'loadGallery' ) );
-		$parser->setHook( 'promotergallery', array( __CLASS__, 'loadGallery' ) );
+		//$parser->setFunctionHook( 'promotergallery', array( $this, 'renderGallery' ) );
+		$parser->setHook( 'promotergallery', array( __CLASS__, 'renderGallery' ) );
 		return true;
 	}
 
@@ -15,7 +15,7 @@ class PromoterGallery {
 	 *
 	 * @return string: HTML to insert in the page.
 	 */
-	static public function loadGallery( $input, array $args, Parser $parser, PPFrame $frame ) {
+	static public function renderGallery( $input, array $args, Parser $parser, PPFrame $frame ) {
 		$parser->getOutput()->addModules( 'ext.promoter.gallery' );
 		$pageName = $parser->getTitle()->getText();
 
@@ -36,7 +36,7 @@ class PromoterGallery {
 			return '<span class="error text-danger">An error occurred [' . $e->getMessage() . ']</span>';
 		}
 
-		$html = '<div class="promotion-gallery hidden-print">'
+		$html = '<div class="promotion-gallery hidden hidden-print">'
 			. '<div class="gallery-controls">'
 			. '<a href="#" class="owl-prev"><span class="icon icon-chevron-right icon-large" title="הקודם"></span></a>'
 			. '<a href="#" class="owl-next"><span class="icon icon-chevron-left icon-large" title="הבא"></span></a>'
@@ -46,7 +46,7 @@ class PromoterGallery {
 			$html .= '<div class="header">' . $args['title'] . '</div>';
 		}
 
-		$html .= '<div class="owl-carousel clearfix hidden" tabindex="0">'
+		$html .= '<div class="owl-carousel clearfix" tabindex="0">'
 			. implode( '', $renderedAds )
 			. '</div>'
 			. '</div>';

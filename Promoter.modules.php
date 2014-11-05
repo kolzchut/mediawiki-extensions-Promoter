@@ -162,7 +162,7 @@ $wgResourceModules[ 'ext.promoter.gallery' ] = array(
 		'jquery.owl-carousel',
 		'skins.helena.jquery.equalizeCols'
 	),
-	'scripts'       => 'ext.promoter.gallery/initialize.js',
+	'scripts'       => 'ext.promoter.gallery/gallery.js',
 	'styles'        => array(
 		'ext.promoter.gallery/gallery.less'
 	),
