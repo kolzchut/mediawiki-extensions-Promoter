@@ -4,13 +4,13 @@
 	"use strict";
 
 
-	mw.promoter.gallery = {
+	mw.promoterGallery = {
 
 		page: mw.config.get( 'wgPageName' ),
 
 		onInitial: function ($carousel) {
 			$carousel.closest('.promotion-gallery').removeClass('hidden');
-			mw.promoter.gallery.randomizeOrder($carousel);
+			mw.promoterGallery.randomizeOrder($carousel);
 		},
 
 		equalizeHeights: function () {
@@ -26,13 +26,13 @@
 		},
 		enableAdTracking: function() {
 			window._gaq = window._gaq || []; // Make sure there's a queue for GA
-			$('.promotion-gallery').on( 'click', '.mainlink > a, a.caption', mw.promoter.gallery.trackAd );
+			$('.promotion-gallery').on( 'click', '.mainlink > a, a.caption', mw.promoterGallery.trackAd );
 		},
 		trackAd: function( e ) {
 			var $link = $( e.target );
 			var $ad = $link.closest( '.promotion' );
 			var adName = $ad.data( 'adname' );
-			var campaign = mw.promoter.gallery.page;
+			var campaign = mw.promoterGallery.page;
 
 			_gaq.push(['_set', 'hitCallback', function () {
 				document.location = e.target.href;	// Navigate on hit callback
@@ -61,38 +61,38 @@
 					//nav: true,
 					//navContainer: '.gallery-controls',
 					rtl: $('#mw-content-text').attr('dir') === 'rtl',
-					onInitialized: mw.promoter.gallery.onInitial($carousel)
+					onInitialized: mw.promoterGallery.onInitial($carousel)
 				});
 
-				window.setTimeout(mw.promoter.gallery.equalizeHeights, 500);
+				window.setTimeout(mw.promoterGallery.equalizeHeights, 500);
 
 				$gallery.find('.owl-next').click(function (e) {
-					$carousel.trigger("next.owl.carousel");
+					$carousel.triggerHandler("next.owl.carousel");
 					e.preventDefault();
 				});
 				$gallery.find('.owl-prev').click(function (e) {
-					$carousel.trigger("prev.owl.carousel");
+					$carousel.triggerHandler("prev.owl.carousel");
 					e.preventDefault();
 				});
 
 				$carousel.keydown(function (event) {
-					switch (event.key) {
-						case 'Left':
-							$carousel.trigger("next.owl.carousel");
+					switch (event.keyCode) {
+						case 37:
+							$carousel.triggerHandler("next.owl.carousel");
 							break;
-						case 'Right':
-							$carousel.trigger("prev.owl.carousel");
+						case 39:
+							$carousel.triggerHandler("prev.owl.carousel");
 							break;
 						default:
 					}
 				});
 			});
 
-			mw.promoter.gallery.enableAdTracking();
+			mw.promoterGallery.enableAdTracking();
 		}
 	};
 
 	$( function() {
-		mw.promoter.gallery.initialize();
+		mw.promoterGallery.initialize();
 	});
 } )( jQuery, mediaWiki );
