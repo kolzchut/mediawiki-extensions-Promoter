@@ -774,7 +774,7 @@ class Ad {
 		 */
 	 public function renderHtml() {
 		$adCaption = $this->getCaption();
-		$adBody = wfMessage( $this->getDbKey() )->text();
+		$adBody = wfMessage( $this->getDbKey() )->parse();
 		$adMainLink = $this->getMainLink();
 		$adMainLink = empty( $adMainLink ) ?
 			null : Skin::makeInternalOrExternalUrl( $this->getMainLink() );

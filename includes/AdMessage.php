@@ -21,7 +21,7 @@ class AdMessage {
 	}
 
 	function toHtml( IContextSource $context ) {
-		return $context->msg( $this->getDbKey() )->text();
+		return $context->msg( $this->getDbKey() )->parse();
 	}
 
 	/**
