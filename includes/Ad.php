@@ -789,7 +789,7 @@ class Ad {
 				}
 
 		 	$adHtml .= HTML::closeElement( 'div' );
-		 	$adHtml .= HTML::element( 'div', array( 'class' => 'content' ), $adBody );
+		 	$adHtml .= HTML::rawElement( 'div', array( 'class' => 'content' ), $adBody );
 		 	if( $adMainLink ) {
 				$adHtml .= HTML::openElement( 'div', array( 'class' => 'mainlink' ) );
 				$adHtml .= HTML::element( 'a', array( 'href' => $adMainLink ), 'לפרטים נוספים...' );
