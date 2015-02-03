@@ -807,6 +807,22 @@ class Ad {
 			array( 'class' => 'pr-ad-title' )
 		);
 	}
+
+	// @TODO do a join with pr_campaign instead of getting campaign names one by one
+	function getLinkedCampaignNames() {
+		$campaignNames = array();
+		$dbr = wfGetDB( DB_SLAVE );
+		$res = $dbr->select( 'pr_adlinks', 'cmp_id',
+			array(
+				'ad_id' => $this->getId(),
+			)
+		);
+		foreach ( $res as $row ) {
+			$campaignNames[] = Campaign::getCampaignName( $row->cmp_id );
+		}
+
+		return $campaignNames;
+	}
 }
 
 class AdDataException extends MWException {}

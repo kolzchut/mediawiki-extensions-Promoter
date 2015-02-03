@@ -63,7 +63,9 @@
 	"promoter-ad-body": "תוכן",
 	"promoter-ad-link": "קישור מרכזי",
 
-	"promoter-edit-ad-summary": "כדי ליצור הודעה שאפשר לתרגם, יש לתחום מחרוזות עם מקפים בשלושה סוגריים מסולסלים, למשל {{{jimbo-quote}}}.",
+  	"promoter-ad-linked-campaigns": "מסעות פרסום מקושרים",
+  	"promoter-ad-linked-campaigns-empty": "אין מסעות פרסום מקושרים. הפרסומת גלמודה.",
+  	"promoter-edit-ad-summary": "כדי ליצור הודעה שאפשר לתרגם, יש לתחום מחרוזות עם מקפים בשלושה סוגריים מסולסלים, למשל {{{jimbo-quote}}}.",
 	"promoter-edit-ad-magicwords": "מילות קסם: $1",
 	"promoter-insert": "הוספה: $1",
 	"promoter-close-button": "לחצן סגירה",
