@@ -43,22 +43,6 @@ $wgPromoterTabifyPages = array(
 		'type' => 'views',
 		'message' => 'promoter-ads',
 	),
-
-	/* Right side 'view' tabs */
-	/*
-	'BannerAllocation' => array(
-		'type' => 'views',
-		'message' => 'centralnotice-allocation',
-	),
-	'GlobalAllocation' => array(
-		'type' => 'views',
-		'message' => 'centralnotice-global-allocation',
-	),
-	'CentralNoticeLogs' => array(
-		'type' => 'views',
-		'message' => 'centralnotice-logs',
-	),
-	*/
 );
 
 
@@ -69,7 +53,7 @@ require_once $dir . '/Promoter.modules.php';
 // Register message files
 $wgMessagesDirs['Promoter'] = __DIR__ . '/i18n';
 $wgExtensionMessagesFiles['Promoter'] = __DIR__ . "/Promoter.i18n.php";
-$wgExtensionMessagesFiles[ 'WRPromoterAliases' ] = $dir . '/Promoter.alias.php';
+$wgExtensionMessagesFiles[ 'PromoterAliases' ] = $dir . '/Promoter.alias.php';
 
 // Register user rights
 $wgAvailableRights[] = 'promoter-admin';

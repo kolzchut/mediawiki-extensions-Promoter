@@ -8,8 +8,8 @@ $specialPageAliases = array();
 
 /** English (English) */
 $specialPageAliases['en'] = array(
-	'Promoter' => array( 'Promoter' ),
-	'PromoterAds' => array( 'PromoterAds' ),
+	'Promoter' => array( 'Promoter', 'Ad Management' ),
+	'PromoterAds' => array( 'PromoterAds', 'Promoter Ads' ),
 	'CampaignAd' => array( 'CampaignAd' ),
 	'GlobalAllocation' => array( 'GlobalAllocation' ),
 	'AdAllocation' => array( 'AdAllocation' ),
@@ -21,6 +21,8 @@ $specialPageAliases['en'] = array(
 
 /** Hebrew (עברית) */
 $specialPageAliases['he'] = array(
+	'Promoter' => array( 'ניהול מסעות פרסום' ),
+	'PromoterAds' => array( 'ניהול פרסומות' ),
 	'AdLoader' => array( 'טעינת_פרסומת' ),
 	'AdRandom' => array( 'טעינת_פרסומת_אקראית' ),
 	'CampaignAdsLoader' => array( 'טעינת_פרסומות_קמפיין' ),
