@@ -781,7 +781,7 @@ class Ad {
 
 		 $adHtml = HTML::openElement( 'div', array( 'class' => 'promotion', 'data-adname' => $this->getName() ) );
 		 	$adHtml .= HTML::openElement( 'div', array( 'class' => 'header' ) );
-		 		$adHtml .= HTML::element( 'span', array( 'class' => 'icon pull-right' ) );
+		 		//$adHtml .= HTML::element( 'span', array( 'class' => 'icon pull-right' ) );
 		 		if( empty( $adMainLink ) ) {
 					$adHtml .= HTML::element( 'span', array( 'class' => 'caption' ), $adCaption );
 				} else {
