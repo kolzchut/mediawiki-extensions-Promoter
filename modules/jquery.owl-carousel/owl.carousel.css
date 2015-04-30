@@ -116,7 +116,7 @@
 }
 .owl-carousel .owl-item img {
   display: block;
-  width: 100%;
+  max-width: 100%; /* WikiRights patch - do not stretch images */
   -webkit-transform-style: preserve-3d;
 }
 .owl-carousel.owl-text-select-on .owl-item {
