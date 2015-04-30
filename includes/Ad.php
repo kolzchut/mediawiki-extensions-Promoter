@@ -584,7 +584,6 @@ class Ad {
 			$article = new Article(
 				Title::newFromText( "promoter-ad-{$name}", NS_MEDIAWIKI )
 			);
-			$pageId = $article->getPage()->getId();
 			$article->doDeleteArticle( 'Promoter automated removal' );
 		}
 	}
@@ -672,7 +671,9 @@ class Ad {
 	 *
 	 * @return bool true or false depending on whether ad was successfully added
 	 */
-	static function addAd( $name, $body, $caption, $mainlink, $user, $displayAnon = true, $displayUser = true	) {
+	static function addAd(
+		$name, $body, $caption, $mainlink, $user, $displayAnon = true, $displayUser = true
+	) {
 		//if ( $name == '' || !Ad::isValidAdName( $name ) || $body == '' ) {
 		if ( $name == '' || !Ad::isValidAdName( $name ) ) {
 			return 'promoter-null-string';
@@ -692,6 +693,7 @@ class Ad {
 		$ad->setBodyContent( $body );
 
 		$ad->save( $user );
+		return true;
 	}
 
 	/**
@@ -769,33 +771,39 @@ class Ad {
 		}
 	}
 
-		/**
-		 * Get the body of the ad, with all transformations applied.
-		 */
-	 public function renderHtml() {
+	/**
+	 * Get the body of the ad, with all transformations applied.
+	 */
+	public function renderHtml() {
 		$adCaption = $this->getCaption();
 		$adBody = wfMessage( $this->getDbKey() )->parse();
 		$adMainLink = $this->getMainLink();
 		$adMainLink = empty( $adMainLink ) ?
 			null : Skin::makeInternalOrExternalUrl( $this->getMainLink() );
 
-		 $adHtml = HTML::openElement( 'div', array( 'class' => 'promotion', 'data-adname' => $this->getName() ) );
-		 	$adHtml .= HTML::openElement( 'div', array( 'class' => 'header' ) );
-		 		//$adHtml .= HTML::element( 'span', array( 'class' => 'icon pull-right' ) );
-		 		if( empty( $adMainLink ) ) {
+		$adHtml = HTML::openElement(
+			'div', array( 'class' => 'promotion', 'data-adname' => $this->getName() )
+		);
+		    $adHtml .= HTML::openElement( 'div', array( 'class' => 'header' ) );
+		        //$adHtml .= HTML::element( 'span', array( 'class' => 'icon pull-right' ) );
+		        if ( empty( $adMainLink ) ) {
 					$adHtml .= HTML::element( 'span', array( 'class' => 'caption' ), $adCaption );
 				} else {
-					$adHtml .= HTML::element( 'a', array( 'class' => 'caption', 'href' => $adMainLink ), $adCaption );
+					$adHtml .= HTML::element(
+						'a',
+						array( 'class' => 'caption', 'href' => $adMainLink ),
+						$adCaption
+					);
 				}
 
 		 	$adHtml .= HTML::closeElement( 'div' );
 		 	$adHtml .= HTML::rawElement( 'div', array( 'class' => 'content' ), $adBody );
-		 	if( $adMainLink ) {
+		 	if ( $adMainLink ) {
 				$adHtml .= HTML::openElement( 'div', array( 'class' => 'mainlink' ) );
 				$adHtml .= HTML::element( 'a', array( 'href' => $adMainLink ), 'לפרטים נוספים...' );
 				$adHtml .= HTML::closeElement( 'div' );
 			}
-		 $adHtml .= HTML::closeElement( 'div' );
+	    $adHtml .= HTML::closeElement( 'div' );
 
 		 return $adHtml;
 	}
@@ -825,6 +833,9 @@ class Ad {
 	}
 }
 
-class AdDataException extends MWException {}
-class AdContentException extends AdDataException {}
-class AdExistenceException extends AdDataException {}
+class AdDataException extends MWException {
+}
+class AdContentException extends AdDataException {
+}
+class AdExistenceException extends AdDataException {
+}
