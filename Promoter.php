@@ -14,7 +14,8 @@ $wgExtensionCredits[ 'other' ][] = array(
 	'path'           => __FILE__,
 	'name'           => 'WikiRights Promoter',
 	'author'         => array(
-		'Dror S. ([http://www.kolzchut.org.il Kol-Zchut]), based on [https://mediawiki.org/wiki/Extension:CentralNotice Extension:CentralNotice]',
+		'Dror S. [FFS] ([http://www.kolzchut.org.il Kol-Zchut])',
+		'based on [https://mediawiki.org/wiki/Extension:CentralNotice Extension:CentralNotice]'
 	),
 	'version'        => '15-Sep-2014',
 	//'url'            => 'http://www.kolzchut.org.il/he/Project:Extensions/Promoter',
