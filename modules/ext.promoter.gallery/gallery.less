@@ -1,14 +1,17 @@
-/* 27-Oct-2014 By Dror S. [ffs] for MediaWiki's ResourceLoader */
-
 @import "mediawiki.mixins";
 
 /* Copied verbatim from Helena/variables.less */
 @content-font-family: Arial, sans-serif;
-@heading-font-family: 'Na_OE_Pro-Regular', @content-font-family;
-@content-color-lightblue: #4C728A;
-@link-color-blue: @content-color-lightblue;
-@link-hover-color-blue:      darken(@link-color-blue, 15%);
+@heading-font-family: 'Na_OE_Pro', @content-font-family;
+
+@color-blue: #4C728A;
+@color-blue-bg-darker: #E4EBEF;
+@color-blue-lighter: #427DA4;
+@link-color-blue: @color-blue-lighter;
+@link-hover-color-blue: darken(@link-color-blue, 15%);
 /* /Copied */
+
+@gallery-border: lighten( @color-blue, 25% );
 
 .gallery-controls a {
 	text-decoration: none !important;
@@ -36,10 +39,10 @@
 	& > .header {
 		font-family: @heading-font-family;
 		font-size: 19px;
-		color: @content-color-lightblue;
+		color: @color-blue;
 	}
 	.owl-carousel {
-		background-color: #e3ebee;
+		background-color: @color-blue-bg-darker;
 		padding: 10px;
 
 		& > .owl-controls {
@@ -48,11 +51,11 @@
 	}
 
 	.owl-item {
-		border-right: 2px solid #9eb0bc;
+		border-right: 2px solid @gallery-border;
 		padding: 5px 10px 0;
 
 		&:first-child {
-			border-left: 2px solid #9eb0bc;
+			border-left: 2px solid @gallery-border;
 		}
 	}
 
@@ -66,21 +69,13 @@
 		*/
 
 		& > .header {
-			color: @content-color-lightblue;
+			color: @color-blue;
 
 			& > .caption {
 				font-size: 16px;
 			}
 			& > .icon {
 				display: none;
-			}
-		}
-
-		.mainlink > a {
-			font-weight: normal;
-
-			#content & {
-				text-decoration: none;
 			}
 		}
 	}
