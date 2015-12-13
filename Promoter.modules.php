@@ -125,6 +125,7 @@ $wgResourceModules[ 'ext.promoter.adController' ] = array(
 	'remoteExtPath' => $promoterRemoteExtPath . '/ext.promoter.adController',
 	'styles'        => 'adController.less',
 	'scripts'       => 'adController.js',
+	'position'      => 'bottom'
 );
 
 

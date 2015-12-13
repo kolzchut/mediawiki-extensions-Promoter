@@ -36,7 +36,7 @@ $wgHooks[ 'SkinTemplateNavigation::SpecialPage' ][ ] = array( 'Promoter::addNavi
  */
 function efWikiRightsPromoterSetup() {
 	global $wgHooks, $wgAutoloadClasses, $wgSpecialPages,
-		   $wgSpecialPageGroups, $wgScript;
+		   $wgSpecialPageGroups;
 
 	$dir = __DIR__ . '/';
 	$specialDir = $dir . 'special/';
@@ -108,13 +108,13 @@ function efWikiRightsPromoterSetup() {
  * @return bool
  */
 function efResourceLoaderGetConfigVars( &$vars ) {
-	global $wgContLang, $wgPromoterAdDispatcher, $wgScript;
+	global $wgPromoterAdDispatcher;
 
 	// Making these calls too soon will causes issues with the namespace localisation cache. This seems
 	// to be just right. We require them at all because MW will 302 page requests made to non localised
 	// namespaces which results in wasteful extra calls.
 	if ( !$wgPromoterAdDispatcher ) {
-		$wgPromoterAdDispatcher = "{$wgScript}/{$wgContLang->specialPage( 'AdRandom' )}";
+		$wgPromoterAdDispatcher = SpecialPage::getTitleFor( 'AdRandom' )->getFullURL();
 	}
 	$vars[ 'wgPromoterAdDispatcher' ] = $wgPromoterAdDispatcher;
 
