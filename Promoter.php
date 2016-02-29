@@ -17,7 +17,7 @@ $wgExtensionCredits[ 'other' ][] = array(
 		'Dror S. [FFS] ([http://www.kolzchut.org.il Kol-Zchut])',
 		'based on [https://mediawiki.org/wiki/Extension:CentralNotice Extension:CentralNotice]'
 	),
-	'version'        => '15-Sep-2014',
+	'version'        => '2016-01-20',
 	//'url'            => 'http://www.kolzchut.org.il/he/Project:Extensions/Promoter',
 	'descriptionmsg' => 'promoter-desc',
 	'license-name' => 'GPLv2',
@@ -53,9 +53,9 @@ require_once $dir . '/Promoter.modules.php';
 
 // Register message files
 $wgMessagesDirs['Promoter'] = __DIR__ . '/i18n';
-$wgExtensionMessagesFiles['Promoter'] = __DIR__ . "/Promoter.i18n.php";
 $wgExtensionMessagesFiles[ 'PromoterAliases' ] = $dir . '/Promoter.alias.php';
 
 // Register user rights
 $wgAvailableRights[] = 'promoter-admin';
 $wgGroupPermissions[ 'sysop' ][ 'promoter-admin' ] = true; // Only sysops can make changes
+

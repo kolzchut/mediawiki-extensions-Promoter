@@ -1,5 +1,11 @@
 # Promoter - extension semi-documentation
 
+## How to use
+
+### Ad carousel
+Using a <promotergallery /> tag, you can display an ad carousel/slider, which tries to load all
+ads for the current page.
+
 ## Things you should know:
 - A non-existant campaign fallbacks to a default campaign ($wgPromoterFallbackCampaign)
 - A disabled (inactive) campaign is the same as a non-existant one
@@ -24,7 +30,15 @@
 
 
 ## Changelog
-- 15-Sep-2014 Add Google Analytics support to ads, using events:
+- 2016-01-20 Depened on Extension:GoogleUniversalAnalytics (using RL module) for event tracking
+- 2015-02-09 Update design of sidebar ads to make them a bit more noticeable
+- 2014-11-17 Parse ad messages as wikitext
+- 2014-10-30
+	* Add a new ad carousel-slider for use on the main page
+	* Allow to preview a specific ad
+- 2014-09-15 Track ads using Google Analytics events:
 	* 'ad-impressions' notifies about the current page, campaign and ad selected
 	* 'ad-clicks' notifies about clicking an ad's main link - sends campaign and ad
-- 01-Sep-2014 Option to disable the fallback campaign (through the UI)
+- 2014-09-01 Allow to disable the fallback campaign (through the UI)
+- 2014-08-26 Initial MVP for Promoter
+- 2014-05-14 Fork from Extension:CentralNotice and start demolition

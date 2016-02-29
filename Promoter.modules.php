@@ -125,6 +125,7 @@ $wgResourceModules[ 'ext.promoter.adController' ] = array(
 	'remoteExtPath' => $promoterRemoteExtPath . '/ext.promoter.adController',
 	'styles'        => 'adController.less',
 	'scripts'       => 'adController.js',
+	'dependencies'  => 'ext.googleUniversalAnalytics.utils',
 	'position'      => 'bottom'
 );
 
@@ -160,7 +161,8 @@ $wgResourceModules[ 'ext.promoter.gallery' ] = array(
 	'remoteExtPath' => $promoterRemoteExtPath,
 	'dependencies' => array(
 		'jquery.owl-carousel',
-		'jquery.equalizeCols'
+		'jquery.equalizeCols',
+		'ext.googleUniversalAnalytics.utils'
 	),
 	'scripts'       => 'ext.promoter.gallery/gallery.js',
 	'styles'        => array(

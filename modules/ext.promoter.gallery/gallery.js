@@ -1,8 +1,9 @@
 /* jshint jquery:true */
 /* global mediaWiki */
 ( function ( $, mw ) {
-	"use strict";
+	'use strict';
 
+	var gaUtils = mw.googleAnalytics.utils;
 
 	mw.promoterGallery = {
 
@@ -25,25 +26,24 @@
 			});
 		},
 		enableAdTracking: function() {
-			window._gaq = window._gaq || []; // Make sure there's a queue for GA
 			$('.promotion-gallery').on( 'click', '.mainlink > a, a.caption', mw.promoterGallery.trackAd );
 		},
-		trackAd: function( e ) {
-			var $link = $( e.target );
+		trackAd: function( event ) {
+			var $link = $( event.target );
 			var $ad = $link.closest( '.promotion' );
 			var adName = $ad.data( 'adname' );
 			var campaign = mw.promoterGallery.page;
 
-			_gaq.push(['_set', 'hitCallback', function () {
-				document.location = e.target.href;	// Navigate on hit callback
-			}]);
-			window._gaq.push( ['_trackEvent', 'ad-clicks', campaign, adName] ); // Send hit
+			gaUtils.recordClickEvent( event, {
+				eventCategory: 'ad-gallery-clicks',
+				eventAction: campaign,
+				eventLabel: adName,
+				nonInteraction: false
+			} );
 
-			return !window._gat; // Prevent default nav only if GA is loaded
-			//setTimeout('document.location = "' + e.target.href + '"', 100); // Allow time for hit
 		},
 		initialize: function () {
-			$(".promotion-gallery").each(function () {
+			$('.promotion-gallery').each(function () {
 				var $gallery = $(this);
 				var $carousel = $gallery.find('.owl-carousel');
 
@@ -67,21 +67,21 @@
 				window.setTimeout(mw.promoterGallery.equalizeHeights, 500);
 
 				$gallery.find('.owl-next').click(function (e) {
-					$carousel.triggerHandler("next.owl.carousel");
+					$carousel.triggerHandler('next.owl.carousel');
 					e.preventDefault();
 				});
 				$gallery.find('.owl-prev').click(function (e) {
-					$carousel.triggerHandler("prev.owl.carousel");
+					$carousel.triggerHandler('prev.owl.carousel');
 					e.preventDefault();
 				});
 
 				$carousel.keydown(function (event) {
 					switch (event.keyCode) {
 						case 37:
-							$carousel.triggerHandler("next.owl.carousel");
+							$carousel.triggerHandler('next.owl.carousel');
 							break;
 						case 39:
-							$carousel.triggerHandler("prev.owl.carousel");
+							$carousel.triggerHandler('prev.owl.carousel');
 							break;
 						default:
 					}

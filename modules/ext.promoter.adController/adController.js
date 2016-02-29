@@ -25,7 +25,7 @@
 /* jshint jquery:true */
 /* global mediaWiki */
 ( function ( $, mw ) {
-	"use strict";
+	'use strict';
 
 	var rPlus = /\+/g;
 	function decode( s ) {
@@ -36,6 +36,8 @@
 			return '';
 		}
 	}
+
+	var gaUtils = mw.googleAnalytics.utils;
 
 	mw.promoter = {
 		/**
@@ -62,7 +64,7 @@
 		 * State variable used in initialize() to prevent it from running more than once
 		 * @private
 		 */
-		alreadyRan: false,
+		isInitialized: false,
 
 		/**
 		 * Deferred objects that link into promises in mw.promoter.events
@@ -120,7 +122,7 @@
 				mw.promoter.adData.adName = adJson.adName;
 				$( mw.promoter.containerElement ).prepend( adJson.adHtml );
 
-				if( mw.promoter.data.testing != true && !mw.promoter.data.getVars.ad ) {
+				if( mw.promoter.data.testing !== true && !mw.promoter.data.getVars.ad ) {
 					// not a forced preview of a specific ad, send analytics hit
 					mw.promoter.trackAd( adJson.adName, adJson.campaign );
 				}
@@ -128,21 +130,26 @@
 			}
 		},
 		trackAd: function( adName, campaign ) {
-			// Send hit
-			window._gaq = window._gaq || []; // Make sure there's a queue for GA
-			window._gaq.push( ['_trackEvent', 'ad-impressions', campaign, adName, undefined, true] );
+
+			// Send view hit
+			gaUtils.recordEvent( {
+				eventCategory: 'ad-impressions',
+				eventAction: campaign,
+				eventLabel: adName,
+				nonInteraction: true
+			} );
 
 			// And bind another event to a possible click...
 			$( mw.promoter.containerElement).find('.mainlink > a, a.caption').click( function( e ) {
-				_gaq.push(['_set', 'hitCallback', function () {
-					document.location = e.target.href;	// Navigate on hit callback
-				}]);
-				window._gaq.push( ['_trackEvent', 'ad-clicks', campaign, adName] );
-
-				return !window._gat; // Prevent default nav only if GA is loaded
-				//setTimeout('document.location = "' + this.href + '"', 100);
+				gaUtils.recordClickEvent( e, {
+					eventCategory: 'ad-clicks',
+					eventAction: campaign,
+					eventLabel: adName,
+					nonInteraction: false
+				} );
 			});
 		},
+
 		loadQueryStringVariables: function () {
 			document.location.search.replace( /\??(?:([^=]+)=([^&]*)&?)/g, function ( str, p1, p2 ) {
 				mw.promoter.data.getVars[decode( p1 )] = decode( p2 );
@@ -150,10 +157,10 @@
 		},
 		initialize: function () {
 			// === Do not allow Promoter to be re-initialized. ===
-			if ( mw.promoter.alreadyRan ) {
+			if ( mw.promoter.isInitialized ) {
 				return;
 			}
-			mw.promoter.alreadyRan = true;
+			mw.promoter.isInitialized = true;
 
 			// === Attempt to load parameters from the query string ===
 			mw.promoter.loadQueryStringVariables();
