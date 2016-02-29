@@ -31,6 +31,31 @@ $wgExtensionFunctions[] = 'efWikiRightsPromoterSetup';
 $wgHooks[ 'LoadExtensionSchemaUpdates' ][ ] = 'PRDatabasePatcher::applyUpdates';
 $wgHooks[ 'SkinTemplateNavigation::SpecialPage' ][ ] = array( 'Promoter::addNavigationTabs' );
 
+
+class PromoterHooks {
+	public static function onResourceLoaderGetConfigVars( &$vars ) {
+		global $wgPromoterTrackAds;
+
+		$trackAdsDefault = $wgPromoterTrackAds === true ? true : false;
+		$vars['wgPromoter'] = array(
+			'trackAdClicks' => $trackAdsDefault,
+			'trackAdViews' => $trackAdsDefault
+		);
+
+		if ( isset( $wgPromoterTrackAds ) && is_array( $wgPromoterTrackAds ) ) {
+			if ( isset( $wgPromoterTrackAds['click'] ) && ( $wgPromoterTrackAds['click'] === true) ) {
+				$vars['wgPromoter']['trackAdClicks'] = true;
+			}
+			if ( isset( $wgPromoterTrackAds['view'] ) && ( $wgPromoterTrackAds['view'] === true) ) {
+				$vars['wgPromoter']['trackAdViews'] = true;
+			}
+		}
+
+
+		return true;
+	}
+}
+
 /**
  * Load all the classes, register special pages, etc. Called through wgExtensionFunctions.
  */
@@ -85,6 +110,8 @@ function efWikiRightsPromoterSetup() {
 		$wgHooks[ 'SkinHelenaSidebar::End' ][ ] = 'efPromoterDisplay';
 		$wgHooks[ 'ResourceLoaderGetConfigVars' ][] = 'efResourceLoaderGetConfigVars';
 		$wgHooks['ParserFirstCallInit'][] = 'PromoterGallery::onParserFirstCallInit';
+		$wgHooks['ResourceLoaderGetConfigVars'][] = 'PromoterHooks::onResourceLoaderGetConfigVars';
+
 
 	// Register special pages
 	$wgSpecialPages[ 'AdLoader' ] = 'SpecialAdLoader';

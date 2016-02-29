@@ -47,6 +47,7 @@
 			getVars: {},
 			testing: false
 		},
+		config: {},
 
 		containerElement: '#sidebar-promotion',
 
@@ -122,7 +123,10 @@
 				mw.promoter.adData.adName = adJson.adName;
 				$( mw.promoter.containerElement ).prepend( adJson.adHtml );
 
-				if( mw.promoter.data.testing !== true && !mw.promoter.data.getVars.ad ) {
+				if(
+					mw.promoter.data.testing !== true
+					&& !mw.promoter.data.getVars.ad
+				) {
 					// not a forced preview of a specific ad, send analytics hit
 					mw.promoter.trackAd( adJson.adName, adJson.campaign );
 				}
@@ -130,24 +134,28 @@
 			}
 		},
 		trackAd: function( adName, campaign ) {
-
-			// Send view hit
-			gaUtils.recordEvent( {
-				eventCategory: 'ad-impressions',
-				eventAction: campaign,
-				eventLabel: adName,
-				nonInteraction: true
-			} );
-
-			// And bind another event to a possible click...
-			$( mw.promoter.containerElement).find('.mainlink > a, a.caption').click( function( e ) {
-				gaUtils.recordClickEvent( e, {
-					eventCategory: 'ad-clicks',
+			if( mw.promoter.config.trackAdViews ) {
+				// Send view hit
+				gaUtils.recordEvent({
+					eventCategory: 'ad-impressions',
 					eventAction: campaign,
 					eventLabel: adName,
-					nonInteraction: false
-				} );
-			});
+					nonInteraction: true
+				});
+			}
+
+
+			if( mw.promoter.config.trackAdClicks ) {
+				// And bind another event to a possible click...
+				$(mw.promoter.containerElement).find('.mainlink > a, a.caption').click(function (e) {
+					gaUtils.recordClickEvent(e, {
+						eventCategory: 'ad-clicks',
+						eventAction: campaign,
+						eventLabel: adName,
+						nonInteraction: false
+					});
+				});
+			};
 		},
 
 		loadQueryStringVariables: function () {
@@ -161,6 +169,9 @@
 				return;
 			}
 			mw.promoter.isInitialized = true;
+
+			// Load configuration that comes from PHP side
+			mw.promoter.config = mw.config.get('wgPromoter');
 
 			// === Attempt to load parameters from the query string ===
 			mw.promoter.loadQueryStringVariables();

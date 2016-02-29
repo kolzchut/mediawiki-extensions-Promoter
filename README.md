@@ -1,19 +1,31 @@
 # Promoter - extension semi-documentation
 
+## Configuration
+- $wgPromoterFallbackCampaign - A non-existant campaign will fall backs
+  to this default campaign. By default this is set to 'general'.
+- $wgPromoterTrackAds - disable view and/or click tracking. Possible
+  values: true/false/`array( 'view' => true, 'click' => true )`
+- $wgPromoterAdMaxAge - how much time to cache ads on the server-side
+  (in seconds). Default is 600 seconds.
+
+### User rights
+Anyone can access the special pages, but the 'promoter-admin' user right
+is required to edit anything in them.
+
 ## How to use
 
 ### Ad carousel
-Using a <promotergallery /> tag, you can display an ad carousel/slider, which tries to load all
-ads for the current page.
+Using a <promotergallery /> tag, you can display an ad carousel/slider,
+which tries to load all ads for the current page.
 
 ## Things you should know:
-- A non-existant campaign fallbacks to a default campaign ($wgPromoterFallbackCampaign)
 - A disabled (inactive) campaign is the same as a non-existant one
-- An empty campaign prevents falling back to default
+- An empty campaign prevents falling back to default, so it is possible
+  to prevent any ads for a category
 
 ## Misc
-- If you would like to use non-ansi names for ads, you must enable MediaWiki's $wgExperimentalHtmlIds (set it to 'true');
-
+- If you would like to use non-ansi names for ads, you must enable
+  MediaWiki's $wgExperimentalHtmlIds (set it to 'true').
 
 
 ## Todo
@@ -30,6 +42,9 @@ ads for the current page.
 
 
 ## Changelog
+- 2016-02-29
+  * Allow to disable view and/or click tracking ($wgPromoterTrackAds)
+  * Improve documentation somewhat
 - 2016-01-20 Depened on Extension:GoogleUniversalAnalytics (using RL module) for event tracking
 - 2015-02-09 Update design of sidebar ads to make them a bit more noticeable
 - 2014-11-17 Parse ad messages as wikitext

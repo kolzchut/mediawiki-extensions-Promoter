@@ -17,7 +17,7 @@ $wgExtensionCredits[ 'other' ][] = array(
 		'Dror S. [FFS] ([http://www.kolzchut.org.il Kol-Zchut])',
 		'based on [https://mediawiki.org/wiki/Extension:CentralNotice Extension:CentralNotice]'
 	),
-	'version'        => '2016-01-20',
+	'version'        => '2016-02-29',
 	//'url'            => 'http://www.kolzchut.org.il/he/Project:Extensions/Promoter',
 	'descriptionmsg' => 'promoter-desc',
 	'license-name' => 'GPLv2',
@@ -29,6 +29,11 @@ $dir = __DIR__;
 
 // Server-side banner cache timeout in seconds
 $wgPromoterAdMaxAge = 600;
+
+$wgPromoterTrackAds = array(
+	'view' => true,
+	'click' => true
+);
 
 // Name of the fallback campaign
 $wgPromoterFallbackCampaign = 'general';
