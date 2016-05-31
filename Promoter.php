@@ -18,9 +18,9 @@ $wgExtensionCredits[ 'other' ][] = array(
 		'based on [https://mediawiki.org/wiki/Extension:CentralNotice Extension:CentralNotice]'
 	),
 	'version'        => '2016-02-29',
-	//'url'            => 'http://www.kolzchut.org.il/he/Project:Extensions/Promoter',
+	'url'            => 'https://github.com/kolzchut/mediawiki-extensions-Promoter',
 	'descriptionmsg' => 'promoter-desc',
-	'license-name' => 'GPLv2',
+	'license-name' => 'GPL-2.0+',
 );
 
 $dir = __DIR__;
