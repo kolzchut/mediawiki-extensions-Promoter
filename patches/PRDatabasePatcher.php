@@ -23,7 +23,7 @@ class PRDatabasePatcher {
 		if ( $updater->getDB()->getType() == 'mysql' ) {
 			$updater->addExtensionUpdate(
 				array(
-					 'addTable', 'pr_campaigns.',
+					 'addTable', 'pr_campaigns',
 					 $base . '/../Promoter.sql', true
 				)
 			);
