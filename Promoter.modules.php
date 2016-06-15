@@ -31,26 +31,10 @@ $promoterRemoteExtPath = 'WikiRights/Promoter/modules';
 $promoterLocalBasePath = __DIR__ . '/modules';
 
 // Register ResourceLoader modules
-$wgResourceModules[ 'jquery.ui.multiselect' ] = array(
-	'localBasePath' => "$promoterLocalBasePath/jquery.ui.multiselect",
-	'remoteExtPath' => "$promoterRemoteExtPath/jquery.ui.multiselect",
-	'dependencies'  => array(
-		'jquery.ui.core',
-		'jquery.ui.sortable',
-		'jquery.ui.draggable',
-		'jquery.ui.droppable',
-		'mediawiki.jqueryMsg'
-	),
-	'scripts'       => 'ui.multiselect.js',
-	'styles'        => 'ui.multiselect.css',
-);
 $wgResourceModules[ 'ext.promoter.adminUi' ] = array(
 	'localBasePath' => "$promoterLocalBasePath/ext.promoter.adminUi",
 	'remoteExtPath' => "$promoterRemoteExtPath/ext.promoter.adminUi",
-	'dependencies' => array(
-		'jquery.ui.datepicker',
-		'jquery.ui.multiselect'
-	),
+	'dependencies' => array(),
 	'scripts'       => 'promoter.js',
 	'styles'        => array(
 		'promoter.css',
@@ -59,9 +43,6 @@ $wgResourceModules[ 'ext.promoter.adminUi' ] = array(
 	'messages'      => array(
 		'promoter-documentwrite-error',
 		'promoter-close-title',
-		'promoter-select-all',
-		'promoter-remove-all',
-		'promoter-items-selected'
 	)
 );
 $wgResourceModules[ 'ext.promoter.adminUi.adManager' ] = array(

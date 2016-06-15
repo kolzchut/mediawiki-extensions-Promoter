@@ -27,7 +27,7 @@ class PromoterGallery {
 				$renderedAds[] = Ad::fromName( $ad['name'] )->renderHtml();
 			}
 
-		} catch ( CampaignExistenceException $e ) {
+		} catch ( AdCampaignExistenceException $e ) {
 			wfDebugLog( 'Promoter', $e->getMessage() );
 			//@todo i18n
 			return '<span class="error">No campaign for this page</span>';

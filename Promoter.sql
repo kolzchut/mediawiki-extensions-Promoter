@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS /*_*/pr_adlinks (
 	adl_id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
   -- Ad to attach to a campaign... (Foreign Key to pr_ads).
   ad_id int(11) NOT NULL,
-  -- Campaign the ad will belong to (Foreign Key to pr_campaigns).
+  -- AdCampaign the ad will belong to (Foreign Key to pr_campaigns).
   cmp_id int(11) NOT NULL,
 	adl_weight int(11) NOT NULL
 ) /*$wgDBTableOptions*/;

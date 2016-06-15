@@ -34,7 +34,7 @@ class PromoterPager extends AdPager {
 
 		// Get the current campaign and filter on that as well if required
 		$campaign = $this->mRequest->getVal( 'campaign' );
-		$campaignId = Campaign::getCampaignId( $campaign );
+		$campaignId = AdCampaign::getCampaignId( $campaign );
 
 		if ( $campaignId ) {
 			// Return all the ads not already assigned to the current campaign

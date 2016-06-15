@@ -25,7 +25,7 @@ class SpecialCampaignAdsLoader extends UnlistedSpecialPage {
 		$renderedAds = array();
 
 		try {
-			$campaign = new Campaign( $this->campaignName );
+			$campaign = new AdCampaign( $this->campaignName );
 			$ads = $campaign->getAds();
 			foreach( $ads as $ad ) {
 				$renderedAds[] = Ad::fromName( $ad['name'] )->renderHtml();

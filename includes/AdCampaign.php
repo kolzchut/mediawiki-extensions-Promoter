@@ -1,6 +1,6 @@
 <?php
 
-class Campaign {
+class AdCampaign {
 
 	protected $id = null;
 	protected $name = null;
@@ -30,7 +30,7 @@ class Campaign {
 	/**
 	 * Get the unique numerical ID for this campaign
 	 *
-	 * @throws CampaignExistenceException If lazy loading failed.
+	 * @throws AdCampaignExistenceException If lazy loading failed.
 	 * @return int
 	 */
 	public function getId() {
@@ -44,7 +44,7 @@ class Campaign {
 	/**
 	 * Get the unique name for this campaign
 	 *
-	 * @throws CampaignExistenceException If lazy loading failed.
+	 * @throws AdCampaignExistenceException If lazy loading failed.
 	 * @return string
 	 */
 	public function getName() {
@@ -61,7 +61,7 @@ class Campaign {
 	 *
 	 * If a campaign is enabled it is eligible to be shown to users.
 	 *
-	 * @throws CampaignExistenceException If lazy loading failed.
+	 * @throws AdCampaignExistenceException If lazy loading failed.
 	 * @return bool
 	 */
 	public function isEnabled() {
@@ -76,7 +76,7 @@ class Campaign {
 	 * Returns the archival status of the campaign. An archived campaign is not allowed to be
 	 * edited.
 	 *
-	 * @throws CampaignExistenceException If lazy loading failed.
+	 * @throws AdCampaignExistenceException If lazy loading failed.
 	 * @return bool
 	 */
 	public function isArchived() {
@@ -90,7 +90,7 @@ class Campaign {
 	/**
 	 * Load basic campaign settings from the database table pr_campaigns
 	 *
-	 * @throws CampaignExistenceException If the campaign doesn't exist
+	 * @throws AdCampaignExistenceException If the campaign doesn't exist
 	 */
 	protected function loadBasicSettings() {
 		$db = PRDatabase::getDb();
@@ -101,7 +101,7 @@ class Campaign {
 		} elseif ( $this->name !== null ) {
 			$selector = array( 'cmp_name' => $this->name );
 		} else {
-			throw new CampaignExistenceException( "No valid database key available for campaign." );
+			throw new AdCampaignExistenceException( "No valid database key available for campaign." );
 		}
 
 		// Get campaign info from database
@@ -129,7 +129,7 @@ class Campaign {
 			$this->enabled = (bool)$row->cmp_enabled;
 			$this->archived = (bool)$row->cmp_archived;
 		} else {
-			throw new CampaignExistenceException(
+			throw new AdCampaignExistenceException(
 				"Campaign could not be retrieved from database with id '{$this->id}' or name '{$this->name}'"
 			);
 		}
@@ -229,7 +229,7 @@ class Campaign {
 			return false;
 		}
 
-		$campaignObj = new Campaign( $campaignName );
+		$campaignObj = new AdCampaign( $campaignName );
 		$adsIn = $campaignObj->getAds();
 		$adsOut = array();
 		// All we want are the ad names and weights
@@ -272,7 +272,7 @@ class Campaign {
 	//	static function addCampaign( $campaignName, $catPageId = 0, $enabled, $user ) {
 	static function addCampaign( $campaignName, $enabled, $user ) {
 		$campaignName = trim( $campaignName );
-		if ( Campaign::campaignExists( $campaignName ) ) {
+		if ( AdCampaign::campaignExists( $campaignName ) ) {
 			return 'promoter-campaign-exists';
 		}
 
@@ -326,14 +326,14 @@ class Campaign {
 			return 'promoter-remove-campaign-doesnt-exist';
 		}
 
-		Campaign::removeCampaignByName( $campaignName, $user );
+		AdCampaign::removeCampaignByName( $campaignName, $user );
 
 		return true;
 	}
 
 	private static function removeCampaignByName( $campaignName, $user ) {
 		// Log the removal of the campaign
-		$campaignId = Campaign::getCampaignId( $campaignName );
+		$campaignId = AdCampaign::getCampaignId( $campaignName );
 		//Campaign::logCampaignChange( 'removed', $campaignId, $user );
 
 		$dbw = PRDatabase::getDb();
@@ -354,7 +354,7 @@ class Campaign {
 		$dbw = PRDatabase::getDb();
 
 		$eCampaignName = htmlspecialchars( $campaignName );
-		$campaignId = Campaign::getCampaignId( $eCampaignName );
+		$campaignId = AdCampaign::getCampaignId( $eCampaignName );
 		$adId = Ad::fromName( $adName )->getId();
 		$res = $dbw->select( 'pr_adlinks', 'adl_id',
 			array(
@@ -368,7 +368,7 @@ class Campaign {
 		}
 
 		$dbw->begin();
-		$campaignId = Campaign::getCampaignId( $eCampaignName );
+		$campaignId = AdCampaign::getCampaignId( $eCampaignName );
 		$dbw->insert( 'pr_adlinks',
 			array(
 				'ad_id'     => $adId,
@@ -387,7 +387,7 @@ class Campaign {
 	static function removeAdFor( $campaignName, $adName ) {
 		$dbw = PRDatabase::getDb();
 		$dbw->begin();
-		$campaignId = Campaign::getCampaignId( $campaignName );
+		$campaignId = AdCampaign::getCampaignId( $campaignName );
 		$adId = Ad::fromName( $adName )->getId();
 		$dbw->delete( 'pr_adlinks', array( 'ad_id' => $adId, 'cmp_id' => $campaignId ) );
 		$dbw->commit();
@@ -429,7 +429,7 @@ class Campaign {
 	 * @param $settingValue int: Value to use for the setting, 0 or 1
 	 */
 	static function setBooleanCampaignSetting( $campaignName, $settingName, $settingValue ) {
-		if ( !Campaign::campaignExists( $campaignName ) ) {
+		if ( !AdCampaign::campaignExists( $campaignName ) ) {
 			// Exit quietly since campaign may have been deleted at the same time.
 			return;
 		} else {
@@ -469,7 +469,7 @@ class Campaign {
 			$settingValue = $min;
 		}
 
-		if ( !Campaign::campaignExists( $campaignName ) ) {
+		if ( !AdCampaign::campaignExists( $campaignName ) ) {
 			// Exit quietly since campaign may have been deleted at the same time.
 			return;
 		} else {
@@ -491,7 +491,7 @@ class Campaign {
 	 */
 	static function updateWeight( $campaignName, $adId, $weight ) {
 		$dbw = PRDatabase::getDb();
-		$campaignId = Campaign::getCampaignId( $campaignName );
+		$campaignId = AdCampaign::getCampaignId( $campaignName );
 		$dbw->update( 'pr_adlinks',
 			array( 'adl_weight' => $weight ),
 			array(
@@ -503,5 +503,5 @@ class Campaign {
 
 }
 
-class CampaignExistenceException extends MWException {}
+class AdCampaignExistenceException extends MWException {}
 

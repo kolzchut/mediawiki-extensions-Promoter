@@ -826,7 +826,7 @@ class Ad {
 			)
 		);
 		foreach ( $res as $row ) {
-			$campaignNames[] = Campaign::getCampaignName( $row->cmp_id );
+			$campaignNames[] = AdCampaign::getCampaignName( $row->cmp_id );
 		}
 
 		return $campaignNames;

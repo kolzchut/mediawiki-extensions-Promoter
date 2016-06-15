@@ -64,3 +64,10 @@ $wgExtensionMessagesFiles[ 'PromoterAliases' ] = $dir . '/Promoter.alias.php';
 $wgAvailableRights[] = 'promoter-admin';
 $wgGroupPermissions[ 'sysop' ][ 'promoter-admin' ] = true; // Only sysops can make changes
 
+
+
+/* Hooks */
+$wgExtensionFunctions[] = 'PromoterHooks::efWikiRightsPromoterSetup';
+$wgHooks[ 'LoadExtensionSchemaUpdates' ][ ] = 'PRDatabasePatcher::applyUpdates';
+$wgHooks[ 'SkinTemplateNavigation::SpecialPage' ][ ] = array( 'Promoter::addNavigationTabs' );
+

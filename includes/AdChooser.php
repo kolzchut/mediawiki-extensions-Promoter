@@ -21,12 +21,12 @@ class AdChooser {
 		global $wgPromoterFallbackCampaign;
 		$this->anonymous = $anonymous;
 
-		$campaign = new Campaign( $campaignName );
+		$campaign = new AdCampaign( $campaignName );
 
-		if ( !Campaign::campaignExists( $campaignName ) || !$campaign->isEnabled() ) {
+		if ( !AdCampaign::campaignExists( $campaignName ) || !$campaign->isEnabled() ) {
 			/* If the selected campaign doesn't exist or is disabled, fallback: */
-			$campaign = new Campaign( $wgPromoterFallbackCampaign );
-			if ( !Campaign::campaignExists( $wgPromoterFallbackCampaign )  ) {
+			$campaign = new AdCampaign( $wgPromoterFallbackCampaign );
+			if ( !AdCampaign::campaignExists( $wgPromoterFallbackCampaign )  ) {
 				throw new NoFallbackCampaign();
 			} elseif ( !$campaign->isEnabled() ) {
 				throw new FallbackCampaignDisabled();

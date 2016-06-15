@@ -53,8 +53,8 @@ class Promoter extends SpecialPage {
 					if ( $campaignName == '' ) {
 						$this->showError( 'promoter-null-string' );
 					} else {
-						//$result = Campaign::addCampaign( $campaignName, '0', '0', '0', $this->getUser() );
-						$result = Campaign::addCampaign( $campaignName, '0', '0', $this->getUser() );
+						//$result = AdCampaign::addCampaign( $campaignName, '0', '0', '0', $this->getUser() );
+						$result = AdCampaign::addCampaign( $campaignName, '0', $this->getUser() );
 						if ( is_string( $result ) ) {
 							$this->showError( $result );
 						}
@@ -66,15 +66,15 @@ class Promoter extends SpecialPage {
 					if ( $toArchive ) {
 						// Archive campaigns in list
 						foreach ( $toArchive as $campaign ) {
-							Campaign::setBooleanCampaignSetting( $campaign, 'archived', 1 );
+							AdCampaign::setBooleanCampaignSetting( $campaign, 'archived', 1 );
 						}
 					}
 
 					// Get all the initial campaign settings for logging
-					$allCampaignNames = Campaign::getAllCampaignNames();
+					$allCampaignNames = AdCampaign::getAllCampaignNames();
 					$allInitialCampaignSettings = array();
 					foreach ( $allCampaignNames as $campaignName ) {
-						$settings = Campaign::getCampaignSettings( $campaignName );
+						$settings = AdCampaign::getCampaignSettings( $campaignName );
 						$allInitialCampaignSettings[ $campaignName ] = $settings;
 					}
 
@@ -84,20 +84,20 @@ class Promoter extends SpecialPage {
 					$lockedCampaigns = $request->getArray( 'locked' );
 					if ( $lockedCampaigns ) {
 						// Build list of campaigns to lock
-						$unlockedCampaigns = array_diff( Campaign::getAllCampaignNames(), $lockedCampaigns );
+						$unlockedCampaigns = array_diff( AdCampaign::getAllCampaignNames(), $lockedCampaigns );
 
 						// Set locked/unlocked flag accordingly
 						foreach ( $lockedCampaigns as $campaign ) {
-							Campaign::setBooleanCampaignSetting( $campaign, 'locked', 1 );
+							AdCampaign::setBooleanCampaignSetting( $campaign, 'locked', 1 );
 						}
 						foreach ( $unlockedCampaigns as $campaign ) {
-							Campaign::setBooleanCampaignSetting( $campaign, 'locked', 0 );
+							AdCampaign::setBooleanCampaignSetting( $campaign, 'locked', 0 );
 						}
 					// Handle updates if no post content came through (all checkboxes unchecked)
 					} else {
-						$allCampaigns = Campaign::getAllCampaignNames();
+						$allCampaigns = AdCampaign::getAllCampaignNames();
 						foreach ( $allCampaigns as $campaign ) {
-							Campaign::setBooleanCampaignSetting( $campaign, 'locked', 0 );
+							AdCampaign::setBooleanCampaignSetting( $campaign, 'locked', 0 );
 						}
 
 					}
@@ -107,20 +107,20 @@ class Promoter extends SpecialPage {
 					$enabledCampaigns = $request->getArray( 'enabled' );
 					if ( $enabledCampaigns ) {
 						// Build list of campaigns to disable
-						$disabledCampaigns = array_diff( Campaign::getAllCampaignNames(), $enabledCampaigns );
+						$disabledCampaigns = array_diff( AdCampaign::getAllCampaignNames(), $enabledCampaigns );
 
 						// Set enabled/disabled flag accordingly
 						foreach ( $enabledCampaigns as $campaign ) {
-							Campaign::setBooleanCampaignSetting( $campaign, 'enabled', 1 );
+							AdCampaign::setBooleanCampaignSetting( $campaign, 'enabled', 1 );
 						}
 						foreach ( $disabledCampaigns as $campaign ) {
-							Campaign::setBooleanCampaignSetting( $campaign, 'enabled', 0 );
+							AdCampaign::setBooleanCampaignSetting( $campaign, 'enabled', 0 );
 						}
 					// Handle updates if no post content came through (all checkboxes unchecked)
 					} else {
-						$allCampaigns = Campaign::getAllCampaignNames();
+						$allCampaigns = AdCampaign::getAllCampaignNames();
 						foreach ( $allCampaigns as $campaign ) {
-							Campaign::setBooleanCampaignSetting( $campaign, 'enabled', 0 );
+							AdCampaign::setBooleanCampaignSetting( $campaign, 'enabled', 0 );
 						}
 					}
 
@@ -129,7 +129,7 @@ class Promoter extends SpecialPage {
 					$preferredCampaigns = $request->getArray( 'priority' );
 					if ( $preferredCampaigns ) {
 						foreach ( $preferredCampaigns as $campaign => $value ) {
-							Campaign::setNumericCampaignSetting(
+							AdCampaign::setNumericCampaignSetting(
 								$campaign,
 								'preferred',
 								$value,
@@ -142,7 +142,7 @@ class Promoter extends SpecialPage {
 
 					// Get all the final campaign settings for potential logging
 					foreach ( $allCampaignNames as $campaignName ) {
-						$finalCampaignSettings = Campaign::getCampaignSettings( $campaignName );
+						$finalCampaignSettings = AdCampaign::getCampaignSettings( $campaignName );
 						if ( !$allInitialCampaignSettings[ $campaignName ] || !$finalCampaignSettings ) {
 							// Condition where the campaign has apparently disappeared mid operations
 							// -- possibly a delete call
@@ -153,8 +153,8 @@ class Promoter extends SpecialPage {
 						// If there are changes, log them
 						if ( $diffs ) {
 							/*
-							$campaignId = Campaign::getCampaignId( $campaignName );
-							Campaign::logCampaignChange(
+							$campaignId = AdCampaign::getCampaignId( $campaignName );
+							AdCampaign::logCampaignChange(
 								'modified',
 								$campaignId,
 								$this->getUser(),
@@ -168,7 +168,7 @@ class Promoter extends SpecialPage {
 
 				// If there were no errors, reload the page to prevent duplicate form submission
 				if ( !$this->promoterError ) {
-					$out->redirect( $this->getTitle()->getLocalUrl() );
+					$out->redirect( $this->getPageTitle()->getLocalURL() );
 					return;
 				}
 			} else {
@@ -201,7 +201,7 @@ class Promoter extends SpecialPage {
 		// Cache these commonly used properties
 		$readonly = array( 'disabled' => 'disabled' );
 
-		//TODO: refactor to use Campaign::getCampaigns
+		//TODO: refactor to use AdCampaign::getCampaigns
 		// Get all campaigns from the database
 		$dbr = PRDatabase::getDb();
 		$res = $dbr->select( 'pr_campaigns',
@@ -399,13 +399,13 @@ class Promoter extends SpecialPage {
 	 */
 	function listCampaignDetail( $campaign ) {
 
-		$c = new Campaign( $campaign ); // Todo: Convert the rest of this page to use this object
+		$c = new AdCampaign( $campaign ); // Todo: Convert the rest of this page to use this object
 		try {
 			if ( $c->isArchived() ) {
 				$this->getOutput()->setSubtitle( $this->msg( 'promoter-archive-edit-prevented' ) );
 				$this->editable = false; // Todo: Fix this gross hack to prevent editing
 			}
-		} catch ( CampaignExistenceException $ex ) {
+		} catch ( AdCampaignExistenceException $ex ) {
 			throw new ErrorPageError( 'promoter', 'promoter-campaign-doesnt-exist' );
 		}
 
@@ -423,16 +423,16 @@ class Promoter extends SpecialPage {
 
 					// Handle removing campaign
 					if ( $request->getVal( 'archive' ) ) {
-						Campaign::setBooleanCampaignSetting( $campaign, 'archived', 1 );
+						AdCampaign::setBooleanCampaignSetting( $campaign, 'archived', 1 );
 					}
 
-					$initialCampaignSettings = Campaign::getCampaignSettings( $campaign );
+					$initialCampaignSettings = AdCampaign::getCampaignSettings( $campaign );
 
 					// Handle enabling/disabling campaign
 					if ( $request->getCheck( 'enabled' ) ) {
-						Campaign::setBooleanCampaignSetting( $campaign, 'enabled', 1 );
+						AdCampaign::setBooleanCampaignSetting( $campaign, 'enabled', 1 );
 					} else {
-						Campaign::setBooleanCampaignSetting( $campaign, 'enabled', 0 );
+						AdCampaign::setBooleanCampaignSetting( $campaign, 'enabled', 0 );
 					}
 
 					// Handle adding of ads to the campaign
@@ -441,7 +441,7 @@ class Promoter extends SpecialPage {
 						$weight = $request->getArray( 'weight' );
 						foreach ( $adsToAdd as $adName ) {
 							$adId = Ad::fromName( $adName )->getId();
-							$result = Campaign::addAdTo(
+							$result = AdCampaign::addAdTo(
 								$campaign, $adName, $weight[ $adId ]
 							);
 							if ( $result !== true ) {
@@ -454,7 +454,7 @@ class Promoter extends SpecialPage {
 					$adToRemove = $request->getArray( 'removeAds' );
 					if ( $adToRemove ) {
 						foreach ( $adToRemove as $ad ) {
-							Campaign::removeAdFor( $campaign, $ad );
+							AdCampaign::removeAdFor( $campaign, $ad );
 						}
 					}
 
@@ -466,19 +466,19 @@ class Promoter extends SpecialPage {
 							if ( $balanced ) {
 								$weight = 25;
 							}
-							Campaign::updateWeight( $campaign, $adId, $weight );
+							AdCampaign::updateWeight( $campaign, $adId, $weight );
 						}
 					}
 
-					$finalCampaignSettings = Campaign::getCampaignSettings( $campaign );
-					$campaignId = Campaign::getCampaignId( $campaign );
+					$finalCampaignSettings = AdCampaign::getCampaignSettings( $campaign );
+					$campaignId = AdCampaign::getCampaignId( $campaign );
 					/*
-					Campaign::logCampaignChange( 'modified', $campaignId, $this->getUser(),
+					AdCampaign::logCampaignChange( 'modified', $campaignId, $this->getUser(),
 						$initialCampaignSettings, $finalCampaignSettings );
 					*/
 					// If there were no errors, reload the page to prevent duplicate form submission
 					if ( !$this->promoterError ) {
-						$this->getOutput()->redirect( $this->getTitle()->getLocalUrl( array(
+						$this->getOutput()->redirect( $this->getPageTitle()->getLocalUrl( array(
 								'method' => 'listCampaignDetail',
 								'campaign' => $campaign
 						) ) );
@@ -492,14 +492,14 @@ class Promoter extends SpecialPage {
 
 		$htmlOut = '';
 
-		// Begin Campaign detail form
+		// Begin AdCampaign detail form
 		$htmlOut .= Xml::openElement( 'div', array( 'class' => 'prefsection' ) );
 
 		if ( $this->editable ) {
 			$htmlOut .= Xml::openElement( 'form',
 				array(
 					'method' => 'post',
-					'action' => $this->getTitle()->getLocalUrl( array(
+					'action' => $this->getPageTitle()->getLocalURL( array(
 						'method' => 'listCampaignDetail',
 						'campaign' => $campaign
 					) )
@@ -564,7 +564,7 @@ class Promoter extends SpecialPage {
 			$readonly = array( 'disabled' => 'disabled' );
 		}
 
-		$campaign = Campaign::getCampaignSettings( $campaignNameOrId );
+		$campaign = AdCampaign::getCampaignSettings( $campaignNameOrId );
 
 		if ( $campaign ) {
 			// If there was an error, we'll need to restore the state of the form
@@ -747,7 +747,7 @@ class Promoter extends SpecialPage {
 
 			$htmlOut .= Xml::closeElement( 'tr' );
 		}
-		$htmlOut .= XMl::closeElement( 'table' );
+		$htmlOut .= Xml::closeElement( 'table' );
 		$htmlOut .= Xml::closeElement( 'fieldset' );
 		return $htmlOut;
 	}
