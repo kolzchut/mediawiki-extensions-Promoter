@@ -97,7 +97,7 @@ class PromoterHooks {
 
 		$wgAutoloadClasses[ 'AdLoaderException' ] = $specialDir . 'SpecialAdLoader.php';
 		$wgAutoloadClasses[ 'EmptyAdException' ] = $specialDir . 'SpecialAdLoader.php';
-		$wgAutoloadClasses[ 'MissingRequiredParamsException' ] = $specialDir . 'SpecialAdLoader.php';
+		$wgAutoloadClasses[ 'adLoaderMissingRequiredParamsException' ] = $specialDir . 'SpecialAdLoader.php';
 
 		$wgAutoloadClasses[ 'PRAdPager' ] = $includeDir . 'PRAdPager.php';
 

@@ -56,7 +56,7 @@ class SpecialAdLoader extends UnlistedSpecialPage {
 		);
 		foreach ( $required_values as $value ) {
 			if ( is_null( $value ) || $value === '' ) {
-				throw new MissingRequiredParamsException();
+				throw new adLoaderMissingRequiredParamsException();
 			}
 		}
 
@@ -139,5 +139,5 @@ class AdLoaderException extends MWException {
 class EmptyAdException extends AdLoaderException {
 }
 
-class MissingRequiredParamsException extends AdLoaderException {
+class adLoaderMissingRequiredParamsException extends AdLoaderException {
 }

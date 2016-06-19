@@ -66,7 +66,7 @@ class SpecialAdRandom extends UnlistedSpecialPage {
 		);
 		foreach ( $required_values as $value ) {
 			if ( is_null( $value ) || $value === '' ) {
-				throw new MissingRequiredParamsException();
+				throw new adLoaderMissingRequiredParamsException();
 			}
 		}
 

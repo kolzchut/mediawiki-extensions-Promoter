@@ -66,7 +66,7 @@ class SpecialCampaignAdsLoader extends UnlistedSpecialPage {
 		);
 		foreach ( $required_values as $value ) {
 			if ( is_null( $value ) || $value === '' ) {
-				throw new MissingRequiredParamsException();
+				throw new adLoaderMissingRequiredParamsException();
 			}
 		}
 
@@ -130,3 +130,4 @@ class SpecialCampaignAdsLoader extends UnlistedSpecialPage {
 		return $adJs;
 	}
 }
+
