@@ -71,7 +71,7 @@ class PromoterHooks {
 	/**
 	 * Load all the classes, register special pages, etc. Called through wgExtensionFunctions.
 	 */
-	function efWikiRightsPromoterSetup() {
+	static function efWikiRightsPromoterSetup() {
 		global $wgHooks, $wgAutoloadClasses, $wgSpecialPages,
 		       $wgSpecialPageGroups;
 
@@ -144,7 +144,7 @@ class PromoterHooks {
 	 * @param $skin Skin
 	 * @return bool
 	 */
-	function efPromoterLoader( $out, $skin ) {
+	static function efPromoterLoader( $out, $skin ) {
 		// Insert the ad controller
 		$out->addModules( 'ext.promoter.adController' );
 		return true;
@@ -157,7 +157,7 @@ class PromoterHooks {
 	 * @param $skin
 	 * @return bool
 	 */
-	function efPromoterDisplay( &$skin ) {
+	static function efPromoterDisplay( &$skin ) {
 		echo Html::element( 'li', array( 'id' => 'sidebar-promotion' ) );
 		return true;
 	}
