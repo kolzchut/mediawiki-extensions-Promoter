@@ -20,7 +20,7 @@ class SpecialPromoterAds extends Promoter {
 		SpecialPage::__construct( 'PromoterAds' );
 
 		// Make sure we have a session
-		wfSetupSession();
+		$this->getRequest()->getSession()->persist();
 
 		// Load things that may have been serialized into the session
 		$this->adFilterString = $this->getPRSessionVar( 'adFilterString', '' );
