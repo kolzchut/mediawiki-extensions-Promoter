@@ -39,6 +39,7 @@ $wgResourceModules[ 'ext.promoter.adminUi' ] = [
 		'promoter.css',
 		'adminui.common.css'
 	],
+	'dependencies' => 'mediawiki.jqueryMsg',
 	'messages'      => [
 		'promoter-documentwrite-error',
 		'promoter-close-title',
