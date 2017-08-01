@@ -31,30 +31,29 @@ $promoterRemoteExtPath = 'WikiRights/Promoter/modules';
 $promoterLocalBasePath = __DIR__ . '/modules';
 
 // Register ResourceLoader modules
-$wgResourceModules[ 'ext.promoter.adminUi' ] = array(
+$wgResourceModules[ 'ext.promoter.adminUi' ] = [
 	'localBasePath' => "$promoterLocalBasePath/ext.promoter.adminUi",
 	'remoteExtPath' => "$promoterRemoteExtPath/ext.promoter.adminUi",
-	'dependencies' => array(),
 	'scripts'       => 'promoter.js',
-	'styles'        => array(
+	'styles'        => [
 		'promoter.css',
 		'adminui.common.css'
-	),
-	'messages'      => array(
+	],
+	'messages'      => [
 		'promoter-documentwrite-error',
 		'promoter-close-title',
-	)
-);
-$wgResourceModules[ 'ext.promoter.adminUi.adManager' ] = array(
+	]
+];
+$wgResourceModules[ 'ext.promoter.adminUi.adManager' ] = [
 	'localBasePath' => "$promoterLocalBasePath/ext.promoter.adminUi.adManager",
 	'remoteExtPath' => "$promoterRemoteExtPath/ext.promoter.adminUi.adManager",
-	'dependencies' => array(
+	'dependencies' => [
 		'ext.promoter.adminUi',
 		'jquery.ui.dialog'
-	),
+	],
 	'scripts'       => 'admanager.js',
 	'styles'        => 'admanager.css',
-	'messages'      => array(
+	'messages'      => [
 		'promoter-add-ad-button',
 		'promoter-add-ad-cancel-button',
 		'promoter-archive-ad',
@@ -66,18 +65,18 @@ $wgResourceModules[ 'ext.promoter.adminUi.adManager' ] = array(
 		'promoter-delete-ad-title',
 		'promoter-delete-ad-confirm',
 		'promoter-delete-ad-cancel',
-	)
-);
-$wgResourceModules[ 'ext.promoter.adminUi.adEditor' ] = array(
+	]
+];
+$wgResourceModules[ 'ext.promoter.adminUi.adEditor' ] = [
 	'localBasePath' => $promoterLocalBasePath,
 	'remoteExtPath' => $promoterRemoteExtPath,
-	'dependencies' => array(
+	'dependencies' => [
 		'ext.promoter.adminUi',
 		'jquery.ui.dialog'
-	),
+	],
 	'scripts'       => 'ext.promoter.adminUi.adEditor/adeditor.js',
 	'styles'        => 'ext.promoter.adminUi.adEditor/adeditor.css',
-	'messages'      => array(
+	'messages'      => [
 		'promoter-clone',
 		'promoter-clone-campaign',
 		'promoter-clone-cancel',
@@ -89,8 +88,8 @@ $wgResourceModules[ 'ext.promoter.adminUi.adEditor' ] = array(
 		'promoter-delete-ad-title',
 		'promoter-delete-ad-confirm',
 		'promoter-delete-ad-cancel',
-	)
-);
+	]
+];
 
 /*
 $wgResourceModules[ 'ext.promoter.adStats' ] = array(
@@ -101,54 +100,54 @@ $wgResourceModules[ 'ext.promoter.adStats' ] = array(
 */
 
 
-$wgResourceModules[ 'ext.promoter.adController' ] = array(
+$wgResourceModules[ 'ext.promoter.adController' ] = [
 	'localBasePath' => $promoterLocalBasePath . '/ext.promoter.adController',
 	'remoteExtPath' => $promoterRemoteExtPath . '/ext.promoter.adController',
 	'styles'        => 'adController.less',
 	'scripts'       => 'adController.js',
 	'dependencies'  => 'ext.googleUniversalAnalytics.utils',
 	'position'      => 'bottom'
-);
+];
 
 
-$wgResourceModules[ 'ext.promoter.adminUi.campaignManager' ] = array(
+$wgResourceModules[ 'ext.promoter.adminUi.campaignManager' ] = [
 	'localBasePath' => $promoterLocalBasePath,
 	'remoteExtPath' => $promoterRemoteExtPath,
-	'dependencies' => array(
+	'dependencies' => [
 		'ext.promoter.adminUi',
 		'jquery.ui.dialog',
 		'jquery.ui.slider',
-	),
+	],
 	'scripts'       => 'ext.promoter.adminUi.campaignManager/campaignManager.js',
 	'styles'        => 'ext.promoter.adminUi.campaignManager/campaignManager.css',
-	'messages'      => array( )
-);
+	'messages'      => []
+];
 
-$wgResourceModules[ 'jquery.owl-carousel' ] = array(
+$wgResourceModules[ 'jquery.owl-carousel' ] = [
 	'localBasePath' => $promoterLocalBasePath,
 	'remoteExtPath' => $promoterRemoteExtPath,
-	'dependencies' => array( ),
+	'dependencies' => [],
 	'scripts'       => 'jquery.owl-carousel/owl.carousel.js',
-	'styles'        => array(
+	'styles'        => [
 		'jquery.owl-carousel/owl.carousel.css',
 		'jquery.owl-carousel/owl.theme.default.css'
-	),
-	'messages'      => array( )
-);
+	],
+	'messages'      => []
+];
 
 
-$wgResourceModules[ 'ext.promoter.gallery' ] = array(
+$wgResourceModules[ 'ext.promoter.gallery' ] = [
 	'localBasePath' => $promoterLocalBasePath,
 	'remoteExtPath' => $promoterRemoteExtPath,
-	'dependencies' => array(
+	'dependencies' => [
 		'jquery.owl-carousel',
 		'jquery.equalizeCols',
 		'ext.googleUniversalAnalytics.utils'
-	),
+	],
 	'scripts'       => 'ext.promoter.gallery/gallery.js',
-	'styles'        => array(
+	'styles'        => [
 		'ext.promoter.gallery/gallery.less'
-	),
+	],
 	'position'      => 'top',
-	'messages'      => array( )
-);
+	'messages'      => []
+];
