@@ -39,7 +39,7 @@ class SpecialAdLoader extends UnlistedSpecialPage {
 			$this->sendHeaders();
 
 			if( $error ) {
-				echo "mw.promoter.insertAd( false /* due to internal exception ({$error}) */ );";
+				echo "mw.promoter.adController.insertAd( false /* due to internal exception ({$error}) */ );";
 			} else {
 				echo $this->getJsData( $chosenAd );
 			}
@@ -114,7 +114,7 @@ class SpecialAdLoader extends UnlistedSpecialPage {
 
 		$adJson = FormatJson::encode( $adArray );
 
-		$adJs = "mw.promoter.insertAd( {$adJson} );";
+		$adJs = "mw.promoter.adController.insertAd( {$adJson} );";
 
 		return $adJs;
 	}

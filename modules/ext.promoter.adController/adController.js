@@ -38,8 +38,8 @@
 	}
 
 	var gaUtils = mw.googleAnalytics.utils;
-
-	mw.promoter = {
+	mw.promoter = mw.promoter || {};
+	var adController = mw.promoter.adController = {
 		/**
 		 * Promoter Required Data
 		 */
@@ -68,30 +68,30 @@
 		isInitialized: false,
 
 		/**
-		 * Deferred objects that link into promises in mw.promoter.events
+		 * Deferred objects that link into promises in mw.promoter.adController.events
 		 */
 		deferredObjs: {},
 
 		/** -- Functions! -- **/
 		loadAd: function () {
-			if ( mw.promoter.data.getVars.ad ) {
+			if ( adController.data.getVars.ad ) {
 				// If we're forcing one ad
-				mw.promoter.loadTestingAd( mw.promoter.data.getVars.ad, 'testing' );
+				adController.loadTestingAd( adController.data.getVars.ad, 'testing' );
 			} else {
-				mw.promoter.loadRandomAd();
+				adController.loadRandomAd();
 			}
 		},
 		loadTestingAd: function ( adName, campaign ) {
 			var adPageQuery;
 
-			mw.promoter.data.testing = true;
+			adController.data.testing = true;
 
 			// Get the requested ad
 			adPageQuery = {
 				title: 'Special:AdLoader',
 				ad: adName,
 				campaign: campaign,
-				debug: mw.promoter.data.getVars.debug
+				debug: adController.data.getVars.debug
 			};
 
 			$.ajax({
@@ -106,7 +106,7 @@
 			var adDispatchQuery = {
 				anonymous: mw.config.get( 'wgUserName' ) === null,
 				campaign: wrMainCategory,
-				debug: mw.promoter.data.getVars.debug
+				debug: adController.data.getVars.debug
 			};
 			var scriptUrl = mw.config.get( 'wgPromoterAdDispatcher' ) + '?' + $.param( adDispatchQuery );
 
@@ -120,21 +120,21 @@
 			if ( adJson ) {
 				// Ok, we have an ad!
 				// All conditions fulfilled, inject the ad
-				mw.promoter.adData.adName = adJson.adName;
-				$( mw.promoter.containerElement ).prepend( adJson.adHtml );
+				adController.adData.adName = adJson.adName;
+				$( adController.containerElement ).prepend( adJson.adHtml );
 
 				if(
-					mw.promoter.data.testing !== true
-					&& !mw.promoter.data.getVars.ad
+					adController.data.testing !== true
+					&& !adController.data.getVars.ad
 				) {
 					// not a forced preview of a specific ad, send analytics hit
-					mw.promoter.trackAd( adJson.adName, adJson.campaign );
+					adController.trackAd( adJson.adName, adJson.campaign );
 				}
-				mw.promoter.adShown = true;
+				adController.adShown = true;
 			}
 		},
 		trackAd: function( adName, campaign ) {
-			if( mw.promoter.config.trackAdViews ) {
+			if( adController.config.trackAdViews ) {
 				// Send view hit
 				gaUtils.recordEvent({
 					eventCategory: 'ad-impressions',
@@ -145,9 +145,9 @@
 			}
 
 
-			if( mw.promoter.config.trackAdClicks ) {
+			if( adController.config.trackAdClicks ) {
 				// And bind another event to a possible click...
-				$(mw.promoter.containerElement).find('.mainlink > a, a.caption').click(function (e) {
+				$(adController.containerElement).find('.mainlink > a, a.caption').click(function (e) {
 					gaUtils.recordClickEvent(e, {
 						eventCategory: 'ad-clicks',
 						eventAction: campaign,
@@ -155,33 +155,33 @@
 						nonInteraction: false
 					});
 				});
-			};
+			}
 		},
 
 		loadQueryStringVariables: function () {
 			document.location.search.replace( /\??(?:([^=]+)=([^&]*)&?)/g, function ( str, p1, p2 ) {
-				mw.promoter.data.getVars[decode( p1 )] = decode( p2 );
+				adController.data.getVars[decode( p1 )] = decode( p2 );
 			} );
 		},
 		initialize: function () {
 			// === Do not allow Promoter to be re-initialized. ===
-			if ( mw.promoter.isInitialized ) {
+			if ( adController.isInitialized ) {
 				return;
 			}
-			mw.promoter.isInitialized = true;
+			adController.isInitialized = true;
 
 			// Load configuration that comes from PHP side
-			mw.promoter.config = mw.config.get('wgPromoter');
+			adController.config = mw.config.get('wgPromoter');
 
 			// === Attempt to load parameters from the query string ===
-			mw.promoter.loadQueryStringVariables();
+			adController.loadQueryStringVariables();
 
-			mw.promoter.isPreviewFrame = (mw.config.get( 'wgCanonicalSpecialPageName' ) === 'AdPreview');
+			adController.isPreviewFrame = (mw.config.get( 'wgCanonicalSpecialPageName' ) === 'AdPreview');
 
 			// === Do not actually load a ad on a special page ===
 			//     But we keep this after the above initialization for Promoter pages
 			//     that do ad previews.
-			if ( mw.config.get( 'wgNamespaceNumber' ) === -1 && !mw.promoter.isPreviewFrame ) {
+			if ( mw.config.get( 'wgNamespaceNumber' ) === -1 && !adController.isPreviewFrame ) {
 				return;
 			}
 
@@ -192,20 +192,20 @@
 			}
 
 			// === Create Deferred and Promise Objects ===
-			mw.promoter.deferredObjs.adLoaded = $.Deferred();
-			mw.promoter.events.adLoaded = mw.promoter.deferredObjs.adLoaded.promise();
+			adController.deferredObjs.adLoaded = $.Deferred();
+			adController.events.adLoaded = adController.deferredObjs.adLoaded.promise();
 
 			// === Final prep to loading ad ===
 			// Add the Promoter div so that insert ad has something to latch on to.
 			//$( '#sidebar-promotion' ).prepend();
 
-			mw.promoter.loadAd();
+			adController.loadAd();
 		}
 	};
 
 	// Initialize Promoter
 	$( function() {
-		mw.promoter.initialize();
+		adController.initialize();
 	});
 
 } )( jQuery, mediaWiki );

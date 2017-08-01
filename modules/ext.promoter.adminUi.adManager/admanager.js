@@ -25,8 +25,8 @@
 /* jshint jquery:true */
 /* global mediaWiki */
 ( function ( $, mw ) {
-	"use strict";
-	mw.promoter.adminUi.adManagement = {
+	'use strict';
+	var adManager = mw.promoter.adminUi.adManager = {
 		/**
 		 * State tracking variable for the number of items currently selected
 		 * @protected
@@ -56,7 +56,7 @@
 				formobj.wpnewAdName.value = $(this)[0].wpnewAdName.value;
 				formobj.submit();
 			};
-			buttons[ cancelButtonText ] = function() { $(this).dialog("close"); };
+			buttons[ cancelButtonText ] = function() { $(this).dialog('close'); };
 
 
 			// Create the dialog by copying the textfield element into a new form
@@ -88,13 +88,13 @@
 				formobj.wpaction.value = 'remove';
 				formobj.submit();
 			};
-			buttons[ cancelButtonText ] = function() {  $( this ).dialog( "close" ); };
+			buttons[ cancelButtonText ] = function() {  $( this ).dialog( 'close' ); };
 
 			dialogObj.text( mw.message( 'promoter-delete-ad-confirm' ).text() );
 			dialogObj.dialog({
 				title: mw.message(
 					'promoter-delete-ad-title',
-					mw.promoter.adminUi.adManagement.selectedItemCount
+					adManager.selectedItemCount
 				).text(),
 				resizable: false,
 				modal: true,
@@ -116,13 +116,13 @@
 				formobj.wpaction.value = 'archive';
 				formobj.submit();
 			};
-			buttons[ cancelButtonText ] = function() {  $( this ).dialog( "close" ); };
+			buttons[ cancelButtonText ] = function() {  $( this ).dialog( 'close' ); };
 
 			dialogObj.text( mw.message( 'promoter-archive-ad-confirm' ).text() );
 			dialogObj.dialog({
 				title: mw.message(
 					'promoter-archive-ad-title',
-					mw.promoter.adminUi.adManagement.selectedItemCount
+					adManager.selectedItemCount
 				).text(),
 				resizable: false,
 				modal: true,
@@ -136,14 +136,14 @@
 		checkAllStateAltered: function() {
 			var checkBoxes = $( 'input.pr-adlist-check-applyto' );
 			if ( $( '#mw-input-wpselectAllAds' ).prop( 'checked' ) ) {
-				mw.promoter.adminUi.adManagement.selectedItemCount =
-					mw.promoter.adminUi.adManagement.totalSelectableItems;
+				adManager.selectedItemCount =
+					adManager.totalSelectableItems;
 				checkBoxes.each( function() { $( this ).prop( 'checked', true ); } );
 			} else {
-				mw.promoter.adminUi.adManagement.selectedItemCount = 0;
+				adManager.selectedItemCount = 0;
 				checkBoxes.each( function() { $( this ).prop( 'checked', false ); } );
 			}
-			mw.promoter.adminUi.adManagement.checkedCountUpdated();
+			adManager.checkedCountUpdated();
 		},
 
 		/**
@@ -151,11 +151,11 @@
 		 */
 		selectCheckStateAltered: function() {
 			if ( $( this ).prop( 'checked' ) === true ) {
-				mw.promoter.adminUi.adManagement.selectedItemCount++;
+				adManager.selectedItemCount++;
 			} else {
-				mw.promoter.adminUi.adManagement.selectedItemCount--;
+				adManager.selectedItemCount--;
 			}
-			mw.promoter.adminUi.adManagement.checkedCountUpdated();
+			adManager.checkedCountUpdated();
 		},
 
 		/**
@@ -165,14 +165,14 @@
 			var selectAllCheck = $( '#mw-input-wpselectAllAds' ),
 				deleteButton = $(' #mw-input-wpdeleteSelectedAds' );
 
-			if ( mw.promoter.adminUi.adManagement.selectedItemCount ===
-				mw.promoter.adminUi.adManagement.totalSelectableItems
+			if ( adManager.selectedItemCount ===
+				adManager.totalSelectableItems
 			) {
 				// Everything selected
 				selectAllCheck.prop( 'checked', true );
 				selectAllCheck.prop( 'indeterminate', false );
 				deleteButton.prop( 'disabled', false );
-			} else if ( mw.promoter.adminUi.adManagement.selectedItemCount === 0 ) {
+			} else if ( adManager.selectedItemCount === 0 ) {
 				// Nothing selected
 				selectAllCheck.prop( 'checked', false );
 				selectAllCheck.prop( 'indeterminate', false );
@@ -187,17 +187,17 @@
 	};
 
 	// Attach event handlers
-	$( '#mw-input-wpaddNewAd' ).click( mw.promoter.adminUi.adManagement.doAddAdDialog );
-	$( '#mw-input-wpdeleteSelectedAds' ).click( mw.promoter.adminUi.adManagement.doRemoveAds );
-	$( '#mw-input-wparchiveSelectedAds' ).click( mw.promoter.adminUi.adManagement.doArchiveAds );
-	$( '#mw-input-wpselectAllAds' ).click( mw.promoter.adminUi.adManagement.checkAllStateAltered );
+	$( '#mw-input-wpaddNewAd' ).click( adManager.doAddAdDialog );
+	$( '#mw-input-wpdeleteSelectedAds' ).click( adManager.doRemoveAds );
+	$( '#mw-input-wparchiveSelectedAds' ).click( adManager.doArchiveAds );
+	$( '#mw-input-wpselectAllAds' ).click( adManager.checkAllStateAltered );
 	$( 'input.pr-adlist-check-applyto' ).each( function() {
-		$( this ).click( mw.promoter.adminUi.adManagement.selectCheckStateAltered );
-		mw.promoter.adminUi.adManagement.totalSelectableItems++;
+		$( this ).click( adManager.selectCheckStateAltered );
+		adManager.totalSelectableItems++;
 	} );
 
 	// Some initial display work
-	mw.promoter.adminUi.adManagement.checkAllStateAltered();
+	adManager.checkAllStateAltered();
 	$( '#pr-js-error-warn' ).hide();
 
 } )( jQuery, mediaWiki );

@@ -4,8 +4,8 @@
 /* jshint jquery:true */
 /* global mediaWiki */
 ( function ( mw, $ ) {
-	"use strict";
-	mw.promoter = {};
+	'use strict';
+	mw.promoter = mw.promoter || {};
 	mw.promoter.adminUi = {};
 
 	// Collapse and uncollapse detailed view for an individual log entry

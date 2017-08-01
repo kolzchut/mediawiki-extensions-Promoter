@@ -125,7 +125,7 @@ class SpecialCampaignAdsLoader extends UnlistedSpecialPage {
 
 		$adJson = FormatJson::encode( $adArray );
 
-		$adJs = "mw.promoter.insertAd( {$adJson} );";
+		$adJs = "mw.promoter.adController.insertAd( {$adJson} );";
 
 		return $adJs;
 	}
