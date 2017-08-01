@@ -242,7 +242,7 @@ class SpecialPromoterAds extends Promoter {
 							$this->getUser()
 						);
 
-						if ( $retval ) {
+						if ( $retval && $retval !== true ) {
 							// Something failed; display error to user
 							return wfMessage( $retval )->text();
 						} else {
