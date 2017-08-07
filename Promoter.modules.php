@@ -130,8 +130,8 @@ $wgResourceModules[ 'jquery.owl-carousel' ] = [
 	'dependencies' => [],
 	'scripts'       => 'jquery.owl-carousel/owl.carousel.js',
 	'styles'        => [
-		'jquery.owl-carousel/owl.carousel.css',
-		'jquery.owl-carousel/owl.theme.default.css'
+		'jquery.owl-carousel/assets/owl.carousel.css',
+		'jquery.owl-carousel/assets/owl.theme.default.css'
 	],
 	'messages'      => []
 ];

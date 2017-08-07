@@ -17,7 +17,7 @@ $wgExtensionCredits[ 'other' ][] = array(
 		'Dror S. [FFS] ([http://www.kolzchut.org.il Kol-Zchut])',
 		'based on [https://mediawiki.org/wiki/Extension:CentralNotice Extension:CentralNotice]'
 	),
-	'version'        => '2016-02-29',
+	'version'        => '2017-08-07',
 	'url'            => 'https://github.com/kolzchut/mediawiki-extensions-Promoter',
 	'descriptionmsg' => 'promoter-desc',
 	'license-name' => 'GPL-2.0+',
@@ -70,4 +70,7 @@ $wgGroupPermissions[ 'sysop' ][ 'promoter-admin' ] = true; // Only sysops can ma
 $wgExtensionFunctions[] = 'PromoterHooks::efWikiRightsPromoterSetup';
 $wgHooks[ 'LoadExtensionSchemaUpdates' ][ ] = 'PRDatabasePatcher::applyUpdates';
 $wgHooks[ 'SkinTemplateNavigation::SpecialPage' ][ ] = array( 'Promoter::addNavigationTabs' );
+
+
+unset ( $dir );
 

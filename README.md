@@ -42,6 +42,8 @@ which tries to load all ads for the current page.
 
 
 ## Changelog
+- 2017-08-07
+  * Upgrade owl-carousel
 - 2016-02-29
   * Allow to disable view and/or click tracking ($wgPromoterTrackAds)
   * Improve documentation somewhat
