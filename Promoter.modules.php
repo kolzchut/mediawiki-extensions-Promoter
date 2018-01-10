@@ -107,7 +107,7 @@ $wgResourceModules[ 'ext.promoter.adController' ] = [
 	'styles'        => 'adController.less',
 	'scripts'       => 'adController.js',
 	'dependencies'  => 'ext.googleUniversalAnalytics.utils',
-	'class'         => 'HelenResourceLoaderaModule',
+	'class'         => 'HelenaResourceLoaderaModule',
 	'position'      => 'bottom'
 ];
 
@@ -150,7 +150,7 @@ $wgResourceModules[ 'ext.promoter.gallery' ] = [
 	'styles'        => [
 		'ext.promoter.gallery/gallery.less'
 	],
-	'class'         => 'HelenResourceLoaderaModule',
+	'class'         => 'HelenaResourceLoaderaModule',
 	'position'      => 'top',
 	'messages'      => []
 ];
