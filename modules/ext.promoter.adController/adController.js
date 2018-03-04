@@ -37,7 +37,6 @@
 		}
 	}
 
-	var gaUtils = mw.googleAnalytics.utils;
 	mw.promoter = mw.promoter || {};
 	var adController = mw.promoter.adController = {
 		/**
@@ -134,28 +133,32 @@
 			}
 		},
 		trackAd: function( adName, campaign ) {
-			if( adController.config.trackAdViews ) {
-				// Send view hit
-				gaUtils.recordEvent({
-					eventCategory: 'ad-impressions',
-					eventAction: campaign,
-					eventLabel: adName,
-					nonInteraction: true
-				});
+			if( mw.loader.getState( 'ext.googleUniversalAnalytics.utils' ) === null ) {
+				return;
 			}
-
-
-			if( adController.config.trackAdClicks ) {
-				// And bind another event to a possible click...
-				$(adController.containerElement).find('.mainlink > a, a.caption').click(function (e) {
-					gaUtils.recordClickEvent(e, {
-						eventCategory: 'ad-clicks',
+			mw.loader.using( 'ext.googleUniversalAnalytics.utils' ).then( function() {
+				if (adController.config.trackAdViews) {
+					// Send view hit
+					mw.googleAnalytics.utils.recordEvent({
+						eventCategory: 'ad-impressions',
 						eventAction: campaign,
 						eventLabel: adName,
-						nonInteraction: false
+						nonInteraction: true
 					});
-				});
-			}
+				}
+
+				if (adController.config.trackAdClicks) {
+					// And bind another event to a possible click...
+					$(adController.containerElement).find('.mainlink > a, a.caption').click(function (e) {
+						mw.googleAnalytics.utils.recordClickEvent(e, {
+							eventCategory: 'ad-clicks',
+							eventAction: campaign,
+							eventLabel: adName,
+							nonInteraction: false
+						});
+					});
+				}
+			});
 		},
 
 		loadQueryStringVariables: function () {

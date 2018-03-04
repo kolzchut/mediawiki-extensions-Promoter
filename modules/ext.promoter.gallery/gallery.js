@@ -3,8 +3,6 @@
 ( function ( $, mw ) {
 	'use strict';
 
-	var gaUtils = mw.googleAnalytics.utils;
-
 	mw.promoterGallery = {
 
 		page: mw.config.get( 'wgPageName' ),
@@ -29,17 +27,22 @@
 			$('.promotion-gallery').on( 'click', '.mainlink > a, a.caption', mw.promoterGallery.trackAd );
 		},
 		trackAd: function( event ) {
-			var $link = $( event.target );
-			var $ad = $link.closest( '.promotion' );
-			var adName = $ad.data( 'adname' );
-			var campaign = mw.promoterGallery.page;
+			if( mw.loader.getState( 'ext.googleUniversalAnalytics.utils' ) === null ) {
+				return;
+			}
+			mw.loader.using( 'ext.googleUniversalAnalytics.utils' ).then( function() {
+				var $link = $(event.target);
+				var $ad = $link.closest('.promotion');
+				var adName = $ad.data('adname');
+				var campaign = mw.promoterGallery.page;
 
-			gaUtils.recordClickEvent( event, {
-				eventCategory: 'ad-gallery-clicks',
-				eventAction: campaign,
-				eventLabel: adName,
-				nonInteraction: false
-			} );
+				mw.googleAnalytics.utils.recordClickEvent( event, {
+					eventCategory: 'ad-gallery-clicks',
+					eventAction: campaign,
+					eventLabel: adName,
+					nonInteraction: false
+				});
+			});
 
 		},
 		initialize: function () {

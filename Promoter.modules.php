@@ -106,7 +106,6 @@ $wgResourceModules[ 'ext.promoter.adController' ] = [
 	'remoteExtPath' => $promoterRemoteExtPath . '/ext.promoter.adController',
 	'styles'        => 'adController.less',
 	'scripts'       => 'adController.js',
-	'dependencies'  => 'ext.googleUniversalAnalytics.utils',
 	'class'         => 'HelenaResourceLoaderModule',
 	'position'      => 'bottom'
 ];
@@ -144,7 +143,6 @@ $wgResourceModules[ 'ext.promoter.gallery' ] = [
 	'dependencies' => [
 		'jquery.owl-carousel',
 		'jquery.equalizeCols',
-		'ext.googleUniversalAnalytics.utils'
 	],
 	'scripts'       => 'ext.promoter.gallery/gallery.js',
 	'styles'        => [
