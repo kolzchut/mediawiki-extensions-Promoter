@@ -26,7 +26,19 @@ class PRDatabasePatcher {
 					 'addTable', 'pr_campaigns',
 					 $base . '/../Promoter.sql', true
 				)
-			);
+            );
+            $updater->addExtensionUpdate(
+                array(
+                    'addField', 'pr_ads', 'ad_tag_new',
+                    $base . '/../pr_ads.patch.ad_tag_new.sql', true
+                )
+            );
+            $updater->addExtensionUpdate(
+                array(
+                    'addField', 'pr_ad_log', 'adlog_end_new',
+                    $base . '/../pr_ad_log.patch.adlog_end_new.sql', true
+                )
+            );
 		}
 		return true;
 	}
