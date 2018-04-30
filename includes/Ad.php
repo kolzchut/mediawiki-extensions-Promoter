@@ -72,9 +72,12 @@ class Ad {
         'new' => false
     ];
 
+    protected $startDate;
+
+    protected $endDate;
+
 	/** @var bool True if archived and hidden from default view. */
 	protected $archived = false;
-
 
 	/** @var string Wikitext content of the ad */
 	protected $bodyContent = '';
@@ -244,6 +247,39 @@ class Ad {
         return $this;
     }
 
+    public function setStartDate($date) {
+        $this->startDate = empty($date) ? null : new MWTimestamp($date);
+    }
+
+    public function getStartDate() {
+        $this->populateBasicData();
+        
+        return $this->startDate;
+    }
+
+    public function setEndDate($date) {
+        $this->endDate = empty($date) ? null : new MWTimestamp($date);
+    }
+
+    public function getEndDate() {
+        $this->populateBasicData();
+
+        return $this->endDate;
+    }
+
+    public function isNotExpired() {
+        $this->populateBasicData();
+        
+        if($this->endDate === NULL) {
+            return true;
+        }
+
+        $now     = wfTimestamp(TS_UNIX);
+        $endDate = wfTimestamp(TS_UNIX, $this->endDate);
+
+        return $now < $endDate;
+    }
+
 	public function getCaption() {
 		$this->populateBasicData();
 		return $this->adCaption;
@@ -318,7 +354,9 @@ class Ad {
 				 'ad_mainlink',
 				 'ad_display_anon',
 				 'ad_display_user',
-				 'ad_tag_new'
+                 'ad_tag_new',
+                 'ad_date_start',
+                 'ad_date_end'
 				 //'ad_archived',
 			),
 			$selector,
@@ -332,9 +370,11 @@ class Ad {
 			$this->name = $row->ad_name;
 			$this->allocateAnon = (bool)$row->ad_display_anon;
 			$this->allocateUser = (bool)$row->ad_display_user;
-			$this->tags['new'] = (bool)$row->ad_tag_new;
+            $this->tags['new'] = (bool)$row->ad_tag_new;
 			$this->adCaption = $row->ad_title;
 			$this->adLink = $row->ad_mainlink;
+            $this->setStartDate($row->ad_date_start);
+            $this->setEndDate($row->ad_date_end);
 			//$this->archived = (bool)$row->ad_archived;
 		} else {
 			$keystr = array();
@@ -378,7 +418,9 @@ class Ad {
 					 'ad_display_user' => (int)$this->allocateUser,
 					 'ad_tag_new' => (int)$this->tags['new'],
 					 'ad_title' => $this->adCaption,
-					 'ad_mainlink' => $this->adLink
+                     'ad_mainlink' => $this->adLink,
+                     'ad_date_start' => $db->timestampOrNull($this->startDate),
+                     'ad_date_end' => $db->timestampOrNull($this->endDate),
 					 //'ad_archived'        => $this->archived,
 					 //'ad_category'        => $this->category,
 				),
