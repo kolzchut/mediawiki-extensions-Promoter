@@ -403,7 +403,25 @@ class SpecialPromoterAds extends Promoter {
 			),
 			'default' => $selectedTags,
 			'cssclass' => 'separate-form-element',
-		);
+        );
+
+        $formDescriptor[ 'ad-date-start' ] = array(
+            'cssclass' => 'separate-form-element',
+            'section' => 'settings',
+            'type' => 'date',
+            'disabled' => !$this->editable,
+            'label-message' => 'promoter-ad-date-start',
+			'default' => $ad->getStartDate() ? $ad->getStartDate()->format('Y-m-d') : ''
+        );
+
+        $formDescriptor['ad-date-end'] = array(
+            'cssclass' => 'separate-form-element',
+            'section' => 'settings',
+            'type' => 'date',
+            'disabled' => !$this->editable,
+            'label-message' => 'promoter-ad-date-end',
+            'default' => $ad->getEndDate() ? $ad->getEndDate()->format('Y-m-d') : ''
+        );
 
 		/* -- The ad editor -- */
 
@@ -559,7 +577,12 @@ class SpecialPromoterAds extends Promoter {
 				$this->adFormRedirectRequired = true;
 				break;
 
-			case 'save':
+            case 'save':
+                // If only one of the date fields was filled, return error
+                if(($formData['ad-date-end'] && !$formData['ad-date-start']) || (!$formData['ad-date-end'] && $formData['ad-date-start'])) {
+                    return wfMessage('promoter-ad-inconsistent-dates-error')->text();
+                }
+
 				if ( !$this->editable ) {
 					return null;
 				}
@@ -574,6 +597,20 @@ class SpecialPromoterAds extends Promoter {
 	}
 
 	protected function processSaveAdAction( $formData ) {
+
+        $startDate = null;
+        $endDate = null;
+
+        if($formData['ad-date-start']) {
+            $startDate = DateTime::createFromFormat('Y-m-d H:i:s', $formData['ad-date-start'] . ' 00:30:00');
+            $startDate = new MWTimestamp($startDate);
+        }
+
+        if($formData['ad-date-end']) {
+            $endDate = DateTime::createFromFormat('Y-m-d H:i:s', $formData['ad-date-end'] . ' 23:59:59');
+            $endDate = new MWTimestamp($endDate);
+        }
+
 		$ad = Ad::fromName( $this->adName );
 
 		/* --- Ad settings --- */
@@ -583,6 +620,9 @@ class SpecialPromoterAds extends Promoter {
         );
 
         $ad->setTags($formData['ad-tags']);
+
+        $ad->setStartDate($startDate);
+        $ad->setEndDate($endDate);
 
 		$ad->setCaption( $formData['ad-title'] );
 		$ad->setMainLink( $formData['ad-link'] );
