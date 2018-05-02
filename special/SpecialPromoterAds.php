@@ -331,20 +331,20 @@ class SpecialPromoterAds extends Promoter {
 			prepareForm()->
 			displayForm( $formResult );
 
-		$ad = Ad::fromName( $this->adName );
-		$linkedCampaigns = $ad->getLinkedCampaignNames();
-		$htmlList = "<h2>" . wfMessage( 'promoter-ad-linked-campaigns' )->text() . "</h2>";
-		if( empty( $linkedCampaigns ) ) {
-			$htmlList .= wfMessage( 'promoter-ad-linked-campaigns-empty' )->text();
-		} else {
-			$htmlList .= "<ul>";
-			foreach ( $linkedCampaigns as $linkedCampaign ) {
-				$htmlList .= "<li>{$linkedCampaign}</li>";
-			}
-			$htmlList .= "</ul>";
-		}
+		// $ad = Ad::fromName( $this->adName );
+		// $linkedCampaigns = $ad->getLinkedCampaignNames();
+		// $htmlList = "<h2>" . wfMessage( 'promoter-ad-linked-campaigns' )->text() . "</h2>";
+		// if( empty( $linkedCampaigns ) ) {
+		// 	$htmlList .= wfMessage( 'promoter-ad-linked-campaigns-empty' )->text();
+		// } else {
+		// 	$htmlList .= "<ul>";
+		// 	foreach ( $linkedCampaigns as $linkedCampaign ) {
+		// 		$htmlList .= "<li>{$linkedCampaign}</li>";
+		// 	}
+		// 	$htmlList .= "</ul>";
+		// }
 
-		$this->getOutput()->addHTML( $htmlList );
+		// $this->getOutput()->addHTML( $htmlList );
 	}
 
 	protected function generateAdEditForm() {
@@ -449,7 +449,31 @@ class SpecialPromoterAds extends Promoter {
 				'default' => implode( '<br />', $links ),
 				'raw' => true
 			);
-		}
+        }
+        
+        $campaignList = [];
+        $linkedCampaigns = [];
+        $allCampaigns = AdCampaign::getAllCampaignNames();
+
+        foreach ($ad->getLinkedCampaignNames() as $key => $campaignName) {
+            $campaign = new AdCampaign($campaignName);
+
+            $linkedCampaigns[] = $campaign->getId();
+        }
+
+        foreach ($allCampaigns as $key => $campaignName) {
+            $campaign = new AdCampaign($campaignName);
+
+            $campaignList[$campaign->getName()] = (int)$campaign->getId();
+        }
+
+        $formDescriptor['ad-linked-campaigns'] = array(
+            'section' => 'ad-linked-campaigns',
+            'type' => 'multiselect',
+            'options' => $campaignList,
+            'default' => $linkedCampaigns,
+            'cssclass' => 'separate-form-element'
+        );
 
 		/* --- Form bottom options --- */
 		$formDescriptor[ 'save-button' ] = array(
@@ -506,7 +530,7 @@ class SpecialPromoterAds extends Promoter {
 			// preview has seriously borked JS. Maybe one day we'll be able to get Caja up
 			// and working and not have this issue.
 			'default' => 'save',
-		);
+        );
 
 		return $formDescriptor;
 	}
