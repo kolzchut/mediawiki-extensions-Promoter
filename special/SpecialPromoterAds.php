@@ -16,6 +16,8 @@ class SpecialPromoterAds extends Promoter {
 	/** @var bool If true, form execution must stop and the page will be redirected */
 	protected $adFormRedirectRequired = false;
 
+    protected $allCampaigns = [];
+
 	function __construct() {
 		SpecialPage::__construct( 'PromoterAds' );
 
@@ -25,6 +27,7 @@ class SpecialPromoterAds extends Promoter {
 		// Load things that may have been serialized into the session
 		$this->adFilterString = $this->getPRSessionVar( 'adFilterString', '' );
 
+        $this->allCampaigns = AdCampaign::getAllCampaignNames();
 	}
 
 	function __destruct() {
@@ -450,21 +453,18 @@ class SpecialPromoterAds extends Promoter {
 				'raw' => true
 			);
         }
-        
+
         $campaignList = [];
         $linkedCampaigns = [];
-        $allCampaigns = AdCampaign::getAllCampaignNames();
 
         foreach ($ad->getLinkedCampaignNames() as $key => $campaignName) {
-            $campaign = new AdCampaign($campaignName);
-
-            $linkedCampaigns[] = $campaign->getId();
+            $linkedCampaigns[] = $campaignName;
         }
 
-        foreach ($allCampaigns as $key => $campaignName) {
+        foreach ($this->allCampaigns as $key => $campaignName) {
             $campaign = new AdCampaign($campaignName);
 
-            $campaignList[$campaign->getName()] = (int)$campaign->getId();
+            $campaignList[$campaign->getName()] = $campaign->getName();
         }
 
         $formDescriptor['ad-linked-campaigns'] = array(
@@ -585,7 +585,27 @@ class SpecialPromoterAds extends Promoter {
 	}
 
 	protected function processSaveAdAction( $formData ) {
-		$ad = Ad::fromName( $this->adName );
+        $ad = Ad::fromName( $this->adName );
+
+        $linkedCampaigns       = $ad->getLinkedCampaignNames();
+        $campaignsToAddTo      = $formData['ad-linked-campaigns'];
+        $campaignsToRemoveFrom = array_diff($linkedCampaigns, $campaignsToAddTo);
+
+        // Differentiate between added campaigns and linked campaigns to determine which ones should stay intact
+        $campaignsToAddTo = array_diff($campaignsToAddTo, $linkedCampaigns);
+
+        // Get campaign IDs
+        $campaignsToAddTo = array_map(function ($campaign) {
+            return AdCampaign::getCampaignId($campaign);
+        }, $campaignsToAddTo);
+
+        $campaignsToRemoveFrom = array_map(function ($campaign) {
+            return AdCampaign::getCampaignId($campaign);
+        }, $campaignsToRemoveFrom);
+
+        // Add/remove ad from said campaigns
+        AdCampaign::addAdToCampaigns($campaignsToAddTo, $ad->getId(), 25);
+        AdCampaign::removeAdForCampaigns($campaignsToRemoveFrom, $ad->getId());
 
 		/* --- Ad settings --- */
 		$ad->setAllocation(

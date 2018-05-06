@@ -276,7 +276,6 @@ class AdCampaign {
 			return 'promoter-campaign-exists';
 		}
 
-
 		$dbw = PRDatabase::getDb();
 		$dbw->begin();
 
@@ -368,15 +367,15 @@ class AdCampaign {
 		}
 
 		$dbw->begin();
-		$campaignId = AdCampaign::getCampaignId( $eCampaignName );
+        $campaignId = AdCampaign::getCampaignId( $eCampaignName );
 		$dbw->insert( 'pr_adlinks',
 			array(
 				'ad_id'     => $adId,
 				'adl_weight' => $weight,
 				'cmp_id'     => $campaignId
 			)
-		);
-		$dbw->commit();
+        );
+        $dbw->commit();
 
 		return true;
 	}
@@ -392,6 +391,54 @@ class AdCampaign {
 		$dbw->delete( 'pr_adlinks', array( 'ad_id' => $adId, 'cmp_id' => $campaignId ) );
 		$dbw->commit();
 	}
+
+    /**
+     * Add an ad to multiple campaigns based on an array of campaign IDs
+     *
+     * @param array $campaignIds Array of IDs of target campaigns
+     * @param int $adId Ad ID
+     * @param int $weight Ad weight
+     * @return bool
+     */
+    static function addAdToCampaigns($campaignIds, $adId, $weight) {
+        $dbw = PRDatabase::getDb();
+        
+        $rows = [];
+        foreach ($campaignIds as $key => $id) {
+            $rows[] = [
+                'cmp_id'     => $id,
+                'ad_id'      => $adId,
+                'adl_weight' => $weight
+            ];
+        }
+
+        $dbw->begin();
+        $dbw->insert('pr_adlinks', $rows);
+        $dbw->commit();
+
+        return true;
+    }
+
+    /**
+     * * Remove an ad from multiple campaigns based on an array of campaign IDs
+     *
+     * @param array $campaignIds Array of IDs of target campaigns
+     * @param int $adId Ad ID
+     * @return bool
+     */
+    static function removeAdForCampaigns($campaignIds, $adId) {
+        $dbw = PRDatabase::getDb();
+
+        $dbw->begin();
+        $dbw->delete('pr_adlinks', [
+            'ad_id'  => $adId,
+            'cmp_id' => $campaignIds
+        ]);
+        $dbw->commit();
+
+        return true;
+    }
+
 
 	/**
 	 * Lookup the ID for a campaign based on the campaign name
