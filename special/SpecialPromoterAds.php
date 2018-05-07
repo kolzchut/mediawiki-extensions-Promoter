@@ -333,21 +333,6 @@ class SpecialPromoterAds extends Promoter {
 			setDisplayFormat( 'div' )->
 			prepareForm()->
 			displayForm( $formResult );
-
-		// $ad = Ad::fromName( $this->adName );
-		// $linkedCampaigns = $ad->getLinkedCampaignNames();
-		// $htmlList = "<h2>" . wfMessage( 'promoter-ad-linked-campaigns' )->text() . "</h2>";
-		// if( empty( $linkedCampaigns ) ) {
-		// 	$htmlList .= wfMessage( 'promoter-ad-linked-campaigns-empty' )->text();
-		// } else {
-		// 	$htmlList .= "<ul>";
-		// 	foreach ( $linkedCampaigns as $linkedCampaign ) {
-		// 		$htmlList .= "<li>{$linkedCampaign}</li>";
-		// 	}
-		// 	$htmlList .= "</ul>";
-		// }
-
-		// $this->getOutput()->addHTML( $htmlList );
 	}
 
 	protected function generateAdEditForm() {
