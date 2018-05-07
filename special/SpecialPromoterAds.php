@@ -452,28 +452,28 @@ class SpecialPromoterAds extends Promoter {
 				'default' => implode( '<br />', $links ),
 				'raw' => true
 			);
-        }
+		}
 
-        $campaignList = [];
-        $linkedCampaigns = [];
+		$campaignList    = [];
+		$linkedCampaigns = [];
 
-        foreach ($ad->getLinkedCampaignNames() as $key => $campaignName) {
-            $linkedCampaigns[] = $campaignName;
-        }
+		foreach ( $ad->getLinkedCampaignNames() as $key => $campaignName ) {
+			$linkedCampaigns[] = $campaignName;
+		}
 
-        foreach ($this->allCampaigns as $key => $campaignName) {
-            $campaign = new AdCampaign($campaignName);
+		foreach ( $this->allCampaigns as $key => $campaignName ) {
+			$campaign = new AdCampaign( $campaignName );
 
-            $campaignList[$campaign->getName()] = $campaign->getName();
-        }
+			$campaignList[$campaign->getName()] = $campaign->getName();
+		}
 
-        $formDescriptor['ad-linked-campaigns'] = array(
-            'section' => 'ad-linked-campaigns',
-            'type' => 'multiselect',
-            'options' => $campaignList,
-            'default' => $linkedCampaigns,
-            'cssclass' => 'separate-form-element'
-        );
+		$formDescriptor['ad-linked-campaigns'] = [
+			'section'  => 'ad-linked-campaigns',
+			'type'     => 'multiselect',
+			'options'  => $campaignList,
+			'default'  => $linkedCampaigns,
+			'cssclass' => 'separate-form-element'
+		];
 
 		/* --- Form bottom options --- */
 		$formDescriptor[ 'save-button' ] = array(
@@ -585,27 +585,27 @@ class SpecialPromoterAds extends Promoter {
 	}
 
 	protected function processSaveAdAction( $formData ) {
-        $ad = Ad::fromName( $this->adName );
+		$ad = Ad::fromName( $this->adName );
 
-        $linkedCampaigns       = $ad->getLinkedCampaignNames();
-        $campaignsToAddTo      = $formData['ad-linked-campaigns'];
-        $campaignsToRemoveFrom = array_diff($linkedCampaigns, $campaignsToAddTo);
+		$linkedCampaigns       = $ad->getLinkedCampaignNames();
+		$campaignsToAddTo      = $formData['ad-linked-campaigns'];
+		$campaignsToRemoveFrom = array_diff( $linkedCampaigns, $campaignsToAddTo );
 
-        // Differentiate between added campaigns and linked campaigns to determine which ones should stay intact
-        $campaignsToAddTo = array_diff($campaignsToAddTo, $linkedCampaigns);
+		// Differentiate between added campaigns and linked campaigns to determine which ones should stay intact
+		$campaignsToAddTo = array_diff( $campaignsToAddTo, $linkedCampaigns );
 
-        // Get campaign IDs
-        $campaignsToAddTo = array_map(function ($campaign) {
-            return AdCampaign::getCampaignId($campaign);
-        }, $campaignsToAddTo);
+		// Get campaign IDs
+		$campaignsToAddTo = array_map( function ($campaign) {
+			return AdCampaign::getCampaignId( $campaign );
+		}, $campaignsToAddTo );
 
-        $campaignsToRemoveFrom = array_map(function ($campaign) {
-            return AdCampaign::getCampaignId($campaign);
-        }, $campaignsToRemoveFrom);
+		$campaignsToRemoveFrom = array_map( function ( $campaign ) {
+			return AdCampaign::getCampaignId( $campaign );
+		}, $campaignsToRemoveFrom );
 
-        // Add/remove ad from said campaigns
-        AdCampaign::addAdToCampaigns($campaignsToAddTo, $ad->getId(), 25);
-        AdCampaign::removeAdForCampaigns($campaignsToRemoveFrom, $ad->getId());
+		// Add/remove ad from said campaigns
+		AdCampaign::addAdToCampaigns( $campaignsToAddTo, $ad->getId(), 25 );
+		AdCampaign::removeAdForCampaigns( $campaignsToRemoveFrom, $ad->getId() );
 
 		/* --- Ad settings --- */
 		$ad->setAllocation(
