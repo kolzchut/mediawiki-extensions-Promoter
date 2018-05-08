@@ -276,7 +276,6 @@ class AdCampaign {
 			return 'promoter-campaign-exists';
 		}
 
-
 		$dbw = PRDatabase::getDb();
 		$dbw->begin();
 
@@ -368,15 +367,15 @@ class AdCampaign {
 		}
 
 		$dbw->begin();
-		$campaignId = AdCampaign::getCampaignId( $eCampaignName );
+        $campaignId = AdCampaign::getCampaignId( $eCampaignName );
 		$dbw->insert( 'pr_adlinks',
 			array(
 				'ad_id'     => $adId,
 				'adl_weight' => $weight,
 				'cmp_id'     => $campaignId
 			)
-		);
-		$dbw->commit();
+        );
+        $dbw->commit();
 
 		return true;
 	}
@@ -391,6 +390,57 @@ class AdCampaign {
 		$adId = Ad::fromName( $adName )->getId();
 		$dbw->delete( 'pr_adlinks', array( 'ad_id' => $adId, 'cmp_id' => $campaignId ) );
 		$dbw->commit();
+	}
+
+	/**
+	 * Add an ad to multiple campaigns based on an array of campaign IDs
+	 *
+	 * @param array $campaignIds Array of IDs of target campaigns
+	 * @param int $adId Ad ID
+	 * @param int $weight Ad weight
+	 * @return bool
+	 */
+	public static function addAdToCampaigns( $campaignIds, $adId, $weight ) {
+		if ( empty( $campaignIds ) ) return false;
+
+		$dbw = PRDatabase::getDb();
+
+		$rows = [];
+		foreach ( $campaignIds as $key => $id ) {
+			$rows[] = [
+				'cmp_id'     => $id,
+				'ad_id'      => $adId,
+				'adl_weight' => $weight
+			];
+		}
+
+		$dbw->begin();
+		$dbw->insert( 'pr_adlinks', $rows );
+		$dbw->commit();
+
+		return true;
+	}
+
+	/**
+	 * * Remove an ad from multiple campaigns based on an array of campaign IDs
+	 *
+	 * @param array $campaignIds Array of IDs of target campaigns
+	 * @param int $adId Ad ID
+	 * @return bool
+	 */
+	public static function removeAdForCampaigns( $campaignIds, $adId ) {
+		if ( empty( $campaignIds ) ) return false;
+
+		$dbw = PRDatabase::getDb();
+
+		$dbw->begin();
+		$dbw->delete( 'pr_adlinks', [
+			'ad_id'  => $adId,
+			'cmp_id' => $campaignIds
+		] );
+		$dbw->commit();
+
+		return true;
 	}
 
 	/**
@@ -466,7 +516,7 @@ class AdCampaign {
 		}
 
 		if ( $settingValue < $min ) {
-			$settingValue = $min;
+			$settingValue = $min; 
 		}
 
 		if ( !AdCampaign::campaignExists( $campaignName ) ) {

@@ -16,6 +16,8 @@ class SpecialPromoterAds extends Promoter {
 	/** @var bool If true, form execution must stop and the page will be redirected */
 	protected $adFormRedirectRequired = false;
 
+    protected $allCampaigns = [];
+
 	function __construct() {
 		SpecialPage::__construct( 'PromoterAds' );
 
@@ -25,6 +27,7 @@ class SpecialPromoterAds extends Promoter {
 		// Load things that may have been serialized into the session
 		$this->adFilterString = $this->getPRSessionVar( 'adFilterString', '' );
 
+        $this->allCampaigns = AdCampaign::getAllCampaignNames();
 	}
 
 	function __destruct() {
@@ -330,21 +333,6 @@ class SpecialPromoterAds extends Promoter {
 			setDisplayFormat( 'div' )->
 			prepareForm()->
 			displayForm( $formResult );
-
-		$ad = Ad::fromName( $this->adName );
-		$linkedCampaigns = $ad->getLinkedCampaignNames();
-		$htmlList = "<h2>" . wfMessage( 'promoter-ad-linked-campaigns' )->text() . "</h2>";
-		if( empty( $linkedCampaigns ) ) {
-			$htmlList .= wfMessage( 'promoter-ad-linked-campaigns-empty' )->text();
-		} else {
-			$htmlList .= "<ul>";
-			foreach ( $linkedCampaigns as $linkedCampaign ) {
-				$htmlList .= "<li>{$linkedCampaign}</li>";
-			}
-			$htmlList .= "</ul>";
-		}
-
-		$this->getOutput()->addHTML( $htmlList );
 	}
 
 	protected function generateAdEditForm() {
@@ -482,6 +470,25 @@ class SpecialPromoterAds extends Promoter {
 			);
 		}
 
+		$campaignList    = [];
+		$linkedCampaigns = [];
+
+		foreach ( $ad->getLinkedCampaignNames() as $key => $campaignName ) {
+			$linkedCampaigns[] = $campaignName;
+		}
+
+		foreach ( $this->allCampaigns as $key => $campaignName ) {
+			$campaignList[$campaignName] = $campaignName;
+		}
+
+		$formDescriptor['ad-linked-campaigns'] = [
+			'section'  => 'ad-linked-campaigns',
+			'type'     => 'multiselect',
+			'options'  => $campaignList,
+			'default'  => $linkedCampaigns,
+			'cssclass' => 'separate-form-element'
+		];
+
 		/* --- Form bottom options --- */
 		$formDescriptor[ 'save-button' ] = array(
 			'section' => 'form-actions',
@@ -537,7 +544,7 @@ class SpecialPromoterAds extends Promoter {
 			// preview has seriously borked JS. Maybe one day we'll be able to get Caja up
 			// and working and not have this issue.
 			'default' => 'save',
-		);
+        );
 
 		return $formDescriptor;
 	}
@@ -612,6 +619,26 @@ class SpecialPromoterAds extends Promoter {
         }
 
 		$ad = Ad::fromName( $this->adName );
+
+		$linkedCampaigns       = $ad->getLinkedCampaignNames();
+		$campaignsToAddTo      = $formData['ad-linked-campaigns'];
+		$campaignsToRemoveFrom = array_diff( $linkedCampaigns, $campaignsToAddTo );
+
+		// Differentiate between added campaigns and linked campaigns to determine which ones should stay intact
+		$campaignsToAddTo = array_diff( $campaignsToAddTo, $linkedCampaigns );
+
+		// Get campaign IDs
+		$campaignsToAddTo = array_map( function ($campaign) {
+			return AdCampaign::getCampaignId( $campaign );
+		}, $campaignsToAddTo );
+
+		$campaignsToRemoveFrom = array_map( function ( $campaign ) {
+			return AdCampaign::getCampaignId( $campaign );
+		}, $campaignsToRemoveFrom );
+
+		// Add/remove ad from said campaigns
+		AdCampaign::addAdToCampaigns( $campaignsToAddTo, $ad->getId(), 25 );
+		AdCampaign::removeAdForCampaigns( $campaignsToRemoveFrom, $ad->getId() );
 
 		/* --- Ad settings --- */
 		$ad->setAllocation(
