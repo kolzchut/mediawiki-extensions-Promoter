@@ -27,6 +27,12 @@ class PRDatabasePatcher {
 					 $base . '/../Promoter.sql', true
 				)
 			);
+			$updater->addExtensionUpdate(
+				array(
+					'addField', 'pr_ads', 'ad_active',
+					$base . '/pr_ads.patch.ad_active.sql', true
+				)
+			);
 		}
 		return true;
 	}

@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS /*_*/pr_ads (
   ad_mainlink varchar(255),
   ad_display_anon tinyint(1) NOT NULL DEFAULT '1',
 	ad_display_user tinyint(1) NOT NULL DEFAULT '1'
+	ad_active tinyint(1) NOT NULL DEFAULT '0'
 ) /*$wgDBTableOptions*/;
 
 
