@@ -62,7 +62,10 @@
 	"promoter-edit-ad": "עריכת הפרסומת",
 	"promoter-ad-title": "כותרת",
 	"promoter-ad-body": "תוכן",
-	"promoter-ad-link": "קישור מרכזי",
+    "promoter-ad-link": "קישור מרכזי",
+    
+    "promoter-ad-tags-label": "תגיות",
+    "promoter-ad-tag-new": "חדש",
 
   	"promoter-ad-linked-campaigns": "מסעות פרסום מקושרים",
   	"promoter-ad-linked-campaigns-empty": "אין מסעות פרסום מקושרים. הפרסומת גלמודה.",

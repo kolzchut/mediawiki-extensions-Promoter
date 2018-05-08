@@ -375,7 +375,7 @@ class SpecialPromoterAds extends Promoter {
 		);
 		*/
 
-		$selected = array();
+        $selected = array();
 		if ( $adSettings[ 'anon' ] === 1 ) { $selected[] = 'anonymous'; }
 		if ( $adSettings[ 'user' ] === 1 ) { $selected[] = 'user'; }
 		$formDescriptor[ 'display-to' ] = array(
@@ -391,6 +391,19 @@ class SpecialPromoterAds extends Promoter {
 			'cssclass' => 'separate-form-element',
 		);
 
+        $selectedTags = [];
+        if ( $adSettings[ 'new' ] === 1 ) { $selectedTags[] = 'new'; }
+        $formDescriptor[ 'ad-tags' ] = array(
+			'section' => 'settings',
+			'type' => 'multiselect',
+			'disabled' => !$this->editable,
+			'label-message' => 'promoter-ad-tags-label',
+			'options' => array(
+				$this->msg( 'promoter-ad-tag-new' )->text() => 'new'
+			),
+			'default' => $selectedTags,
+			'cssclass' => 'separate-form-element',
+		);
 
 		/* -- The ad editor -- */
 
@@ -567,7 +580,9 @@ class SpecialPromoterAds extends Promoter {
 		$ad->setAllocation(
 			in_array( 'anonymous', $formData[ 'display-to' ] ),
 			in_array( 'user', $formData[ 'display-to' ] )
-		);
+        );
+
+        $ad->setTags($formData['ad-tags']);
 
 		$ad->setCaption( $formData['ad-title'] );
 		$ad->setMainLink( $formData['ad-link'] );

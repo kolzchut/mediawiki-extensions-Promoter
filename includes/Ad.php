@@ -65,7 +65,12 @@ class Ad {
 	protected $allocateAnon = false;
 
 	/** @var bool True if the ad should be allocated to logged in users. */
-	protected $allocateUser = false;
+    protected $allocateUser = false;
+
+    /** @var bool True if the ad should be marked as 'new' */
+    protected $tags = [
+        'new' => false
+    ];
 
 	/** @var bool True if archived and hidden from default view. */
 	protected $archived = false;
@@ -188,6 +193,16 @@ class Ad {
 	public function allocateToUser() {
 		$this->populateBasicData();
 		return $this->allocateUser;
+    }
+
+    /**
+	 * Should the ad be marked as 'new'.
+	 *
+	 * @return bool
+	 */
+	public function isNew() {
+		$this->populateBasicData();
+		return $this->tags['new'];
 	}
 
 	/**
@@ -210,6 +225,24 @@ class Ad {
 		return $this;
 	}
 
+    public function setTags($tags) {
+        $this->populateBasicData();
+
+        // Couldn't come up with a better alternative, feel free to fix this mess ¯\_(ツ)_/¯
+        foreach ($this->tags as $key => $value) {
+            $this->tags[$key] = false;
+        }
+
+        if($this->tags !== $tags) {
+            $this->setBasicDataDirty();
+
+            foreach($tags as $key => $value) {
+                $this->tags[$value] = true;
+            }
+        }
+
+        return $this;
+    }
 
 	public function getCaption() {
 		$this->populateBasicData();
@@ -285,6 +318,7 @@ class Ad {
 				 'ad_mainlink',
 				 'ad_display_anon',
 				 'ad_display_user',
+				 'ad_tag_new'
 				 //'ad_archived',
 			),
 			$selector,
@@ -298,6 +332,7 @@ class Ad {
 			$this->name = $row->ad_name;
 			$this->allocateAnon = (bool)$row->ad_display_anon;
 			$this->allocateUser = (bool)$row->ad_display_user;
+			$this->tags['new'] = (bool)$row->ad_tag_new;
 			$this->adCaption = $row->ad_title;
 			$this->adLink = $row->ad_mainlink;
 			//$this->archived = (bool)$row->ad_archived;
@@ -341,6 +376,7 @@ class Ad {
 				array(
 					 'ad_display_anon'    => (int)$this->allocateAnon,
 					 'ad_display_user' => (int)$this->allocateUser,
+					 'ad_tag_new' => (int)$this->tags['new'],
 					 'ad_title' => $this->adCaption,
 					 'ad_mainlink' => $this->adLink
 					 //'ad_archived'        => $this->archived,
@@ -606,6 +642,7 @@ class Ad {
 		$details = array(
 			'anon' => (int)$this->allocateToAnon(),
 			'user' => (int)$this->allocateToUser(),
+			'new'  => (int)$this->isNew(),
 		);
 
 		return $details;
