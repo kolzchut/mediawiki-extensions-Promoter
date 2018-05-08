@@ -66,6 +66,10 @@
     
     "promoter-ad-tags-label": "תגיות",
     "promoter-ad-tag-new": "חדש",
+    
+    "promoter-ad-date-start": "תאריך התחלת חשיפה",
+    "promoter-ad-date-end": "תאריך סוף חשיפה",
+    "promoter-ad-inconsistent-dates-error": "יש לסמן תאריך התחלת חשיפה ותאריך סוף חשיפה, או להשאיר את שני השדות ריקים",
 
   	"promoter-ad-linked-campaigns": "מסעות פרסום מקושרים",
   	"promoter-ad-linked-campaigns-empty": "אין מסעות פרסום מקושרים. הפרסומת גלמודה.",

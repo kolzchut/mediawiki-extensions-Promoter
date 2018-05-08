@@ -1,0 +1,2 @@
+ALTER TABLE pr_ads
+  ADD ad_date_end BINARY(14) DEFAULT NULL;
