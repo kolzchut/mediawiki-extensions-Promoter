@@ -80,6 +80,9 @@ class Ad {
 	/** @var string Main link of the ad */
 	protected $adLink = '';
 
+	/** @var bool Ad active status */
+	protected $active = false;
+	
 	//</editor-fold>
 
 	/**
@@ -189,6 +192,32 @@ class Ad {
 		$this->populateBasicData();
 		return $this->allocateUser;
 	}
+	
+	/**
+	 * Set current ad as active
+	 *
+	 * @return $this
+	 */
+	function setActive() {
+		$this->populateBasicData();
+		
+		$this->active = true;
+		
+		return $this;
+	}
+	
+	/**
+	 * Set current ad as inactive
+	 *
+	 * @return $this
+	 */
+	public function setInactive() {
+		$this->populateBasicData();
+		
+		$this->active = false;
+
+		return $this;
+	}
 
 	/**
 	 * Set user state allocation properties for this ad
@@ -285,6 +314,7 @@ class Ad {
 				 'ad_mainlink',
 				 'ad_display_anon',
 				 'ad_display_user',
+				 'ad_active'
 				 //'ad_archived',
 			),
 			$selector,
@@ -300,6 +330,7 @@ class Ad {
 			$this->allocateUser = (bool)$row->ad_display_user;
 			$this->adCaption = $row->ad_title;
 			$this->adLink = $row->ad_mainlink;
+			$this->active = $row->ad_active;
 			//$this->archived = (bool)$row->ad_archived;
 		} else {
 			$keystr = array();
@@ -342,7 +373,8 @@ class Ad {
 					 'ad_display_anon'    => (int)$this->allocateAnon,
 					 'ad_display_user' => (int)$this->allocateUser,
 					 'ad_title' => $this->adCaption,
-					 'ad_mainlink' => $this->adLink
+					 'ad_mainlink' => $this->adLink,
+					 'ad_active' => (int)$this->active
 					 //'ad_archived'        => $this->archived,
 					 //'ad_category'        => $this->category,
 				),
