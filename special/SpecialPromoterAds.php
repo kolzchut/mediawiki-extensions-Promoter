@@ -447,9 +447,7 @@ class SpecialPromoterAds extends Promoter {
 		}
 
 		foreach ( $this->allCampaigns as $key => $campaignName ) {
-			$campaign = new AdCampaign( $campaignName );
-
-			$campaignList[$campaign->getName()] = $campaign->getName();
+			$campaignList[$campaignName] = $campaignName;
 		}
 
 		$formDescriptor['ad-linked-campaigns'] = [
