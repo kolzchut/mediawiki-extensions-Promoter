@@ -391,6 +391,17 @@ class SpecialPromoterAds extends Promoter {
 			'cssclass' => 'separate-form-element',
 		);
 
+		$formDescriptor['ad-active'] = array(
+			'section' => 'settings',
+			'type' => 'multiselect',
+			'disabled' => !$this->editable,
+			'label-message' => 'promoter-ad-active-label',
+			'options' => array(
+				$this->msg( 'promoter-ad-active' )->text() => 'active'
+			),
+			'default' => in_array( 'active', $adSettings ) ? [ 'active' ] : [],
+			'cssclass' => 'separate-form-element',
+		);
 
 		/* -- The ad editor -- */
 
@@ -562,6 +573,12 @@ class SpecialPromoterAds extends Promoter {
 
 	protected function processSaveAdAction( $formData ) {
 		$ad = Ad::fromName( $this->adName );
+
+		if ( empty( $formData['ad-active'] ) ) {
+			$ad->setInactive();
+		} else {
+			$ad->setActive();
+		}
 
 		/* --- Ad settings --- */
 		$ad->setAllocation(
