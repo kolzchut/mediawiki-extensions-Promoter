@@ -401,6 +401,8 @@ class AdCampaign {
 	 * @return bool
 	 */
 	public static function addAdToCampaigns( $campaignIds, $adId, $weight ) {
+		if ( empty( $campaignIds ) ) return false;
+
 		$dbw = PRDatabase::getDb();
 
 		$rows = [];
@@ -427,6 +429,8 @@ class AdCampaign {
 	 * @return bool
 	 */
 	public static function removeAdForCampaigns( $campaignIds, $adId ) {
+		if ( empty( $campaignIds ) ) return false;
+
 		$dbw = PRDatabase::getDb();
 
 		$dbw->begin();
