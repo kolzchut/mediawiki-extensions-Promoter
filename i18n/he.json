@@ -64,6 +64,9 @@
 	"promoter-ad-body": "תוכן",
 	"promoter-ad-link": "קישור מרכזי",
 
+	"promoter-ad-active-label": "סטטוס פעילות",
+	"promoter-ad-active": "פרסומת פעילה",
+
   	"promoter-ad-linked-campaigns": "מסעות פרסום מקושרים",
   	"promoter-ad-linked-campaigns-empty": "אין מסעות פרסום מקושרים. הפרסומת גלמודה.",
   	"promoter-edit-ad-summary": "כדי ליצור הודעה שאפשר לתרגם, יש לתחום מחרוזות עם מקפים בשלושה סוגריים מסולסלים, למשל {{{jimbo-quote}}}.",
