@@ -627,6 +627,7 @@ class Ad {
 		$details = array(
 			'anon' => (int)$this->allocateToAnon(),
 			'user' => (int)$this->allocateToUser(),
+			'active' => (int)$this->active
 		);
 
 		return $details;
