@@ -88,6 +88,9 @@ class Ad {
 	/** @var string Main link of the ad */
 	protected $adLink = '';
 
+	/** @var bool Ad active status */
+	protected $active = false;
+
 	//</editor-fold>
 
 	/**
@@ -206,6 +209,21 @@ class Ad {
 	public function isNew() {
 		$this->populateBasicData();
 		return $this->tags['new'];
+	}
+
+	/**
+	 * Set current ad active status
+	 *
+	 * @param bool $status Should the ad be active?
+	 * @return void
+	 */
+	public function setActiveStatus( $status ) {
+		$this->populateBasicData();
+		$this->setBasicDataDirty();
+
+		$this->active = $status;
+
+		return $this;
 	}
 
 	/**
@@ -356,7 +374,8 @@ class Ad {
 				 'ad_display_user',
                  'ad_tag_new',
                  'ad_date_start',
-                 'ad_date_end'
+				 'ad_date_end',
+				 'ad_active'
 				 //'ad_archived',
 			),
 			$selector,
@@ -374,7 +393,8 @@ class Ad {
 			$this->adCaption = $row->ad_title;
 			$this->adLink = $row->ad_mainlink;
             $this->setStartDate($row->ad_date_start);
-            $this->setEndDate($row->ad_date_end);
+			$this->setEndDate($row->ad_date_end);
+			$this->active = (bool)$row->ad_active;
 			//$this->archived = (bool)$row->ad_archived;
 		} else {
 			$keystr = array();
@@ -420,7 +440,8 @@ class Ad {
 					 'ad_title' => $this->adCaption,
                      'ad_mainlink' => $this->adLink,
                      'ad_date_start' => $db->timestampOrNull($this->startDate),
-                     'ad_date_end' => $db->timestampOrNull($this->endDate),
+					 'ad_date_end' => $db->timestampOrNull($this->endDate),
+					 'ad_active' => (int)$this->active
 					 //'ad_archived'        => $this->archived,
 					 //'ad_category'        => $this->category,
 				),
@@ -685,6 +706,7 @@ class Ad {
 			'anon' => (int)$this->allocateToAnon(),
 			'user' => (int)$this->allocateToUser(),
 			'new'  => (int)$this->isNew(),
+			'active' => (int)$this->active
 		);
 
 		return $details;
