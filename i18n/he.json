@@ -71,6 +71,9 @@
     "promoter-ad-date-end": "תאריך סוף חשיפה",
     "promoter-ad-inconsistent-dates-error": "יש לסמן תאריך התחלת חשיפה ותאריך סוף חשיפה, או להשאיר את שני השדות ריקים",
 
+	"promoter-ad-active-label": "סטטוס פעילות",
+	"promoter-ad-active": "פרסומת פעילה",
+
   	"promoter-ad-linked-campaigns": "מסעות פרסום מקושרים",
   	"promoter-ad-linked-campaigns-empty": "אין מסעות פרסום מקושרים. הפרסומת גלמודה.",
   	"promoter-edit-ad-summary": "כדי ליצור הודעה שאפשר לתרגם, יש לתחום מחרוזות עם מקפים בשלושה סוגריים מסולסלים, למשל {{{jimbo-quote}}}.",
