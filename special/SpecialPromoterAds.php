@@ -574,11 +574,8 @@ class SpecialPromoterAds extends Promoter {
 	protected function processSaveAdAction( $formData ) {
 		$ad = Ad::fromName( $this->adName );
 
-		if ( empty( $formData['ad-active'] ) ) {
-			$ad->setInactive();
-		} else {
-			$ad->setActive();
-		}
+		$activeStatus = !empty( $formData['ad-active'] );
+		$ad->setActive( $activeStatus );
 
 		/* --- Ad settings --- */
 		$ad->setAllocation(

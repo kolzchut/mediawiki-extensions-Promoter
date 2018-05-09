@@ -82,7 +82,7 @@ class Ad {
 
 	/** @var bool Ad active status */
 	protected $active = false;
-	
+
 	//</editor-fold>
 
 	/**
@@ -192,29 +192,18 @@ class Ad {
 		$this->populateBasicData();
 		return $this->allocateUser;
 	}
-	
+
 	/**
-	 * Set current ad as active
+	 * Set current ad active status
 	 *
-	 * @return $this
+	 * @param bool $status Should the ad be active?
+	 * @return void
 	 */
-	function setActive() {
+	public function setActive( $status ) {
 		$this->populateBasicData();
-		
-		$this->active = true;
-		
-		return $this;
-	}
-	
-	/**
-	 * Set current ad as inactive
-	 *
-	 * @return $this
-	 */
-	public function setInactive() {
-		$this->populateBasicData();
-		
-		$this->active = false;
+		$this->setBasicDataDirty();
+
+		$this->active = $status;
 
 		return $this;
 	}
@@ -330,7 +319,7 @@ class Ad {
 			$this->allocateUser = (bool)$row->ad_display_user;
 			$this->adCaption = $row->ad_title;
 			$this->adLink = $row->ad_mainlink;
-			$this->active = $row->ad_active;
+			$this->active = (bool)$row->ad_active;
 			//$this->archived = (bool)$row->ad_archived;
 		} else {
 			$keystr = array();
