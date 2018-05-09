@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS /*_*/pr_ads (
 	ad_display_user tinyint(1) NOT NULL DEFAULT '1',
 	ad_tag_new tinyint(1) NOT NULL DEFAULT '0',
 	ad_date_start BINARY(14) DEFAULT NULL,
-    ad_date_end BINARY(14) DEFAULT NULL
+    ad_date_end BINARY(14) DEFAULT NULL,
+	ad_active tinyint(1) NOT NULL DEFAULT '0'
 ) /*$wgDBTableOptions*/;
 
 -- Cross-reference table between campaigns and ads
