@@ -399,7 +399,7 @@ class SpecialPromoterAds extends Promoter {
 			'options' => array(
 				$this->msg( 'promoter-ad-active' )->text() => 'active'
 			),
-			'default' => in_array( 'active', $adSettings ) ? [ 'active' ] : [],
+			'default' => $adSettings['active'] === 1 ? [ 'active' ] : [],
 			'cssclass' => 'separate-form-element',
 		);
 
