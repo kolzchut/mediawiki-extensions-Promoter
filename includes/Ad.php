@@ -215,7 +215,7 @@ class Ad {
 	 * Set current ad active status
 	 *
 	 * @param bool $status Should the ad be active?
-	 * @return void
+	 * @return $this
 	 */
 	public function setActiveStatus( $status ) {
 		$this->populateBasicData();
