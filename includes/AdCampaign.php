@@ -180,7 +180,8 @@ class AdCampaign {
 			),
 			array(
 				'adlinks.cmp_id' => $this->getId(),
-				'adlinks.ad_id = ads.ad_id'
+				'adlinks.ad_id = ads.ad_id',
+				'ads.ad_active' => 1
 			),
 			__METHOD__,
 			array(),
