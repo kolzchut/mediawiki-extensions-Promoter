@@ -30,25 +30,25 @@ class PRDatabasePatcher {
             $updater->addExtensionUpdate(
                 array(
                     'addField', 'pr_ads', 'ad_tag_new',
-                    $base . '/../pr_ads.patch.ad_tag_new.sql', true
+                    $base . '/pr_ads.patch.ad_tag_new.sql', true
                 )
             );
             $updater->addExtensionUpdate(
                 array(
                     'addField', 'pr_ad_log', 'adlog_end_new',
-                    $base . '/../pr_ad_log.patch.adlog_end_new.sql', true
+                    $base . '/pr_ad_log.patch.adlog_end_new.sql', true
                 )
             );
             $updater->addExtensionUpdate(
                 array(
                     'addField', 'pr_ads', 'ad_date_start',
-                    $base . '/../pr_ads.patch.ad_date_start.sql', true
+                    $base . '/pr_ads.patch.ad_date_start.sql', true
                 )
             );
             $updater->addExtensionUpdate(
                 array(
                     'addField', 'pr_ads', 'ad_date_end',
-                    $base . '/../pr_ads.patch.ad_date_end.sql', true
+                    $base . '/pr_ads.patch.ad_date_end.sql', true
                 )
 			);
 			$updater->addExtensionUpdate(
