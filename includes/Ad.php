@@ -285,18 +285,19 @@ class Ad {
 		return $this->endDate;
 	}
 
-    public function isNotExpired() {
-        $this->populateBasicData();
-        
-        if($this->endDate === NULL) {
-            return true;
-        }
+	public function isNotExpired() {
+		$this->populateBasicData();
 
-        $now     = wfTimestamp(TS_UNIX);
-        $endDate = wfTimestamp(TS_UNIX, $this->endDate);
+		if ( $this->endDate === NULL ) {
+			return true;
+		}
 
-        return $now < $endDate;
-    }
+		$now       = wfTimestamp( TS_UNIX );
+		$endDate   = wfTimestamp( TS_UNIX, $this->endDate );
+		$startDate = wfTimestamp( TS_UNIX, $this->startDate );
+
+		return ( $now < $endDate && $startDate < $endDate );
+	}
 
 	public function getCaption() {
 		$this->populateBasicData();
