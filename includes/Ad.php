@@ -246,24 +246,16 @@ class Ad {
 		return $this;
 	}
 
-    public function setTags($tags) {
-        $this->populateBasicData();
+	public function setTags( $tags ) {
+		$this->populateBasicData();
+		$this->setBasicDataDirty();
 
-        // Couldn't come up with a better alternative, feel free to fix this mess ¯\_(ツ)_/¯
-        foreach ($this->tags as $key => $value) {
-            $this->tags[$key] = false;
-        }
+		array_walk( $this->tags, function ( &$item, $key ) use ( &$tags ) {
+			$item = in_array( $key, $tags );
+		} );
 
-        if($this->tags !== $tags) {
-            $this->setBasicDataDirty();
-
-            foreach($tags as $key => $value) {
-                $this->tags[$value] = true;
-            }
-        }
-
-        return $this;
-    }
+		return $this;
+	}
 
 	public function setStartDate($date) {
 		$this->startDate = empty($date) ? null : new MWTimestamp($date);
