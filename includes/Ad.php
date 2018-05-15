@@ -65,16 +65,16 @@ class Ad {
 	protected $allocateAnon = false;
 
 	/** @var bool True if the ad should be allocated to logged in users. */
-    protected $allocateUser = false;
+	protected $allocateUser = false;
 
-    /** @var bool True if the ad should be marked as 'new' */
-    protected $tags = [
-        'new' => false
-    ];
+	/** @var bool True if the ad should be marked as 'new' */
+	protected $tags = [
+		'new' => false
+	];
 
-    protected $startDate;
+	protected $startDate;
 
-    protected $endDate;
+	protected $endDate;
 
 	/** @var bool True if archived and hidden from default view. */
 	protected $archived = false;
@@ -199,9 +199,9 @@ class Ad {
 	public function allocateToUser() {
 		$this->populateBasicData();
 		return $this->allocateUser;
-    }
+	}
 
-    /**
+	/**
 	 * Should the ad be marked as 'new'.
 	 *
 	 * @return bool
@@ -265,25 +265,25 @@ class Ad {
         return $this;
     }
 
-    public function setStartDate($date) {
-        $this->startDate = empty($date) ? null : new MWTimestamp($date);
-    }
+	public function setStartDate($date) {
+		$this->startDate = empty($date) ? null : new MWTimestamp($date);
+	}
 
-    public function getStartDate() {
-        $this->populateBasicData();
-        
-        return $this->startDate;
-    }
+	public function getStartDate() {
+		$this->populateBasicData();
 
-    public function setEndDate($date) {
-        $this->endDate = empty($date) ? null : new MWTimestamp($date);
-    }
+		return $this->startDate;
+	}
 
-    public function getEndDate() {
-        $this->populateBasicData();
+	public function setEndDate($date) {
+		$this->endDate = empty($date) ? null : new MWTimestamp($date);
+	}
 
-        return $this->endDate;
-    }
+	public function getEndDate() {
+		$this->populateBasicData();
+
+		return $this->endDate;
+	}
 
     public function isNotExpired() {
         $this->populateBasicData();
@@ -372,8 +372,8 @@ class Ad {
 				 'ad_mainlink',
 				 'ad_display_anon',
 				 'ad_display_user',
-                 'ad_tag_new',
-                 'ad_date_start',
+				 'ad_tag_new',
+				 'ad_date_start',
 				 'ad_date_end',
 				 'ad_active'
 				 //'ad_archived',
@@ -389,10 +389,10 @@ class Ad {
 			$this->name = $row->ad_name;
 			$this->allocateAnon = (bool)$row->ad_display_anon;
 			$this->allocateUser = (bool)$row->ad_display_user;
-            $this->tags['new'] = (bool)$row->ad_tag_new;
+			$this->tags['new'] = (bool)$row->ad_tag_new;
 			$this->adCaption = $row->ad_title;
 			$this->adLink = $row->ad_mainlink;
-            $this->setStartDate($row->ad_date_start);
+			$this->setStartDate($row->ad_date_start);
 			$this->setEndDate($row->ad_date_end);
 			$this->active = (bool)$row->ad_active;
 			//$this->archived = (bool)$row->ad_archived;
@@ -438,10 +438,10 @@ class Ad {
 					 'ad_display_user' => (int)$this->allocateUser,
 					 'ad_tag_new' => (int)$this->tags['new'],
 					 'ad_title' => $this->adCaption,
-                     'ad_mainlink' => $this->adLink,
-                     'ad_date_start' => $db->timestampOrNull($this->startDate),
+					 'ad_mainlink' => $this->adLink,
+					 'ad_date_start' => $db->timestampOrNull($this->startDate),
 					 'ad_date_end' => $db->timestampOrNull($this->endDate),
-					 'ad_active' => (int)$this->active
+					 'ad_active' => $this->active
 					 //'ad_archived'        => $this->archived,
 					 //'ad_category'        => $this->category,
 				),
@@ -706,7 +706,7 @@ class Ad {
 			'anon' => (int)$this->allocateToAnon(),
 			'user' => (int)$this->allocateToUser(),
 			'new'  => (int)$this->isNew(),
-			'active' => (int)$this->active
+			'active' => $this->active
 		);
 
 		return $details;
@@ -885,9 +885,9 @@ class Ad {
 		$adHtml = HTML::openElement(
 			'div', array( 'class' => 'promotion', 'data-adname' => $this->getName() )
 		);
-		    $adHtml .= HTML::openElement( 'div', array( 'class' => 'header' ) );
-		        //$adHtml .= HTML::element( 'span', array( 'class' => 'icon pull-right' ) );
-		        if ( empty( $adMainLink ) ) {
+			$adHtml .= HTML::openElement( 'div', array( 'class' => 'header' ) );
+				//$adHtml .= HTML::element( 'span', array( 'class' => 'icon pull-right' ) );
+				if ( empty( $adMainLink ) ) {
 					$adHtml .= HTML::element( 'span', array( 'class' => 'caption' ), $adCaption );
 				} else {
 					$adHtml .= HTML::element(
@@ -904,7 +904,7 @@ class Ad {
 				$adHtml .= HTML::element( 'a', array( 'href' => $adMainLink ), 'לפרטים נוספים...' );
 				$adHtml .= HTML::closeElement( 'div' );
 			}
-	    $adHtml .= HTML::closeElement( 'div' );
+		$adHtml .= HTML::closeElement( 'div' );
 
 		 return $adHtml;
 	}

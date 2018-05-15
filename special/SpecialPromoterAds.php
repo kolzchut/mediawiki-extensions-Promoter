@@ -413,13 +413,11 @@ class SpecialPromoterAds extends Promoter {
 
 		$formDescriptor['ad-active'] = array(
 			'section' => 'settings',
-			'type' => 'multiselect',
+			'type' => 'checkbox',
 			'disabled' => !$this->editable,
-			'label-message' => 'promoter-ad-active-label',
-			'options' => array(
-				$this->msg('promoter-ad-active')->text() => 'active'
-			),
-			'default' => $adSettings['active'] === 1 ? ['active'] : [],
+			'label-message' => 'promoter-ad-active',
+			'default' => $adSettings['active'],
+			'class' => 'HTMLCheckField',
 			'cssclass' => 'separate-form-element',
 		);
 
@@ -632,7 +630,7 @@ class SpecialPromoterAds extends Promoter {
 
 		$ad = Ad::fromName( $this->adName );
 
-		$activeStatus = !empty( $formData['ad-active'] );
+		$activeStatus = $formData['ad-active'];
 		$ad->setActiveStatus( $activeStatus );
 
 		$linkedCampaigns       = $ad->getLinkedCampaignNames();
