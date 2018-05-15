@@ -413,11 +413,10 @@ class SpecialPromoterAds extends Promoter {
 
 		$formDescriptor['ad-active'] = array(
 			'section' => 'settings',
-			'type' => 'checkbox',
+			'type' => 'check',
 			'disabled' => !$this->editable,
 			'label-message' => 'promoter-ad-active',
 			'default' => $adSettings['active'],
-			'class' => 'HTMLCheckField',
 			'cssclass' => 'separate-form-element',
 		);
 
