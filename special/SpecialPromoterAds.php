@@ -411,6 +411,15 @@ class SpecialPromoterAds extends Promoter {
             'default' => $ad->getEndDate() ? $ad->getEndDate()->format('Y-m-d') : ''
         );
 
+		$formDescriptor['ad-active'] = array(
+			'section' => 'settings',
+			'type' => 'check',
+			'disabled' => !$this->editable,
+			'label-message' => 'promoter-ad-active',
+			'default' => $adSettings['active'],
+			'cssclass' => 'separate-form-element',
+		);
+
 		/* -- The ad editor -- */
 
 		$formDescriptor[ 'ad-title' ] = array(
@@ -619,6 +628,9 @@ class SpecialPromoterAds extends Promoter {
         }
 
 		$ad = Ad::fromName( $this->adName );
+
+		$activeStatus = $formData['ad-active'];
+		$ad->setActiveStatus( $activeStatus );
 
 		$linkedCampaigns       = $ad->getLinkedCampaignNames();
 		$campaignsToAddTo      = $formData['ad-linked-campaigns'];

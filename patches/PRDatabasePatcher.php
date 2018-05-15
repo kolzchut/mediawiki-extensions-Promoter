@@ -50,7 +50,25 @@ class PRDatabasePatcher {
                     'addField', 'pr_ads', 'ad_date_end',
                     $base . '/../pr_ads.patch.ad_date_end.sql', true
                 )
-            );
+			);
+			$updater->addExtensionUpdate(
+				array(
+					'addField', 'pr_ads', 'ad_active',
+					$base . '/pr_ads.patch.ad_active.sql', true
+				)
+			);
+			$updater->addExtensionUpdate(
+				array(
+					'addField', 'pr_ad_log', 'adlog_begin_active',
+					$base . '/pr_ad_log.patch.adlog_begin_active.sql', true
+				)
+			);
+			$updater->addExtensionUpdate(
+				array(
+					'addField', 'pr_ad_log', 'adlog_end_active',
+					$base . '/pr_ad_log.patch.adlog_end_active.sql', true
+				)
+			);
 		}
 		return true;
 	}
