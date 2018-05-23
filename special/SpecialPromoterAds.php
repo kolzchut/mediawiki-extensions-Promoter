@@ -593,11 +593,15 @@ class SpecialPromoterAds extends Promoter {
 				$this->adFormRedirectRequired = true;
 				break;
 
-            case 'save':
-                // If only one of the date fields was filled, return error
-                if(($formData['ad-date-end'] && !$formData['ad-date-start']) || (!$formData['ad-date-end'] && $formData['ad-date-start'])) {
-                    return wfMessage('promoter-ad-inconsistent-dates-error')->text();
-                }
+			case 'save':
+				// If only one of the date fields was filled, return error
+				if ( ( $formData[ 'ad-date-end' ] && !$formData[ 'ad-date-start' ] ) || ( !$formData[ 'ad-date-end' ] && $formData[ 'ad-date-start' ] ) ) {
+					return wfMessage( 'promoter-ad-inconsistent-dates-error' )->text();
+				}
+
+				if ( strtotime( $formData['ad-date-start'] ) > strtotime( $formData['ad-date-end'] ) ) {
+					return wfMessage( 'promoter-ad-date-end-bigger-than-date-start' )->text();
+				}
 
 				if ( !$this->editable ) {
 					return null;
@@ -614,18 +618,18 @@ class SpecialPromoterAds extends Promoter {
 
 	protected function processSaveAdAction( $formData ) {
 
-        $startDate = null;
-        $endDate = null;
+		$startDate = null;
+		$endDate = null;
 
-        if($formData['ad-date-start']) {
-            $startDate = DateTime::createFromFormat('Y-m-d H:i:s', $formData['ad-date-start'] . ' 00:30:00');
-            $startDate = new MWTimestamp($startDate);
-        }
+		if ( $formData[ 'ad-date-start' ]) {
+			$startDate = DateTime::createFromFormat( 'Y-m-d H:i:s', $formData['ad-date-start'] . ' 00:30:00' );
+			$startDate = new MWTimestamp( $startDate );
+		}
 
-        if($formData['ad-date-end']) {
-            $endDate = DateTime::createFromFormat('Y-m-d H:i:s', $formData['ad-date-end'] . ' 23:59:59');
-            $endDate = new MWTimestamp($endDate);
-        }
+		if ( $formData[ 'ad-date-end' ] ) {
+			$endDate = DateTime::createFromFormat( 'Y-m-d H:i:s', $formData['ad-date-end'] . ' 23:59:59' );
+			$endDate = new MWTimestamp( $endDate );
+		}
 
 		$ad = Ad::fromName( $this->adName );
 
@@ -656,12 +660,12 @@ class SpecialPromoterAds extends Promoter {
 		$ad->setAllocation(
 			in_array( 'anonymous', $formData[ 'display-to' ] ),
 			in_array( 'user', $formData[ 'display-to' ] )
-        );
+		);
 
-        $ad->setTags($formData['ad-tags']);
+		$ad->setTags( $formData[ 'ad-tags' ] );
 
-        $ad->setStartDate($startDate);
-        $ad->setEndDate($endDate);
+		$ad->setStartDate( $startDate );
+		$ad->setEndDate( $endDate );
 
 		$ad->setCaption( $formData['ad-title'] );
 		$ad->setMainLink( $formData['ad-link'] );
