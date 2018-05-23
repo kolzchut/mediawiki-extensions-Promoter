@@ -70,6 +70,7 @@
     "promoter-ad-date-start": "תאריך התחלת חשיפה",
     "promoter-ad-date-end": "תאריך סוף חשיפה",
     "promoter-ad-inconsistent-dates-error": "יש לסמן תאריך התחלת חשיפה ותאריך סוף חשיפה, או להשאיר את שני השדות ריקים",
+    "promoter-ad-date-end-bigger-than-date-start": "תאריך סוף החשיפה צריך להיות בתאריך מאוחר יותר מתאריך תחילת החשיפה",
 
 	"promoter-ad-active-label": "סטטוס פעילות",
 	"promoter-ad-active": "פרסומת פעילה",

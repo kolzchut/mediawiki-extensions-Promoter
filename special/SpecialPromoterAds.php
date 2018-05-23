@@ -593,11 +593,15 @@ class SpecialPromoterAds extends Promoter {
 				$this->adFormRedirectRequired = true;
 				break;
 
-            case 'save':
+			case 'save':
                 // If only one of the date fields was filled, return error
                 if(($formData['ad-date-end'] && !$formData['ad-date-start']) || (!$formData['ad-date-end'] && $formData['ad-date-start'])) {
                     return wfMessage('promoter-ad-inconsistent-dates-error')->text();
-                }
+				}
+				
+				if( strtotime( $formData['ad-date-start'] ) > strtotime( $formData['ad-date-end'] ) ) {
+					return wfMessage('promoter-ad-date-end-bigger-than-date-start')->text();
+				}
 
 				if ( !$this->editable ) {
 					return null;
