@@ -35,6 +35,12 @@ class PRDatabasePatcher {
 			);
 			$updater->addExtensionUpdate(
 				array(
+					'addField', 'pr_ad_log', 'adlog_begin_new',
+					$base . '/pr_ad_log.patch.adlog_begin_new.sql', true
+				)
+			);
+			$updater->addExtensionUpdate(
+				array(
 					'addField', 'pr_ad_log', 'adlog_end_new',
 					$base . '/pr_ad_log.patch.adlog_end_new.sql', true
 				)
