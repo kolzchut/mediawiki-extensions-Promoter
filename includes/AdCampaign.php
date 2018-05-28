@@ -273,7 +273,7 @@ class AdCampaign {
 		$campaigns = str_replace( ' ', '_', $campaigns );
 		$dbr       = wfGetDB( DB_REPLICA );
 
-		$now = date( 'Ymd000000' );
+		$now = $dbr->timestamp();
 		$urls = '"' . implode( '","', $urls ) . '"';
 
 		$result = $dbr->select(
