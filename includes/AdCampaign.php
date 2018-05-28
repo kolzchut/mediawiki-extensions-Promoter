@@ -260,6 +260,57 @@ class AdCampaign {
 	}
 
 	/**
+	 * Get a limited number of ads from certain campaigns,
+	 * with the option of excluding certain ads by their URLs.
+	 *
+	 * @param array $campaigns Campaign names to fetch ads from
+	 * @param array $urls URLs to exclude from result (to prevent duplicate entries)
+	 * @param int $limit Number of max ads to fetch
+	 * @return array Array of resulting ads
+	 */
+	public static function getCampaignAds( array $campaigns = [], array $urls = [], int $limit = 2 ) {
+		$ads       = [];
+		$campaigns = str_replace( ' ', '_', $campaigns );
+		$dbr       = wfGetDB( DB_REPLICA );
+
+		$now = $dbr->timestamp();
+		$urls = '"' . implode( '","', $urls ) . '"';
+
+		$result = $dbr->select(
+			[
+				'ads'     => 'pr_ads',
+				'adlinks' => 'pr_adlinks',
+				'cmp'     => 'pr_campaigns'
+			],
+			[ 'ads.*' ],
+			[
+				'cmp.cmp_enabled' => 1,
+				'ads.ad_active'   => 1,
+				'cmp.cmp_name'    => $campaigns,
+				'ads.ad_date_end > ' . $now . ' OR ads.ad_date_end IS NULL',
+				'ads.ad_date_start < ' . $now . ' OR ads.ad_date_start IS NULL',
+				'ads.ad_mainlink NOT IN ('. $urls .')'
+			],
+			__METHOD__,
+			[
+				'ORDER BY' => 'RAND()',
+				'LIMIT'    => $limit
+			],
+			[
+				'cmp'     => [ 'INNER JOIN', [ 'cmp.cmp_id=adlinks.cmp_id' ] ],
+				'adlinks' => [ 'INNER JOIN', [ 'ads.ad_id=adlinks.ad_id' ] ]
+			]
+		);
+
+		$output = [];
+		foreach ( $result as $row ) {
+			$output[] = $row;
+		}
+
+		return $output;
+	}
+
+	/**
 	 * Add a new campaign to the database
 	 *
 	 * @param $campaignName        string: Name of the campaign
@@ -517,7 +568,7 @@ class AdCampaign {
 		}
 
 		if ( $settingValue < $min ) {
-			$settingValue = $min; 
+			$settingValue = $min;
 		}
 
 		if ( !AdCampaign::campaignExists( $campaignName ) ) {

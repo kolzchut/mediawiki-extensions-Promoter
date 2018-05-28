@@ -288,7 +288,7 @@ class Ad {
 		$endDate   = wfTimestamp( TS_UNIX, $this->endDate );
 		$startDate = wfTimestamp( TS_UNIX, $this->startDate );
 
-		return ( $now < $endDate && $startDate < $endDate );
+		return ( $now < $endDate && $startDate < $now );
 	}
 
 	public function getCaption() {
