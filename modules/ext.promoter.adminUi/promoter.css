@@ -7,7 +7,6 @@
  * @licence GNU General Public Licence 2.0 or later
  */
 
-#pr-formsection-preview legend,
 #pr-formsection-header legend,
 #pr-formsection-form-actions legend {
 	display: none;
@@ -154,4 +153,17 @@ form .error {
 	padding: 0.5em;
 	background-color: #FFCCCC;
 	border: 2px solid #FF0000;
+}
+
+/* Ad preview override rules */
+.discovery-wrapper {
+    margin: 30px 0 0 0;
+}
+
+.discovery-wrapper .discovery .discovery-item {
+    height: 146px;
+}
+
+.discovery-wrapper {
+    border-bottom: 0;
 }
