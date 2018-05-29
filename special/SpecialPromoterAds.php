@@ -57,6 +57,7 @@ class SpecialPromoterAds extends Promoter {
 		// User settable text for some custom message, like usage instructions
 		$this->getOutput()->setPageTitle( $this->msg( 'campaignad' ) );
 		$this->getOutput()->addWikiMsg( 'promoter-summary' );
+		$this->getOutput()->addModules( 'ext.discovery' );
 
 		// Now figure out wth to display
 		$parts = explode( '/', $page );
@@ -298,14 +299,6 @@ class SpecialPromoterAds extends Promoter {
 			throw new ErrorPageError( 'campaignad', 'promoter-generic-error' );
 		}
 		$out->setPageTitle( $this->adName );
-		$out->setSubtitle( Linker::link(
-				SpecialPage::getTitleFor( 'Randompage' ),
-				$this->msg( 'promoter-live-preview' ),
-				array( 'class' => 'pr-ad-list-element-label-text' ),
-				array(
-					 'ad' => $this->adName,
-				)
-			) );
 
 		// Generate the form
 		$formDescriptor = $this->generateAdEditForm( $this->adName );
@@ -340,13 +333,6 @@ class SpecialPromoterAds extends Promoter {
 		$adSettings = $ad->getAdSettings( $this->adName, true );
 
 		$formDescriptor = array();
-
-		/* --- Ad Preview Section --- */
-		$formDescriptor[ 'preview' ] = array(
-			'section' => 'preview',
-			'class' => 'HTMLPromoterAd',
-			'ad' => $this->adName,
-		);
 
 		/* --- Ad Settings --- */
 		/*
@@ -478,6 +464,12 @@ class SpecialPromoterAds extends Promoter {
 				'raw' => true
 			);
 		}
+
+		/* --- Ad Preview Section --- */
+		$formDescriptor[ 'preview' ] = array(
+			'section' => 'preview',
+			'type' => 'info',
+		);
 
 		$campaignList    = [];
 		$linkedCampaigns = [];

@@ -180,6 +180,39 @@
 				adField.value += buttonValue;
 			}
 			adField.focus();
+		},
+		createAdPreview: function () {
+			var adPreviewDOM = $( '' +
+			'<div class="discovery-wrapper">' +
+				'<div class="discovery">' +
+					'<div></div>' +
+				'</div>' +
+			'</div>' );
+
+			$( '#mw-htmlform-preview > div' ).empty().append( adPreviewDOM );
+		},
+		triggerAdChange: function () {
+			var url = $( '#mw-input-wpad-link' ).val();
+
+			if ( url.indexOf( 'www' ) === 0 ) {
+				url = '//' + url;
+			}
+			else if ( url.indexOf( 'http' ) === -1 ) {
+				url = mw.util.getUrl( url );
+			}
+
+			var itemData = {
+				content: $( '#mw-input-wpad-body' ).val(),
+				url: url,
+				indicators: {
+					"new": Number( $( '#mw-input-wpad-tags-new' ).prop( 'checked' ) )
+				}
+			};
+
+			var adHTML = mw.discovery.buildDiscoveryItem( itemData );
+			adHTML.find( 'a' ).attr( 'target', '_blank' );
+
+			$( '.discovery > div' ).html( adHTML );
 		}
 	};
 
@@ -191,7 +224,13 @@
 	$( '#mw-input-wptranslate-language' ).change( mw.promoter.adminUi.adEditor.updateLanguage );
 	$( '#mw-input-wpcreate-landingpage-link' ).change( mw.promoter.adminUi.adEditor.showHideLpEditBox );
 
+	$('#mw-input-wpad-tags-new').change( mw.promoter.adminUi.adEditor.triggerAdChange );
+	$('#mw-input-wpad-body, #mw-input-wpad-link').keyup( mw.promoter.adminUi.adEditor.triggerAdChange );
+
 	// And do some initial form work
 	mw.promoter.adminUi.adEditor.showHideLpEditBox();
+	mw.promoter.adminUi.adEditor.createAdPreview();
+	mw.promoter.adminUi.adEditor.triggerAdChange();
 	$( '#pr-js-error-warn' ).hide();
-} )( jQuery, mediaWiki );
+
+} ( jQuery, mediaWiki ));
