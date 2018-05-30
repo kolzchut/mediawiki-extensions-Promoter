@@ -167,3 +167,8 @@ form .error {
 .discovery-wrapper {
     border-bottom: 0;
 }
+
+/* Character counter rules */
+.char-counter.red {
+    color: red;
+}
