@@ -213,8 +213,8 @@
 			adHTML.find( 'a' ).attr( 'target', '_blank' );
 
 			$( '.discovery > div' ).html( adHTML );
-        },
-        createCharCounter: function () {
+		},
+		createCharCounter: function () {
 			$( '#mw-input-wpad-body' ).after( '<div class="char-counter"></div>' );
 		},
 		updateCharCount: function () {
@@ -241,15 +241,15 @@
 	$( '#mw-input-wpcreate-landingpage-link' ).change( mw.promoter.adminUi.adEditor.showHideLpEditBox );
 
 	$( '#mw-input-wpad-tags-new' ).change( mw.promoter.adminUi.adEditor.triggerAdChange );
-    $( '#mw-input-wpad-body, #mw-input-wpad-link' ).keyup( mw.promoter.adminUi.adEditor.triggerAdChange );
-    $( '#mw-input-wpad-body' ).keyup( mw.promoter.adminUi.adEditor.updateCharCount )
+    	$( '#mw-input-wpad-body, #mw-input-wpad-link' ).keyup( mw.promoter.adminUi.adEditor.triggerAdChange );
+    	$( '#mw-input-wpad-body' ).keyup( mw.promoter.adminUi.adEditor.updateCharCount )
 
 	// And do some initial form work
 	mw.promoter.adminUi.adEditor.showHideLpEditBox();
 	mw.promoter.adminUi.adEditor.createAdPreview();
 	mw.promoter.adminUi.adEditor.triggerAdChange();
-    mw.promoter.adminUi.adEditor.createCharCounter();
-    mw.promoter.adminUi.adEditor.updateCharCount();
+    	mw.promoter.adminUi.adEditor.createCharCounter();
+    	mw.promoter.adminUi.adEditor.updateCharCount();
 	$( '#pr-js-error-warn' ).hide();
 
 } ( jQuery, mediaWiki ));
