@@ -240,9 +240,9 @@
 	$( '#mw-input-wptranslate-language' ).change( mw.promoter.adminUi.adEditor.updateLanguage );
 	$( '#mw-input-wpcreate-landingpage-link' ).change( mw.promoter.adminUi.adEditor.showHideLpEditBox );
 
-	$('#mw-input-wpad-tags-new').change( mw.promoter.adminUi.adEditor.triggerAdChange );
-    $('#mw-input-wpad-body, #mw-input-wpad-link').keyup( mw.promoter.adminUi.adEditor.triggerAdChange );
-    $('#mw-input-wpad-body').keyup( mw.promoter.adminUi.adEditor.updateCharCount )
+	$( '#mw-input-wpad-tags-new' ).change( mw.promoter.adminUi.adEditor.triggerAdChange );
+    $( '#mw-input-wpad-body, #mw-input-wpad-link' ).keyup( mw.promoter.adminUi.adEditor.triggerAdChange );
+    $( '#mw-input-wpad-body' ).keyup( mw.promoter.adminUi.adEditor.updateCharCount )
 
 	// And do some initial form work
 	mw.promoter.adminUi.adEditor.showHideLpEditBox();
