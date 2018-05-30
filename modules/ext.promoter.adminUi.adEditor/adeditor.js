@@ -213,6 +213,22 @@
 			adHTML.find( 'a' ).attr( 'target', '_blank' );
 
 			$( '.discovery > div' ).html( adHTML );
+		},
+		createCharCounter: function () {
+			$( '#mw-input-wpad-body' ).after( '<div class="char-counter"></div>' );
+		},
+		updateCharCount: function () {
+			var maxChars = mw.discovery.MAX_CHARS,
+				currentCharCount = $( '#mw-input-wpad-body' ).val().length;
+
+			if ( currentCharCount > maxChars ) {
+				$( '.char-counter' ).addClass( 'red' );
+			}
+			else {
+				$( '.char-counter' ).removeClass( 'red' );
+			}
+
+			$( '.char-counter' ).text( currentCharCount + '/' + maxChars );
 		}
 	};
 
@@ -224,13 +240,16 @@
 	$( '#mw-input-wptranslate-language' ).change( mw.promoter.adminUi.adEditor.updateLanguage );
 	$( '#mw-input-wpcreate-landingpage-link' ).change( mw.promoter.adminUi.adEditor.showHideLpEditBox );
 
-	$('#mw-input-wpad-tags-new').change( mw.promoter.adminUi.adEditor.triggerAdChange );
-	$('#mw-input-wpad-body, #mw-input-wpad-link').keyup( mw.promoter.adminUi.adEditor.triggerAdChange );
+	$( '#mw-input-wpad-tags-new' ).change( mw.promoter.adminUi.adEditor.triggerAdChange );
+    	$( '#mw-input-wpad-body, #mw-input-wpad-link' ).keyup( mw.promoter.adminUi.adEditor.triggerAdChange );
+    	$( '#mw-input-wpad-body' ).keyup( mw.promoter.adminUi.adEditor.updateCharCount )
 
 	// And do some initial form work
 	mw.promoter.adminUi.adEditor.showHideLpEditBox();
 	mw.promoter.adminUi.adEditor.createAdPreview();
 	mw.promoter.adminUi.adEditor.triggerAdChange();
+    	mw.promoter.adminUi.adEditor.createCharCounter();
+    	mw.promoter.adminUi.adEditor.updateCharCount();
 	$( '#pr-js-error-warn' ).hide();
 
 } ( jQuery, mediaWiki ));
