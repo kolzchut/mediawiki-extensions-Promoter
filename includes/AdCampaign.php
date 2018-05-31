@@ -269,6 +269,9 @@ class AdCampaign {
 	 * @return array Array of resulting ads
 	 */
 	public static function getCampaignAds( array $campaigns = [], array $urls = [], int $limit = 2 ) {
+		if ( empty( $campaigns ) ) {
+			return [];
+		}
 		$ads       = [];
 		$campaigns = str_replace( ' ', '_', $campaigns );
 		$dbr       = wfGetDB( DB_REPLICA );
@@ -302,12 +305,11 @@ class AdCampaign {
 			]
 		);
 
-		$output = [];
 		foreach ( $result as $row ) {
-			$output[] = $row;
+			$ads[] = $row;
 		}
 
-		return $output;
+		return $ads;
 	}
 
 	/**
