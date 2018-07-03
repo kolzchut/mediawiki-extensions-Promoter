@@ -203,7 +203,7 @@
 				url = '//' + url;
 				urlType = 'external';
 			}
-			else if ( url.indexOf( 'http' ) === -1 && url.indexOf( 'www' ) === -1 ) {
+			else {
 				url = mw.util.getUrl( url );
 			}
 
