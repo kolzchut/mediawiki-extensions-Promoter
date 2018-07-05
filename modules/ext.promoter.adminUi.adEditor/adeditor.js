@@ -193,17 +193,24 @@
 		},
 		triggerAdChange: function () {
 			var url = $( '#mw-input-wpad-link' ).val();
+			var urlType = null;
+			var blogUrl = mw.discovery.config.blogUrl;
 
-			if ( url.indexOf( 'www' ) === 0 ) {
-				url = '//' + url;
+			if ( url.indexOf( blogUrl ) > -1 ) {
+				urlType = 'blog';
 			}
-			else if ( url.indexOf( 'http' ) === -1 ) {
+			else if ( url.indexOf( 'www' ) === 0 || url.indexOf( 'http' ) === 0 ) {
+				url = '//' + url;
+				urlType = 'external';
+			}
+			else {
 				url = mw.util.getUrl( url );
 			}
 
 			var itemData = {
 				content: $( '#mw-input-wpad-body' ).val(),
 				url: url,
+				type: urlType,
 				indicators: {
 					"new": Number( $( '#mw-input-wpad-tags-new' ).prop( 'checked' ) )
 				}
