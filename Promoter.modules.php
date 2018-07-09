@@ -100,7 +100,6 @@ $wgResourceModules[ 'ext.promoter.adStats' ] = array(
 );
 */
 
-
 $wgResourceModules[ 'ext.promoter.adController' ] = [
 	'localBasePath' => $promoterLocalBasePath . '/ext.promoter.adController',
 	'remoteExtPath' => $promoterRemoteExtPath . '/ext.promoter.adController',
@@ -109,7 +108,6 @@ $wgResourceModules[ 'ext.promoter.adController' ] = [
 	'class'         => 'HelenaResourceLoaderModule',
 	'position'      => 'bottom'
 ];
-
 
 $wgResourceModules[ 'ext.promoter.adminUi.campaignManager' ] = [
 	'localBasePath' => $promoterLocalBasePath,
@@ -135,7 +133,6 @@ $wgResourceModules[ 'jquery.owl-carousel' ] = [
 	],
 	'messages'      => []
 ];
-
 
 $wgResourceModules[ 'ext.promoter.gallery' ] = [
 	'localBasePath' => $promoterLocalBasePath,

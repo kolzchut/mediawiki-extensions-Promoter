@@ -1,9 +1,9 @@
 <?php
 
 class PromoterPager extends AdPager {
-	var $viewPage, $special;
-	var $editable;
-	var $filter;
+	private $viewPage, $special;
+	private $editable;
+	private $filter;
 
 	function __construct( $special, $filter = '' ) {
 		parent::__construct( $special, $filter );
@@ -24,7 +24,7 @@ class PromoterPager extends AdPager {
 			$likeArray = $dbr->anyString();
 		} else {
 			$anyStringToken = $dbr->anyString();
-			$tempArray = array( $anyStringToken );
+			$tempArray = [ $anyStringToken ];
 			foreach ( $likeArray as $likePart ) {
 				$tempArray[ ] = $likePart;
 				$tempArray[ ] = $anyStringToken;
@@ -38,34 +38,34 @@ class PromoterPager extends AdPager {
 
 		if ( $campaignId ) {
 			// Return all the ads not already assigned to the current campaign
-			return array(
-				'tables' => array(
+			return [
+				'tables' => [
 					'adlinks' => 'pr_adlinks',
 					'ads' => 'pr_ads',
-				),
+				],
 
-				'fields' => array( 'ads.ad_name', 'ads.ad_id' ),
+				'fields' => [ 'ads.ad_name', 'ads.ad_id' ],
 
-				'conds' => array(
+				'conds' => [
 					'adlinks.ad_id IS NULL',
 					'ad_name' . $dbr->buildLike( $likeArray )
-				),
+				],
 
-				'join_conds' => array(
-					'adlinks' => array(
+				'join_conds' => [
+					'adlinks' => [
 						'LEFT JOIN',
 						"adlinks.ad_id = ads.ad_id " .
 							"AND adlinks.cmp_id = $campaignId"
-					)
-				)
-			);
+					]
+				]
+			];
 		} else {
 			// Return all the ads in the database
-			return array(
-				'tables' => array( 'ads' => 'pr_ads'),
-				'fields' => array( 'ads.ad_name', 'ads.ad_id' ),
-				'conds'  => array( 'ads.ad_name' . $dbr->buildLike( $likeArray ) ),
-			);
+			return [
+				'tables' => [ 'ads' => 'pr_ads' ],
+				'fields' => [ 'ads.ad_name', 'ads.ad_id' ],
+				'conds'  => [ 'ads.ad_name' . $dbr->buildLike( $likeArray ) ],
+			];
 		}
 	}
 
@@ -78,11 +78,11 @@ class PromoterPager extends AdPager {
 
 		if ( $this->editable ) {
 			// Add box
-			$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
-				Xml::check( 'addAds[]', '', array( 'value' => $row->ad_name ) )
+			$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top' ],
+				Xml::check( 'addAds[]', '', [ 'value' => $row->ad_name ] )
 			);
 			// Weight select
-			$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top', 'class' => 'pr-weight' ),
+			$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top', 'class' => 'pr-weight' ],
 				Xml::listDropDown( "weight[$row->ad_id]",
 					Promoter::dropDownList(
 						$this->msg( 'promoter-weight' )->text(), range( 0, 100, 5 )
@@ -97,7 +97,7 @@ class PromoterPager extends AdPager {
 		// Link and Preview
 		$ad = Ad::fromName( $row->ad_name );
 
-		$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
+		$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top' ],
 			$ad->linkToPreview()
 		);
 
@@ -114,17 +114,17 @@ class PromoterPager extends AdPager {
 	 */
 	function getStartBody() {
 		$htmlOut = '';
-		$htmlOut .= Xml::openElement( 'table', array( 'cellpadding' => 9 ) );
+		$htmlOut .= Xml::openElement( 'table', [ 'cellpadding' => 9 ] );
 		$htmlOut .= Xml::openElement( 'tr' );
 		if ( $this->editable ) {
-			$htmlOut .= Xml::element( 'th', array( 'align' => 'left', 'width' => '5%' ),
+			$htmlOut .= Xml::element( 'th', [ 'align' => 'left', 'width' => '5%' ],
 				$this->msg( 'promoter-add' )->text()
 			);
-			$htmlOut .= Xml::element( 'th', array( 'align' => 'left', 'width' => '5%', 'class' => 'pr-weight' ),
+			$htmlOut .= Xml::element( 'th', [ 'align' => 'left', 'width' => '5%', 'class' => 'pr-weight' ],
 				$this->msg( 'promoter-weight' )->text()
 			);
 		}
-		$htmlOut .= Xml::element( 'th', array( 'align' => 'left' ),
+		$htmlOut .= Xml::element( 'th', [ 'align' => 'left' ],
 			$this->msg( 'promoter-ads' )->text()
 		);
 		$htmlOut .= Xml::closeElement( 'tr' );

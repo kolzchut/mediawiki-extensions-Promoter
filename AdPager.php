@@ -8,9 +8,9 @@
  * that part of CN.
  */
 class AdPager extends ReverseChronologicalPager {
-	var $onRemoveChange, $viewPage, $special;
-	var $editable;
-	var $filter;
+	protected $onRemoveChange, $viewPage, $special;
+	protected $editable;
+	protected $filter;
 
 	function __construct( $special, $filter = '' ) {
 		$this->special = $special;
@@ -20,7 +20,7 @@ class AdPager extends ReverseChronologicalPager {
 
 		// Override paging defaults
 		list( $this->mLimit, /* $offset */ ) = $this->mRequest->getLimitOffset( 20, '' );
-		$this->mLimitsShown = array( 20, 50, 100 );
+		$this->mLimitsShown = [ 20, 50, 100 ];
 
 		$msg = Xml::encodeJsVar( $this->msg( 'promoter-confirm-delete' )->text() );
 		$this->onRemoveChange = "if( this.checked ) { this.checked = confirm( $msg ) }";
@@ -43,7 +43,7 @@ class AdPager extends ReverseChronologicalPager {
 			$likeArray = $dbr->anyString();
 		} else {
 			$anyStringToken = $dbr->anyString();
-			$tempArray = array( $anyStringToken );
+			$tempArray = [ $anyStringToken ];
 			foreach ( $likeArray as $likePart ) {
 				$tempArray[ ] = $likePart;
 				$tempArray[ ] = $anyStringToken;
@@ -51,11 +51,11 @@ class AdPager extends ReverseChronologicalPager {
 			$likeArray = $tempArray;
 		}
 
-		return array(
-			'tables' => array( 'ads' => 'pr_ads'),
-			'fields' => array( 'ads.ad_name', 'ads.ad_id' ),
-			'conds'  => array( 'ads.ad_name' . $dbr->buildLike( $likeArray ) ),
-		);
+		return [
+			'tables' => [ 'ads' => 'pr_ads' ],
+			'fields' => [ 'ads.ad_name', 'ads.ad_id' ],
+			'conds'  => [ 'ads.ad_name' . $dbr->buildLike( $likeArray ) ],
+		];
 	}
 
 	/**
@@ -73,6 +73,7 @@ class AdPager extends ReverseChronologicalPager {
 	 * @param $row object: database row
 	 *
 	 * @return string HTML
+	 * @throws AdDataException
 	 */
 	function formatRow( $row ) {
 
@@ -81,12 +82,12 @@ class AdPager extends ReverseChronologicalPager {
 
 		if ( $this->editable ) {
 			// Remove box
-			$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
+			$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top' ],
 				Xml::check( 'removeAds[]', false,
-					array(
+					[
 						'value'    => $row->ad_name,
 						'onchange' => $this->onRemoveChange
-					)
+					]
 				)
 			);
 		}
@@ -94,7 +95,7 @@ class AdPager extends ReverseChronologicalPager {
 		// Preview
 		$ad = Ad::fromName( $row->ad_name );
 
-		$htmlOut .= Xml::tags( 'td', array( 'valign' => 'top' ),
+		$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top' ],
 			$ad->linkToPreview()
 		);
 
@@ -111,14 +112,14 @@ class AdPager extends ReverseChronologicalPager {
 	 */
 	function getStartBody() {
 		$htmlOut = '';
-		$htmlOut .= Xml::openElement( 'table', array( 'cellpadding' => 9 ) );
+		$htmlOut .= Xml::openElement( 'table', [ 'cellpadding' => 9 ] );
 		$htmlOut .= Xml::openElement( 'tr' );
 		if ( $this->editable ) {
-			$htmlOut .= Xml::element( 'th', array( 'align' => 'left', 'width' => '5%' ),
+			$htmlOut .= Xml::element( 'th', [ 'align' => 'left', 'width' => '5%' ],
 				$this->msg( 'promoter-remove' )->text()
 			);
 		}
-		$htmlOut .= Xml::element( 'th', array( 'align' => 'left' ),
+		$htmlOut .= Xml::element( 'th', [ 'align' => 'left' ],
 			$this->msg( 'promoter-ads' )->text()
 		);
 		$htmlOut .= Xml::closeElement( 'tr' );
@@ -136,7 +137,7 @@ class AdPager extends ReverseChronologicalPager {
 		if ( $this->editable ) {
 			$htmlOut .= Html::hidden( 'authtoken', $this->getUser()->getEditToken() );
 			$htmlOut .= Xml::tags( 'div',
-				array( 'class' => 'pr-buttons' ),
+				[ 'class' => 'pr-buttons' ],
 				Xml::submitButton( $this->msg( 'promoter-modify' )->text() )
 			);
 		}

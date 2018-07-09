@@ -14,19 +14,18 @@ class PRDatabase {
 	 * @return DatabaseBase
 	 */
 	public static function getDb( $force = false, $wiki = false ) {
-		global $wgCentralDBname;
 		global $wgUser;
 
 		if ( $wgUser->isAllowed( 'promoter-admin' ) ) {
 			$dbmode = DB_MASTER;
 		} elseif ( $force === false ) {
-			$dbmode = DB_SLAVE;
+			$dbmode = DB_REPLICA;
 		} else {
 			$dbmode = $force;
 		}
 
-		//$db = ( $wiki === false ) ? $wgCentralDBname : $wiki;
-		//return wfGetDB( $dbmode, array(), $db );
+		// $db = ( $wiki === false ) ? $wgCentralDBname : $wiki;
+		// return wfGetDB( $dbmode, [], $db );
 
 		return wfGetDB( $dbmode );
 	}

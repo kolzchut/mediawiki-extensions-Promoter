@@ -9,10 +9,10 @@ class PRAdPager extends ReverseChronologicalPager {
 	protected $filter = '';
 
 	/** @var array HTMLFormFields to add to the results before every ad entry */
-	protected $prependPrototypes = array();
+	protected $prependPrototypes = [];
 
 	/** @var array HTMLFormFields to add to the results after every ad entry */
-	protected $appendPrototypes = array();
+	protected $appendPrototypes = [];
 
 	/** @var string 'Section' attribute to apply to the ad elements generated */
 	protected $formSection = null;
@@ -25,8 +25,8 @@ class PRAdPager extends ReverseChronologicalPager {
 	 * @param string         $adFilter
 	 * @param bool           $editable
 	 */
-	function __construct( $hostTitle, $formSection = null, $prependPrototypes = array(),
-		$appendPrototypes = array(), $adFilter = '', $editable = false
+	function __construct( $hostTitle, $formSection = null, $prependPrototypes = [],
+		$appendPrototypes = [], $adFilter = '', $editable = false
 	) {
 		$this->editable = $editable;
 		$this->filter = $adFilter;
@@ -40,7 +40,7 @@ class PRAdPager extends ReverseChronologicalPager {
 
 		// Override paging defaults
 		list( $this->mLimit, $this->mOffset ) = $this->mRequest->getLimitOffset( 20, '' );
-		$this->mLimitsShown = array( 20, 50, 100 );
+		$this->mLimitsShown = [ 20, 50, 100 ];
 
 		// Get the database object
 		$this->mDb = PRDatabase::getDb();
@@ -54,10 +54,10 @@ class PRAdPager extends ReverseChronologicalPager {
 		// Sets mNavigation bar with the default text which we will then wrap
 		parent::getNavigationBar();
 
-		$this->mNavigationBar = array(
+		$this->mNavigationBar = [
 			'class' => 'HTMLAdPagerNavigation',
 			'value' => $this->mNavigationBar
-		);
+		];
 
 		if ( $this->formSection ) {
 			$this->mNavigationBar['section'] = $this->formSection;
@@ -80,7 +80,7 @@ class PRAdPager extends ReverseChronologicalPager {
 			$likeArray = $this->mDb->anyString();
 		} else {
 			$anyStringToken = $this->mDb->anyString();
-			$tempArray = array( $anyStringToken );
+			$tempArray = [ $anyStringToken ];
 			foreach ( $likeArray as $likePart ) {
 				$tempArray[ ] = $likePart;
 				$tempArray[ ] = $anyStringToken;
@@ -88,11 +88,11 @@ class PRAdPager extends ReverseChronologicalPager {
 			$likeArray = $tempArray;
 		}
 
-		return array(
-			'tables' => array( 'ads' => 'pr_ads'),
-			'fields' => array( 'ads.ad_name', 'ads.ad_id' ),
-			'conds'  => array( 'ads.ad_name' . $this->mDb->buildLike( $likeArray ) ),
-		);
+		return [
+			'tables' => [ 'ads' => 'pr_ads' ],
+			'fields' => [ 'ads.ad_name', 'ads.ad_id' ],
+			'conds'  => [ 'ads.ad_name' . $this->mDb->buildLike( $likeArray ) ],
+		];
 	}
 
 	/**
@@ -112,13 +112,13 @@ class PRAdPager extends ReverseChronologicalPager {
 	 * @return array HTMLFormElement classes
 	 */
 	function formatRow( $row ) {
-		$retval = array();
+		$retval = [];
 
 		$adId = $row->ad_id;
 		$adName = $row->ad_name;
 
 		// Add the prepend prototypes
-		foreach( $this->prependPrototypes as $prototypeName => $prototypeValues ) {
+		foreach ( $this->prependPrototypes as $prototypeName => $prototypeValues ) {
 			$retval[ "{$prototypeName}-{$adName}" ] = $prototypeValues;
 			if ( array_key_exists( 'id', $prototypeValues ) ) {
 				$retval[ "{$prototypeName}-{$adId}" ][ 'id' ] .= "-$adName";
@@ -126,17 +126,17 @@ class PRAdPager extends ReverseChronologicalPager {
 		}
 
 		// Now do the ad
-		$retval["pr-ad-list-element-$adId"] = array(
+		$retval["pr-ad-list-element-$adId"] = [
 			'class' => 'HTMLPromoterAd',
 			'ad' => $adName,
 			'withlabel' => true,
-		);
+		];
 		if ( $this->formSection ) {
 			$retval["pr-ad-list-element-$adId"]['section'] = $this->formSection;
 		}
 
 		// Append prototypes
-		foreach( $this->appendPrototypes as $prototypeName => $prototypeValues ) {
+		foreach ( $this->appendPrototypes as $prototypeName => $prototypeValues ) {
 			$retval[ $prototypeName . "-$adId" ] = $prototypeValues;
 			if ( array_key_exists( 'id', $prototypeValues ) ) {
 				$retval[ $prototypeName . "-$adId" ][ 'id' ] .= "-$adId";
@@ -145,7 +145,7 @@ class PRAdPager extends ReverseChronologicalPager {
 
 		// Set the disabled attribute
 		if ( !$this->editable ) {
-			foreach( $retval as $prototypeName => $prototypeValues ) {
+			foreach ( $retval as $prototypeName => $prototypeValues ) {
 				$retval[ $prototypeName ][ 'disabled' ] = true;
 			}
 		}
@@ -172,7 +172,7 @@ class PRAdPager extends ReverseChronologicalPager {
 		# Don't use any extra rows returned by the query
 		$numRows = min( $this->mResult->numRows(), $this->mLimit );
 
-		$retval = array();
+		$retval = [];
 
 		if ( $numRows ) {
 			if ( $this->mIsBackwards ) {
@@ -197,7 +197,9 @@ class PRAdPager extends ReverseChronologicalPager {
 
 class HTMLAdPagerNavigation extends HTMLFormField {
 	/** Empty - no validation can be done on a navigation element */
-	function validate( $value, $alldata ) { return true; }
+	function validate( $value, $alldata ) {
+		return true;
+	}
 
 	public function getInputHTML( $value ) {
 		return $this->mParams['value'];
@@ -206,7 +208,7 @@ class HTMLAdPagerNavigation extends HTMLFormField {
 	public function getDiv( $value ) {
 		$html = Xml::openElement(
 			'div',
-			array( 'class' => "pr-ad-list-pager-nav", )
+			[ 'class' => "pr-ad-list-pager-nav" ]
 		);
 		$html .= $this->getInputHTML( $value );
 		$html .= Xml::closeElement( 'div' );

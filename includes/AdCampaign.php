@@ -6,7 +6,7 @@ class AdCampaign {
 	protected $name = null;
 
 	/** @var int the page / category the campaign is linked to */
-	//protected $catPageId = null;
+	// protected $catPageId = null;
 
 	/** @var bool True if the campaign is enabled for showing */
 	protected $enabled = null;
@@ -55,7 +55,6 @@ class AdCampaign {
 		return $this->name;
 	}
 
-
 	/**
 	 * Returns the enabled/disabled status of the campaign.
 	 *
@@ -97,22 +96,22 @@ class AdCampaign {
 
 		// What selector are we using?
 		if ( $this->id !== null ) {
-			$selector = array( 'cmp_id' => $this->id );
+			$selector = [ 'cmp_id' => $this->id ];
 		} elseif ( $this->name !== null ) {
-			$selector = array( 'cmp_name' => $this->name );
+			$selector = [ 'cmp_name' => $this->name ];
 		} else {
 			throw new AdCampaignExistenceException( "No valid database key available for campaign." );
 		}
 
 		// Get campaign info from database
 		$row = $db->selectRow(
-			array('campaigns' => 'pr_campaigns'),
-			array(
+			[ 'campaigns' => 'pr_campaigns' ],
+			[
 				 'cmp_id',
 				 'cmp_name',
 				 'cmp_enabled',
 				 'cmp_archived',
-			),
+			],
 			$selector,
 			__METHOD__
 		);
@@ -152,9 +151,8 @@ class AdCampaign {
 		$dbr = PRDatabase::getDb();
 
 		$eCampaignName = htmlspecialchars( $campaignName );
-		return (bool)$dbr->selectRow( 'pr_campaigns', 'cmp_name', array( 'cmp_name' => $eCampaignName ) );
+		return (bool)$dbr->selectRow( 'pr_campaigns', 'cmp_name', [ 'cmp_name' => $eCampaignName ] );
 	}
-
 
 	/**
 	 * Return all ads bound to the campaign
@@ -164,37 +162,37 @@ class AdCampaign {
 	function getAds() {
 		$dbr = PRDatabase::getDb();
 
-		$ads = array();
+		$ads = [];
 
 		$res = $dbr->select(
 		// Aliases (keys) are needed to avoid problems with table prefixes
-			array(
+			[
 				'ads' => 'pr_ads',
 				'adlinks' => 'pr_adlinks',
-			),
-			array(
+			],
+			[
 				'ad_name',
 				'adl_weight',
 				'ad_display_anon',
 				'ad_display_user',
-			),
-			array(
+			],
+			[
 				'adlinks.cmp_id' => $this->getId(),
 				'adlinks.ad_id = ads.ad_id',
 				'ads.ad_active' => 1
-			),
+			],
 			__METHOD__,
-			array(),
-			array()
+			[],
+			[]
 		);
 
 		foreach ( $res as $row ) {
-			$ads[] = array(
+			$ads[] = [
 				'name'             => $row->ad_name, // name of the ad
 				'weight'           => intval( $row->adl_weight ), // weight assigned to the ad
 				'display_anon'     => intval( $row->ad_display_anon ), // display to anonymous users?
 				'display_user'     => intval( $row->ad_display_user ), // display to logged in users?
-			);
+			];
 		}
 
 		return $ads;
@@ -212,27 +210,27 @@ class AdCampaign {
 
 		// Get campaign info from database
 		$row = $dbr->selectRow(
-			array('campaigns' => 'pr_campaigns'),
-			array(
+			[ 'campaigns' => 'pr_campaigns' ],
+			[
 				'cmp_id',
 				'cmp_enabled',
 				'cmp_archived',
-			),
-			array( 'cmp_name' => $campaignName ),
+			],
+			[ 'cmp_name' => $campaignName ],
 			__METHOD__
 		);
 		if ( $row ) {
-			$campaign = array(
+			$campaign = [
 				'enabled'   => $row->cmp_enabled,
 				'archived'  => $row->cmp_archived,
-			);
+			];
 		} else {
 			return false;
 		}
 
 		$campaignObj = new AdCampaign( $campaignName );
 		$adsIn = $campaignObj->getAds();
-		$adsOut = array();
+		$adsOut = [];
 		// All we want are the ad names and weights
 		foreach ( $adsIn as $key => $row ) {
 			$outKey = $adsIn[ $key ][ 'name' ];
@@ -252,7 +250,7 @@ class AdCampaign {
 	static function getAllCampaignNames() {
 		$dbr = PRDatabase::getDb();
 		$res = $dbr->select( 'pr_campaigns', 'cmp_name', null, __METHOD__ );
-		$campaigns = array();
+		$campaigns = [];
 		foreach ( $res as $row ) {
 			$campaigns[ ] = $row->cmp_name;
 		}
@@ -323,7 +321,7 @@ class AdCampaign {
 	 * @internal param int $catPageId : Page / Category the campaign is linked to
 	 * @return int|string campaignId on success, or message key for error
 	 */
-	//	static function addCampaign( $campaignName, $catPageId = 0, $enabled, $user ) {
+	// static function addCampaign( $campaignName, $catPageId = 0, $enabled, $user ) {
 	static function addCampaign( $campaignName, $enabled, $user ) {
 		$campaignName = trim( $campaignName );
 		if ( AdCampaign::campaignExists( $campaignName ) ) {
@@ -333,10 +331,12 @@ class AdCampaign {
 		$dbw = PRDatabase::getDb();
 		$dbw->begin();
 
-		$dbw->insert( 'pr_campaigns',
-			array( 'cmp_name'    => $campaignName,
+		$dbw->insert(
+			'pr_campaigns',
+			[
+				'cmp_name'    => $campaignName,
 				'cmp_enabled' => $enabled,
-			)
+			]
 		);
 		$cmp_id = $dbw->insertId();
 
@@ -346,7 +346,7 @@ class AdCampaign {
 
 			// Log the creation of the campaign
 			/*
-			$beginSettings = array();
+			$beginSettings = [];
 			$endSettings = array(
 				//'start'     => $dbw->timestamp( $startTs ),
 				//'end'       => $dbw->timestamp( $endTs ),
@@ -373,7 +373,7 @@ class AdCampaign {
 		$dbr = PRDatabase::getDb();
 
 		$res = $dbr->select( 'pr_campaigns', 'cmp_name',
-			array( 'cmp_name' => $campaignName )
+			[ 'cmp_name' => $campaignName ]
 		);
 		if ( $dbr->numRows( $res ) < 1 ) {
 			return 'promoter-remove-campaign-doesnt-exist';
@@ -387,12 +387,12 @@ class AdCampaign {
 	private static function removeCampaignByName( $campaignName, $user ) {
 		// Log the removal of the campaign
 		$campaignId = AdCampaign::getCampaignId( $campaignName );
-		//Campaign::logCampaignChange( 'removed', $campaignId, $user );
+		// Campaign::logCampaignChange( 'removed', $campaignId, $user );
 
 		$dbw = PRDatabase::getDb();
 		$dbw->begin();
-		$dbw->delete( 'pr_adlinks', array( 'cmp_id' => $campaignId ) );
-		$dbw->delete( 'pr_campaigns', array( 'cmp_name' => $campaignName ) );
+		$dbw->delete( 'pr_adlinks', [ 'cmp_id' => $campaignId ] );
+		$dbw->delete( 'pr_campaigns', [ 'cmp_name' => $campaignName ] );
 		$dbw->commit();
 	}
 
@@ -410,10 +410,10 @@ class AdCampaign {
 		$campaignId = AdCampaign::getCampaignId( $eCampaignName );
 		$adId = Ad::fromName( $adName )->getId();
 		$res = $dbw->select( 'pr_adlinks', 'adl_id',
-			array(
+			[
 				'ad_id' => $adId,
 				'cmp_id' => $campaignId
-			)
+			]
 		);
 
 		if ( $dbw->numRows( $res ) > 0 ) {
@@ -421,15 +421,15 @@ class AdCampaign {
 		}
 
 		$dbw->begin();
-        $campaignId = AdCampaign::getCampaignId( $eCampaignName );
+		$campaignId = AdCampaign::getCampaignId( $eCampaignName );
 		$dbw->insert( 'pr_adlinks',
-			array(
+			[
 				'ad_id'     => $adId,
 				'adl_weight' => $weight,
 				'cmp_id'     => $campaignId
-			)
-        );
-        $dbw->commit();
+			]
+		);
+		$dbw->commit();
 
 		return true;
 	}
@@ -442,7 +442,7 @@ class AdCampaign {
 		$dbw->begin();
 		$campaignId = AdCampaign::getCampaignId( $campaignName );
 		$adId = Ad::fromName( $adName )->getId();
-		$dbw->delete( 'pr_adlinks', array( 'ad_id' => $adId, 'cmp_id' => $campaignId ) );
+		$dbw->delete( 'pr_adlinks', [ 'ad_id' => $adId, 'cmp_id' => $campaignId ] );
 		$dbw->commit();
 	}
 
@@ -455,7 +455,9 @@ class AdCampaign {
 	 * @return bool
 	 */
 	public static function addAdToCampaigns( $campaignIds, $adId, $weight ) {
-		if ( empty( $campaignIds ) ) return false;
+		if ( empty( $campaignIds ) ) {
+			return false;
+		}
 
 		$dbw = PRDatabase::getDb();
 
@@ -483,7 +485,9 @@ class AdCampaign {
 	 * @return bool
 	 */
 	public static function removeAdForCampaigns( $campaignIds, $adId ) {
-		if ( empty( $campaignIds ) ) return false;
+		if ( empty( $campaignIds ) ) {
+			return false;
+		}
 
 		$dbw = PRDatabase::getDb();
 
@@ -503,7 +507,7 @@ class AdCampaign {
 	static function getCampaignId( $campaignName ) {
 		$dbr = PRDatabase::getDb();
 		$eCampaignName = htmlspecialchars( $campaignName );
-		$row = $dbr->selectRow( 'pr_campaigns', 'cmp_id', array( 'cmp_name' => $eCampaignName ) );
+		$row = $dbr->selectRow( 'pr_campaigns', 'cmp_id', [ 'cmp_name' => $eCampaignName ] );
 		if ( $row ) {
 			return $row->cmp_id;
 		} else {
@@ -517,7 +521,7 @@ class AdCampaign {
 	static function getCampaignName( $campaignId ) {
 		$dbr = PRDatabase::getDb();
 		if ( is_numeric( $campaignId ) ) {
-			$row = $dbr->selectRow( 'pr_campaigns', 'cmp_name', array( 'cmp_id' => $campaignId ) );
+			$row = $dbr->selectRow( 'pr_campaigns', 'cmp_name', [ 'cmp_id' => $campaignId ] );
 			if ( $row ) {
 				return $row->cmp_name;
 			}
@@ -540,8 +544,8 @@ class AdCampaign {
 			$settingName = strtolower( $settingName );
 			$dbw = PRDatabase::getDb();
 			$dbw->update( 'pr_campaigns',
-				array( 'cmp_' . $settingName => $settingValue ),
-				array( 'cmp_name' => $campaignName )
+				[ 'cmp_' . $settingName => $settingValue ],
+				[ 'cmp_name' => $campaignName ]
 			);
 		}
 	}
@@ -556,7 +560,9 @@ class AdCampaign {
 	 * @param int $min The min that the value can take, default 0
 	 * @throws MWException|RangeException
 	 */
-	static function setNumericCampaignSetting( $campaignName, $settingName, $settingValue, $max = 1, $min = 0 ) {
+	static function setNumericCampaignSetting(
+		$campaignName, $settingName, $settingValue, $max = 1, $min = 0
+	) {
 		if ( $max <= $min ) {
 			throw new RangeException( 'Max must be greater than min.' );
 		}
@@ -580,8 +586,8 @@ class AdCampaign {
 			$settingName = strtolower( $settingName );
 			$dbw = PRDatabase::getDb();
 			$dbw->update( 'pr_campaigns',
-				array( 'cmp_'.$settingName => $settingValue ),
-				array( 'cmp_name' => $campaignName )
+				[ 'cmp_'.$settingName => $settingValue ],
+				[ 'cmp_name' => $campaignName ]
 			);
 		}
 	}
@@ -597,15 +603,16 @@ class AdCampaign {
 		$dbw = PRDatabase::getDb();
 		$campaignId = AdCampaign::getCampaignId( $campaignName );
 		$dbw->update( 'pr_adlinks',
-			array( 'adl_weight' => $weight ),
-			array(
+			[ 'adl_weight' => $weight ],
+			[
 				'ad_id' => $adId,
 				'cmp_id' => $campaignId
-			)
+			]
 		);
 	}
 
 }
 
-class AdCampaignExistenceException extends MWException {}
+class AdCampaignExistenceException extends MWException {
+}
 

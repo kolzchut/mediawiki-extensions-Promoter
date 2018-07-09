@@ -58,8 +58,8 @@ class AdMessage {
 			$var = false;
 
 			$page->doUpdateRestrictions(
-				array( 'edit' => $wgPromoterProtectGroup, 'move' => $wgPromoterProtectGroup ),
-				array( 'edit' => 'infinity', 'move' => 'infinity' ),
+				[ 'edit' => $wgPromoterProtectGroup, 'move' => $wgPromoterProtectGroup ],
+				[ 'edit' => 'infinity', 'move' => 'infinity' ],
 				$var,
 				'Auto protected by Promoter -- Only edit via Special:Promoter.',
 				$user

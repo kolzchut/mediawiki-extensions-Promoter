@@ -25,48 +25,45 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
-
-
 class PromoterHooks {
 
 	/**
 	 * ResourceLoaderGetConfigVars hook handler
 	 * Send php config vars to js via ResourceLoader
 	 *
-	 * @param &$vars: variables to be added to the output of the startup module
+	 * @param &$vars : variables to be added to the output of the startup module
+	 *
 	 * @return bool
+	 * @throws MWException
 	 */
 	public static function onResourceLoaderGetConfigVars( &$vars ) {
 		global $wgPromoterTrackAds, $wgPromoterAdDispatcher;
 
 		$trackAdsDefault = $wgPromoterTrackAds === true ? true : false;
-		$vars['wgPromoter'] = array(
+		$vars['wgPromoter'] = [
 			'trackAdClicks' => $trackAdsDefault,
 			'trackAdViews' => $trackAdsDefault
-		);
+		];
 
 		if ( isset( $wgPromoterTrackAds ) && is_array( $wgPromoterTrackAds ) ) {
-			if ( isset( $wgPromoterTrackAds['click'] ) && ( $wgPromoterTrackAds['click'] === true) ) {
+			if ( isset( $wgPromoterTrackAds['click'] ) && ( $wgPromoterTrackAds['click'] === true ) ) {
 				$vars['wgPromoter']['trackAdClicks'] = true;
 			}
-			if ( isset( $wgPromoterTrackAds['view'] ) && ( $wgPromoterTrackAds['view'] === true) ) {
+			if ( isset( $wgPromoterTrackAds['view'] ) && ( $wgPromoterTrackAds['view'] === true ) ) {
 				$vars['wgPromoter']['trackAdViews'] = true;
 			}
 		}
 
-		// Making these calls too soon will causes issues with the namespace localisation cache. This seems
-		// to be just right. We require them at all because MW will 302 page requests made to non localised
-		// namespaces which results in wasteful extra calls.
+		// Making these calls too soon will causes issues with the namespace localisation cache.
+		// This seems to be just right. We require them at all because MW will 302 page requests
+		// made to non localised  namespaces which results in wasteful extra calls.
 		if ( !$wgPromoterAdDispatcher ) {
 			$wgPromoterAdDispatcher = SpecialPage::getTitleFor( 'AdRandom' )->getFullURL();
 		}
 		$vars[ 'wgPromoterAdDispatcher' ] = $wgPromoterAdDispatcher;
 
-
 		return true;
 	}
-
-
 
 	/**
 	 * Load all the classes, register special pages, etc. Called through wgExtensionFunctions.
@@ -96,14 +93,14 @@ class PromoterHooks {
 		$wgAutoloadClasses[ 'SpecialCampaignAdsLoader' ] = $specialDir . 'SpecialCampaignAdsLoader.php';
 
 		$wgAutoloadClasses[ 'AdLoaderException' ] = $specialDir . 'SpecialAdLoader.php';
-		$wgAutoloadClasses[ 'EmptyAdException' ] = $specialDir . 'SpecialAdLoader.php';
-		$wgAutoloadClasses[ 'adLoaderMissingRequiredParamsException' ] = $specialDir . 'SpecialAdLoader.php';
+		$wgAutoloadClasses[ 'EmptyAdException' ]  = $specialDir . 'SpecialAdLoader.php';
+		$wgAutoloadClasses[ 'AdLoaderMissingRequiredParamsException' ] =
+			$specialDir . 'SpecialAdLoader.php';
 
 		$wgAutoloadClasses[ 'PRAdPager' ] = $includeDir . 'PRAdPager.php';
 
 		$wgAutoloadClasses[ 'HTMLPromoterAd' ] = $htmlFormDir . 'HTMLPromoterAd.php';
 		$wgAutoloadClasses[ 'HTMLPromoterAdMessage' ] = $htmlFormDir . 'HTMLPromoterAdMessage.php';
-
 
 		$wgAutoloadClasses[ 'AdCampaign' ] = $includeDir . 'AdCampaign.php';
 		$wgAutoloadClasses[ 'AllocationContext' ] = $includeDir . 'AllocationContext.php';
@@ -117,12 +114,11 @@ class PromoterHooks {
 		$wgAutoloadClasses[ 'PromoterGallery' ] = $dir . 'PromoterGallery.php';
 
 		// Register hooks
-		//$wgHooks[ 'MakeGlobalVariablesScript' ][ ] = 'efPromoterDefaults';
+		// $wgHooks[ 'MakeGlobalVariablesScript' ][ ] = 'efPromoterDefaults';
 		$wgHooks[ 'BeforePageDisplay' ][ ] = 'PromoterHooks::efPromoterLoader';
 		$wgHooks[ 'SkinHelenaSidebar::End' ][ ] = 'PromoterHooks::efPromoterDisplay';
 		$wgHooks['ParserFirstCallInit'][] = 'PromoterGallery::onParserFirstCallInit';
 		$wgHooks['ResourceLoaderGetConfigVars'][] = 'PromoterHooks::onResourceLoaderGetConfigVars';
-
 
 		// Register special pages
 		$wgSpecialPages[ 'AdLoader' ] = 'SpecialAdLoader';
@@ -134,7 +130,6 @@ class PromoterHooks {
 		$wgSpecialPages[ 'PromoterAds'] = 'SpecialPromoterAds';
 
 	}
-
 
 	/**
 	 * BeforePageDisplay hook handler
@@ -158,7 +153,7 @@ class PromoterHooks {
 	 * @return bool
 	 */
 	static function efPromoterDisplay( &$skin ) {
-		echo Html::element( 'li', array( 'id' => 'sidebar-promotion' ) );
+		echo Html::element( 'li', [ 'id' => 'sidebar-promotion' ] );
 		return true;
 	}
 }

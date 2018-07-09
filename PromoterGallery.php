@@ -1,35 +1,36 @@
 <?php
 
 class PromoterGallery {
-	static public function onParserFirstCallInit( Parser &$parser ) {
-		//$parser->setFunctionHook( 'promotergallery', array( $this, 'renderGallery' ) );
-		$parser->setHook( 'promotergallery', array( __CLASS__, 'renderGallery' ) );
+	public static function onParserFirstCallInit( Parser &$parser ) {
+		$parser->setHook( 'promotergallery', [ __CLASS__, 'renderGallery' ] );
 		return true;
 	}
 
 	/**
 	 * Parser hook handler for {{#articletype}}
 	 *
+	 * @param $input : unused
+	 * @param array $args
 	 * @param Parser $parser : Parser instance available to render
 	 *  wikitext into html, or parser methods.
+	 * @param PPFrame $frame : unsed
 	 *
 	 * @return string: HTML to insert in the page.
 	 */
-	static public function renderGallery( $input, array $args, Parser $parser, PPFrame $frame ) {
+	public static function renderGallery( $input, array $args, Parser $parser, PPFrame $frame ) {
 		$parser->getOutput()->addModules( 'ext.promoter.gallery' );
 		$pageName = $parser->getTitle()->getText();
 
 		try {
-			$renderedAds = array();
+			$renderedAds = [];
 			$adChooser = new AdChooser( $pageName, !$parser->getUser()->isLoggedIn() );
 			$ads = $adChooser->getAds();
-			foreach( $ads as $ad ) {
+			foreach ( $ads as $ad ) {
 				$renderedAds[] = Ad::fromName( $ad['name'] )->renderHtml();
 			}
-
 		} catch ( AdCampaignExistenceException $e ) {
 			wfDebugLog( 'Promoter', $e->getMessage() );
-			//@todo i18n
+			// @todo i18n
 			return '<span class="error">No campaign for this page</span>';
 		} catch ( MWException $e ) {
 			wfDebugLog( 'Promoter', $e->getMessage() );
@@ -42,9 +43,8 @@ class PromoterGallery {
 		        . '<span class="sr-only">בכל רגע מוצגות 3 ידיעות בגלריה. ניתן להציג ידיעה נוספת או לחזור לאחור באמצעות הכפתורים הבאים, או באמצעות מקשי החיצים כאשר הפוקוס הוא על הגלריה</span>'
 				. '<a href="#" class="owl-prev"><span class="fa fa-chevron-right fa-lg" title="הקודם"></span><span class="sr-only">הצגת הידיעה הקודמת</span></a>'
 				. '<a href="#" class="owl-next"><span class="fa fa-chevron-left fa-lg" title="הבא"></span><span class="sr-only">הצגת הידיעה הבאה</span></a>'
-			. '</div>'
-		;
-		if( $args['title'] ) {
+			. '</div>';
+		if ( $args['title'] ) {
 			$html .= '<div class="header">' . $args['title'] . '</div>';
 		}
 
@@ -53,7 +53,7 @@ class PromoterGallery {
 			. '</div>'
 			. '</div>';
 
-		return( $html );
+		return $html;
 
 	}
 }

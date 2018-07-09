@@ -10,67 +10,59 @@
  * @license GNU General Public Licence 2.0 or later
  */
 
-$wgExtensionCredits[ 'other' ][] = array(
+$wgExtensionCredits[ 'other' ][] = [
 	'path'           => __FILE__,
 	'name'           => 'WikiRights Promoter',
-	'author'         => array(
+	'author'         => [
 		'Dror S. [FFS] ([http://www.kolzchut.org.il Kol-Zchut])',
 		'based on [https://mediawiki.org/wiki/Extension:CentralNotice Extension:CentralNotice]'
-	),
+	],
 	'version'        => '2017-08-07',
 	'url'            => 'https://github.com/kolzchut/mediawiki-extensions-Promoter',
 	'descriptionmsg' => 'promoter-desc',
 	'license-name' => 'GPL-2.0+',
-);
-
-$dir = __DIR__;
+];
 
 /* Configuration */
 
 // Server-side banner cache timeout in seconds
 $wgPromoterAdMaxAge = 600;
 
-$wgPromoterTrackAds = array(
+$wgPromoterTrackAds = [
 	'view' => true,
 	'click' => true
-);
+];
 
 // Name of the fallback campaign
 $wgPromoterFallbackCampaign = 'general';
 
 /** @var $wgPromoterTabifyPages array Declare all pages that should be tabified as PR pages */
-$wgPromoterTabifyPages = array(
+$wgPromoterTabifyPages = [
 	/* Left side 'namespace' tabs */
-	'Promoter' => array(
+	'Promoter' => [
 		'type' => 'views',
 		'message' => 'promoter-campaigns',
-	),
-	'PromoterAds' => array(
+	],
+	'PromoterAds' => [
 		'type' => 'views',
 		'message' => 'promoter-ads',
-	),
-);
-
+	],
+];
 
 /* Setup */
-require_once $dir . '/Promoter.hooks.php';
-require_once $dir . '/Promoter.modules.php';
+require_once __DIR__ . '/Promoter.hooks.php';
+require_once __DIR__ . '/Promoter.modules.php';
 
 // Register message files
 $wgMessagesDirs['Promoter'] = __DIR__ . '/i18n';
-$wgExtensionMessagesFiles[ 'PromoterAliases' ] = $dir . '/Promoter.alias.php';
+$wgExtensionMessagesFiles[ 'PromoterAliases' ] = __DIR__ . '/Promoter.alias.php';
 
 // Register user rights
 $wgAvailableRights[] = 'promoter-admin';
 $wgGroupPermissions[ 'sysop' ][ 'promoter-admin' ] = true; // Only sysops can make changes
 
-
-
 /* Hooks */
 $wgExtensionFunctions[] = 'PromoterHooks::efWikiRightsPromoterSetup';
 $wgHooks[ 'LoadExtensionSchemaUpdates' ][ ] = 'PRDatabasePatcher::applyUpdates';
-$wgHooks[ 'SkinTemplateNavigation::SpecialPage' ][ ] = array( 'Promoter::addNavigationTabs' );
-
-
-unset ( $dir );
+$wgHooks[ 'SkinTemplateNavigation::SpecialPage' ][ ] = [ 'Promoter::addNavigationTabs' ];
 

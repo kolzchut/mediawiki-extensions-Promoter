@@ -12,7 +12,6 @@ class SpecialCampaignAdsLoader extends UnlistedSpecialPage {
 	/** @var boolean Should we display a page with ad preview? */
 	protected $isPreview;
 
-
 	function __construct() {
 		// Register special page
 		parent::__construct( 'CampaignAdsLoader' );
@@ -22,12 +21,12 @@ class SpecialCampaignAdsLoader extends UnlistedSpecialPage {
 		$this->getParams();
 		$html = '';
 		$error = false;
-		$renderedAds = array();
+		$renderedAds = [];
 
 		try {
 			$campaign = new AdCampaign( $this->campaignName );
 			$ads = $campaign->getAds();
-			foreach( $ads as $ad ) {
+			foreach ( $ads as $ad ) {
 				$renderedAds[] = Ad::fromName( $ad['name'] )->renderHtml();
 			}
 		} catch ( MWException $e ) {
@@ -35,9 +34,9 @@ class SpecialCampaignAdsLoader extends UnlistedSpecialPage {
 			$error = $e->getMessage();
 		}
 
-		if( $this->isPreview ) {
+		if ( $this->isPreview ) {
 			$this->setHeaders();
-			if( $error ) {
+			if ( $error ) {
 				$html = "Exception {$error}.";
 			} else {
 				$html = '<div id="adPreview clearfix">';
@@ -51,7 +50,7 @@ class SpecialCampaignAdsLoader extends UnlistedSpecialPage {
 			$this->getOutput()->disable();
 			$this->sendHeaders();
 
-			print_r ($renderedAds);
+			print_r( $renderedAds );
 		}
 	}
 
@@ -61,12 +60,10 @@ class SpecialCampaignAdsLoader extends UnlistedSpecialPage {
 		$preview = ( $this->getSanitized( 'preview', Ad::BOOLEAN_PARAM_FILTER ) === 'true' );
 		$anonymous = ( $this->getSanitized( 'anonymous', Ad::BOOLEAN_PARAM_FILTER ) === 'true' );
 
-		$required_values = array(
-			$campaignName
-		);
+		$required_values = [ $campaignName ];
 		foreach ( $required_values as $value ) {
 			if ( is_null( $value ) || $value === '' ) {
-				throw new adLoaderMissingRequiredParamsException();
+				throw new AdLoaderMissingRequiredParamsException();
 			}
 		}
 
@@ -76,7 +73,7 @@ class SpecialCampaignAdsLoader extends UnlistedSpecialPage {
 	}
 
 	function getSanitized( $param, $filter ) {
-		$matches = array();
+		$matches = [];
 		if ( preg_match( $filter, $this->getRequest()->getText( $param ), $matches ) ) {
 			return $matches[0];
 		}
@@ -117,11 +114,11 @@ class SpecialCampaignAdsLoader extends UnlistedSpecialPage {
 			throw new EmptyAdException( $ad->getName() );
 		}
 
-		$adArray = array(
+		$adArray = [
 			'adName' => $ad->getName(),
 			'adCaption' => $adCaption,
 			'adHtml' => $adHtml,
-		);
+		];
 
 		$adJson = FormatJson::encode( $adArray );
 

@@ -16,7 +16,7 @@ class SpecialPromoterAds extends Promoter {
 	/** @var bool If true, form execution must stop and the page will be redirected */
 	protected $adFormRedirectRequired = false;
 
-    protected $allCampaigns = [];
+	protected $allCampaigns = [];
 
 	function __construct() {
 		SpecialPage::__construct( 'PromoterAds' );
@@ -27,7 +27,7 @@ class SpecialPromoterAds extends Promoter {
 		// Load things that may have been serialized into the session
 		$this->adFilterString = $this->getPRSessionVar( 'adFilterString', '' );
 
-        $this->allCampaigns = AdCampaign::getAllCampaignNames();
+		$this->allCampaigns = AdCampaign::getAllCampaignNames();
 	}
 
 	function __destruct() {
@@ -48,6 +48,10 @@ class SpecialPromoterAds extends Promoter {
 	 * Valid actions are:
 	 *    Null      - Display a list of ads
 	 *    Edit      - Edits an existing ad
+	 *
+	 * @param $page
+	 *
+	 * @throws ErrorPageError
 	 */
 	public function execute( $page ) {
 		// Do all the common setup
@@ -102,7 +106,7 @@ class SpecialPromoterAds extends Promoter {
 		// Process the form that we sent out
 		$formDescriptor = $this->generateAdListForm( $this->adFilterString );
 		$htmlForm = new PromoterHtmlForm( $formDescriptor, $this->getContext() );
-		$htmlForm->setSubmitCallback( array( $this, 'processAdList' ) );
+		$htmlForm->setSubmitCallback( [ $this, 'processAdList' ] );
 		$htmlForm->loadData();
 		$formResult = $htmlForm->trySubmit();
 
@@ -115,7 +119,7 @@ class SpecialPromoterAds extends Promoter {
 		$formDescriptor = $this->generateAdListForm( $this->adFilterString );
 		$htmlForm = new PromoterHtmlForm( $formDescriptor, $this->getContext() );
 
-		$htmlForm->setId('pr-ad-manager')->
+		$htmlForm->setId( 'pr-ad-manager' )->
 			suppressDefaultSubmit()->
 			setDisplayFormat( 'div' )->
 			prepareForm()->
@@ -131,31 +135,31 @@ class SpecialPromoterAds extends Promoter {
 	 */
 	protected function generateAdListForm( $filter = '' ) {
 		// --- Create the ad search form --- //
-		$formDescriptor = array(
-			'adNameLike' => array(
+		$formDescriptor = [
+			'adNameLike' => [
 				'section' => 'header/ad-search',
 				'class' => 'HTMLTextField',
-				//'cssclass' => 'form-control',
+				// 'cssclass' => 'form-control',
 				'placeholder' => wfMessage( 'promoter-filter-ad-prompt' ),
-				'filter-callback' => array( $this, 'sanitizeSearchTerms' ),
+				'filter-callback' => [ $this, 'sanitizeSearchTerms' ],
 				'default' => $filter,
-			),
-			'filterSubmit' => array(
+			],
+			'filterSubmit' => [
 				'section' => 'header/ad-search',
 				'class' => 'HTMLSubmitField',
-				//'cssclass' => 'btn',
+				// 'cssclass' => 'btn',
 				'default' => wfMessage( 'promoter-filter-ad-submit' )->text(),
-			)
-		);
+			]
+		];
 
 		// --- Create the management options --- //
-		$formDescriptor += array(
-			'selectAllAds' => array(
+		$formDescriptor += [
+			'selectAllAds' => [
 				'section' => 'header/ad-bulk-manage',
 				'class' => 'HTMLCheckField',
-				//'cssclass' => 'checkbox',
+				// 'cssclass' => 'checkbox',
 				'disabled' => !$this->editable,
-			),
+			],
 			/* TODO: Actually enable this feature
 			'archiveSelectedAds' => array(
 				'section' => 'header/ad-bulk-manage',
@@ -165,44 +169,44 @@ class SpecialPromoterAds extends Promoter {
 				'disabled' => !$this->editable,
 			),
 			*/
-			'deleteSelectedAds' => array(
+			'deleteSelectedAds' => [
 				'section' => 'header/ad-bulk-manage',
 				'class' => 'HTMLButtonField',
-				//'cssclass' => 'btn danger ',
+				// 'cssclass' => 'btn danger ',
 				'default' => wfMessage( 'promoter-remove' )->text(),
 				'disabled' => !$this->editable,
-			),
-			'addNewAd' => array(
+			],
+			'addNewAd' => [
 				'section' => 'header/one-off',
 				'class' => 'HTMLButtonField',
-				//'cssclass' => 'btn',
+				// 'cssclass' => 'btn',
 				'default' => wfMessage( 'promoter-add-ad' )->text(),
 				'disabled' => !$this->editable,
-			),
-			'newAdName' => array(
+			],
+			'newAdName' => [
 				'section' => 'addAd',
 				'class' => 'HTMLTextField',
-				//'cssclass' => 'form-control',
+				// 'cssclass' => 'form-control',
 				'disabled' => !$this->editable,
 				'label' => wfMessage( 'promoter-ad-name' )->text(),
-			),
-			'action' => array(
+			],
+			'action' => [
 				'type' => 'hidden',
-			)
-		);
+			]
+		];
 
 		// --- Add all the ads via the fancy pager object ---
 		$pager = new PRAdPager(
-			$this->getTitle(),
+			$this->getPageTitle(),
 			'ad-list',
-			array(
-				 'applyTo' => array(
+			[
+				 'applyTo' => [
 					 'section' => 'ad-list',
 					 'class' => 'HTMLCheckField',
 					 'cssclass' => 'pr-adlist-check-applyto',
-				 )
-			),
-			array(),
+				 ]
+			],
+			[],
 			$filter,
 			$this->editable
 		);
@@ -220,6 +224,8 @@ class SpecialPromoterAds extends Promoter {
 	 * @param $formData
 	 *
 	 * @return null|string|array
+	 * @throws AdDataException
+	 * @throws MWException
 	 */
 	public function processAdList( $formData ) {
 		$this->adFilterString = $formData[ 'adNameLike' ];
@@ -260,12 +266,12 @@ class SpecialPromoterAds extends Promoter {
 					break;
 
 				case 'archive':
-					return ('Archiving not yet implemented!');
+					return ( 'Archiving not yet implemented!' );
 					break;
 
 				case 'remove':
-					$failed = array();
-					foreach( $formData as $element => $value ) {
+					$failed = [];
+					foreach ( $formData as $element => $value ) {
 						$parts = explode( '-', $element, 2 );
 						if ( ( $parts[0] === 'applyTo' ) && ( $value === true ) ) {
 							try {
@@ -301,11 +307,11 @@ class SpecialPromoterAds extends Promoter {
 		$out->setPageTitle( $this->adName );
 
 		// Generate the form
-		$formDescriptor = $this->generateAdEditForm( $this->adName );
+		$formDescriptor = $this->generateAdEditForm();
 
 		// Now begin form processing
 		$htmlForm = new PromoterHtmlForm( $formDescriptor, $this->getContext(), 'promoter' );
-		$htmlForm->setSubmitCallback( array( $this, 'processEditAd' ) );
+		$htmlForm->setSubmitCallback( [ $this, 'processEditAd' ] );
 		$htmlForm->loadData();
 
 		$formResult = $htmlForm->tryAuthorizedSubmit();
@@ -315,10 +321,10 @@ class SpecialPromoterAds extends Promoter {
 		}
 
 		// Recreate the form because something could have changed
-		$formDescriptor = $this->generateAdEditForm( $this->adName );
+		$formDescriptor = $this->generateAdEditForm();
 
 		$htmlForm = new PromoterHtmlForm( $formDescriptor, $this->getContext(), 'promoter' );
-		$htmlForm->setSubmitCallback( array( $this, 'processEditAd' ) )->setId( 'pr-ad-editor' );
+		$htmlForm->setSubmitCallback( [ $this, 'processEditAd' ] )->setId( 'pr-ad-editor' );
 
 		// Push the form back to the user
 		$htmlForm->suppressDefaultSubmit()->
@@ -330,9 +336,9 @@ class SpecialPromoterAds extends Promoter {
 
 	protected function generateAdEditForm() {
 		$ad = Ad::fromName( $this->adName );
-		$adSettings = $ad->getAdSettings( $this->adName, true );
+		$adSettings = $ad->getAdSettings();
 
-		$formDescriptor = array();
+		$formDescriptor = [];
 
 		/* --- Ad Settings --- */
 		/*
@@ -349,91 +355,96 @@ class SpecialPromoterAds extends Promoter {
 		);
 		*/
 
-        $selected = array();
-		if ( $adSettings[ 'anon' ] === 1 ) { $selected[] = 'anonymous'; }
-		if ( $adSettings[ 'user' ] === 1 ) { $selected[] = 'user'; }
-		$formDescriptor[ 'display-to' ] = array(
+		$selected = [];
+		if ( $adSettings[ 'anon' ] === 1 ) {
+			$selected[] = 'anonymous';
+		}
+		if ( $adSettings[ 'user' ] === 1 ) {
+			$selected[] = 'user';
+		}
+		$formDescriptor[ 'display-to' ] = [
 			'section' => 'settings',
 			'type' => 'multiselect',
 			'disabled' => !$this->editable,
 			'label-message' => 'promoter-ad-display',
-			'options' => array(
+			'options' => [
 				$this->msg( 'promoter-ad-user' )->text() => 'user',
 				$this->msg( 'promoter-ad-anonymous' )->text() => 'anonymous'
-			),
+			],
 			'default' => $selected,
 			'cssclass' => 'separate-form-element',
-		);
+		];
 
-        $selectedTags = [];
-        if ( $adSettings[ 'new' ] === 1 ) { $selectedTags[] = 'new'; }
-        $formDescriptor[ 'ad-tags' ] = array(
+		$selectedTags = [];
+		if ( $adSettings[ 'new' ] === 1 ) {
+			$selectedTags[] = 'new';
+		}
+		$formDescriptor[ 'ad-tags' ] = [
 			'section' => 'settings',
 			'type' => 'multiselect',
 			'disabled' => !$this->editable,
 			'label-message' => 'promoter-ad-tags-label',
-			'options' => array(
+			'options' => [
 				$this->msg( 'promoter-ad-tag-new' )->text() => 'new'
-			),
+			],
 			'default' => $selectedTags,
 			'cssclass' => 'separate-form-element',
-        );
+		];
 
-        $formDescriptor[ 'ad-date-start' ] = array(
-            'cssclass' => 'separate-form-element',
-            'section' => 'settings',
-            'type' => 'date',
-            'disabled' => !$this->editable,
-            'label-message' => 'promoter-ad-date-start',
-			'default' => $ad->getStartDate() ? $ad->getStartDate()->format('Y-m-d') : ''
-        );
+		$formDescriptor[ 'ad-date-start' ] = [
+			'cssclass' => 'separate-form-element',
+			'section' => 'settings',
+			'type' => 'date',
+			'disabled' => !$this->editable,
+			'label-message' => 'promoter-ad-date-start',
+			'default' => $ad->getStartDate() ? $ad->getStartDate()->format( 'Y-m-d' ) : ''
+		];
 
-        $formDescriptor['ad-date-end'] = array(
-            'cssclass' => 'separate-form-element',
-            'section' => 'settings',
-            'type' => 'date',
-            'disabled' => !$this->editable,
-            'label-message' => 'promoter-ad-date-end',
-            'default' => $ad->getEndDate() ? $ad->getEndDate()->format('Y-m-d') : ''
-        );
+		$formDescriptor['ad-date-end'] = [
+			'cssclass' => 'separate-form-element',
+			'section' => 'settings',
+			'type' => 'date',
+			'disabled' => !$this->editable,
+			'label-message' => 'promoter-ad-date-end',
+			'default' => $ad->getEndDate() ? $ad->getEndDate()->format( 'Y-m-d' ) : ''
+		];
 
-		$formDescriptor['ad-active'] = array(
+		$formDescriptor['ad-active'] = [
 			'section' => 'settings',
 			'type' => 'check',
 			'disabled' => !$this->editable,
 			'label-message' => 'promoter-ad-active',
 			'default' => $adSettings['active'],
 			'cssclass' => 'separate-form-element',
-		);
+		];
 
 		/* -- The ad editor -- */
 
-		$formDescriptor[ 'ad-title' ] = array(
+		$formDescriptor[ 'ad-title' ] = [
 			'section' => 'edit-ad',
 			'type' => 'text',
 			'required' => true,
-			//'placeholder' => '<!-- ad heading -->',
 			'default' => $ad->getCaption(),
 			'label-message' => 'promoter-ad-title',
 			'cssclass' => 'separate-form-element'
-		);
+		];
 
-		$formDescriptor[ 'ad-link' ] = array(
+		$formDescriptor[ 'ad-link' ] = [
 			'section' => 'edit-ad',
 			'type' => 'text',
-			//'required' => true,
+			// 'required' => true,
 			'placeholder' => 'שם העמוד',
 			'default' => $ad->getMainLink(),
 			'label-message' => 'promoter-ad-link',
 			'cssclass' => 'separate-form-element'
-		);
+		];
 
 		if ( !$this->editable ) {
 			$formDescriptor[ 'ad-title' ][ 'readonly' ] = true;
 			$formDescriptor[ 'ad-link' ][ 'readonly' ] = true;
 		}
 
-		$formDescriptor[ 'ad-body' ] = array(
+		$formDescriptor[ 'ad-body' ] = [
 			'section' => 'edit-ad',
 			'type' => 'textarea',
 			'rows' => 5,
@@ -443,33 +454,33 @@ class SpecialPromoterAds extends Promoter {
 			'placeholder' => '<!-- blank ad -->',
 			'default' => $ad->getBodyContent(),
 			'cssclass' => 'separate-form-element'
-		);
+		];
 
-		if( !$this->editable ) {
-			foreach( $formDescriptor as $item ) {
+		if ( !$this->editable ) {
+			foreach ( $formDescriptor as $item ) {
 				$item['readonly'] = 'readonly';
 			}
 		}
 
-		$links = array();
-		foreach( $ad->getIncludedTemplates() as $titleObj ) {
-			$links[] = Linker::link( $titleObj );
+		$links = [];
+		foreach ( $ad->getIncludedTemplates() as $titleObj ) {
+			$links[] = $this->getLinkRenderer()->makeLink( $titleObj );
 		}
 		if ( $links ) {
-			$formDescriptor[ 'links' ] = array(
+			$formDescriptor[ 'links' ] = [
 				'section' => 'edit-ad',
 				'type' => 'info',
 				'label-message' => 'promoter-templates-included',
 				'default' => implode( '<br />', $links ),
 				'raw' => true
-			);
+			];
 		}
 
 		/* --- Ad Preview Section --- */
-		$formDescriptor[ 'preview' ] = array(
+		$formDescriptor[ 'preview' ] = [
 			'section' => 'preview',
 			'type' => 'info',
-		);
+		];
 
 		$campaignList    = [];
 		$linkedCampaigns = [];
@@ -491,24 +502,23 @@ class SpecialPromoterAds extends Promoter {
 		];
 
 		/* --- Form bottom options --- */
-		$formDescriptor[ 'save-button' ] = array(
+		$formDescriptor[ 'save-button' ] = [
 			'section' => 'form-actions',
 			'class' => 'HTMLSubmitField',
 			'default' => $this->msg( 'promoter-save-ad' )->text(),
 			'disabled' => !$this->editable,
 			'cssclass' => 'pr-formbutton',
 			'hidelabel' => true,
-		);
+		];
 
-
-		$formDescriptor[ 'clone-button' ] = array(
+		$formDescriptor[ 'clone-button' ] = [
 			'section' => 'form-actions',
 			'class' => 'HTMLButtonField',
 			'default' => $this->msg( 'promoter-clone' )->text(),
 			'disabled' => !$this->editable,
 			'cssclass' => 'pr-formbutton',
 			'hidelabel' => true,
-		);
+		];
 
 		/* TODO: Add this back in when we can actually support it
 		$formDescriptor[ 'archive-button' ] = array(
@@ -521,31 +531,31 @@ class SpecialPromoterAds extends Promoter {
 		);
 		*/
 
-		$formDescriptor[ 'delete-button' ] = array(
+		$formDescriptor[ 'delete-button' ] = [
 			'section' => 'form-actions',
 			'class' => 'HTMLButtonField',
 			'default' => $this->msg( 'promoter-delete-ad' )->text(),
 			'disabled' => !$this->editable,
 			'cssclass' => 'pr-formbutton',
 			'hidelabel' => true,
-		);
+		];
 
 		/* --- Hidden fields and such --- */
-		$formDescriptor[ 'cloneName' ] = array(
+		$formDescriptor[ 'cloneName' ] = [
 			'section' => 'clone-ad',
 			'type' => 'text',
 			'disabled' => !$this->editable,
 			'label-message' => 'promoter-clone-name',
-		);
+		];
 
-		$formDescriptor[ 'action' ] = array(
+		$formDescriptor[ 'action' ] = [
 			'section' => 'form-actions',
 			'type' => 'hidden',
 			// The default is save so that we can still save the ad/form if the ad
 			// preview has seriously borked JS. Maybe one day we'll be able to get Caja up
 			// and working and not have this issue.
 			'default' => 'save',
-        );
+		];
 
 		return $formDescriptor;
 	}
@@ -559,7 +569,7 @@ class SpecialPromoterAds extends Promoter {
 				}
 				try {
 					Ad::removeAd( $this->adName, $this->getUser() );
-					$this->getOutput()->redirect( $this->getTitle( '' )->getCanonicalURL() );
+					$this->getOutput()->redirect( $this->getPageTitle( '' )->getCanonicalURL() );
 					$this->adFormRedirectRequired = true;
 				} catch ( MWException $ex ) {
 					return $ex->getMessage() . " <br /> " . $this->msg( 'promoter-ad-still-bound', $this->adName );
@@ -580,14 +590,17 @@ class SpecialPromoterAds extends Promoter {
 				$newAdName = $formData[ 'cloneName' ];
 				Ad::fromName( $this->adName )->cloneAd( $newAdName, $this->getUser() );
 				$this->getOutput()->redirect(
-					$this->getTitle( "Edit/$newAdName" )->getCanonicalURL()
+					$this->getPageTitle( "Edit/$newAdName" )->getCanonicalURL()
 				);
 				$this->adFormRedirectRequired = true;
 				break;
 
 			case 'save':
 				// If only one of the date fields was filled, return error
-				if ( ( $formData[ 'ad-date-end' ] && !$formData[ 'ad-date-start' ] ) || ( !$formData[ 'ad-date-end' ] && $formData[ 'ad-date-start' ] ) ) {
+				if (
+					( $formData[ 'ad-date-end' ] && !$formData[ 'ad-date-start' ] )
+					|| ( !$formData[ 'ad-date-end' ] && $formData[ 'ad-date-start' ] )
+				) {
 					return wfMessage( 'promoter-ad-inconsistent-dates-error' )->text();
 				}
 
@@ -606,6 +619,8 @@ class SpecialPromoterAds extends Promoter {
 				break;
 		}
 
+		return null;
+
 	}
 
 	protected function processSaveAdAction( $formData ) {
@@ -613,8 +628,10 @@ class SpecialPromoterAds extends Promoter {
 		$startDate = null;
 		$endDate = null;
 
-		if ( $formData[ 'ad-date-start' ]) {
-			$startDate = DateTime::createFromFormat( 'Y-m-d H:i:s', $formData['ad-date-start'] . ' 00:30:00' );
+		if ( $formData[ 'ad-date-start' ] ) {
+			$startDate = DateTime::createFromFormat(
+				'Y-m-d H:i:s', $formData['ad-date-start'] . ' 00:30:00'
+			);
 			$startDate = new MWTimestamp( $startDate );
 		}
 
@@ -632,15 +649,16 @@ class SpecialPromoterAds extends Promoter {
 		$campaignsToAddTo      = $formData['ad-linked-campaigns'];
 		$campaignsToRemoveFrom = array_diff( $linkedCampaigns, $campaignsToAddTo );
 
-		// Differentiate between added campaigns and linked campaigns to determine which ones should stay intact
+		// Differentiate between added campaigns and linked campaigns to determine which ones
+		// should stay intact
 		$campaignsToAddTo = array_diff( $campaignsToAddTo, $linkedCampaigns );
 
 		// Get campaign IDs
-		$campaignsToAddTo = array_map( function ($campaign) {
+		$campaignsToAddTo = array_map( function( $campaign ) {
 			return AdCampaign::getCampaignId( $campaign );
 		}, $campaignsToAddTo );
 
-		$campaignsToRemoveFrom = array_map( function ( $campaign ) {
+		$campaignsToRemoveFrom = array_map( function( $campaign ) {
 			return AdCampaign::getCampaignId( $campaign );
 		}, $campaignsToRemoveFrom );
 

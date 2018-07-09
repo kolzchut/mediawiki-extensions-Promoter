@@ -46,11 +46,11 @@ class Ad {
 	 *
 	 * @var null|bool[]
 	 */
-	protected $dirtyFlags = array(
+	protected $dirtyFlags = [
 		'content' => null,
 		'messages' => null,
 		'basic' => null,
-	);
+	];
 
 	// !!! NOTE !!! It is not recommended to use directly. It is almost always more
 	//              correct to use the accessor/setter function.
@@ -72,8 +72,10 @@ class Ad {
 		'new' => false
 	];
 
+	/** @var MWTimestamp|null */
 	protected $startDate;
 
+	/** @var MWTimestamp|null */
 	protected $endDate;
 
 	/** @var bool True if archived and hidden from default view. */
@@ -91,14 +93,14 @@ class Ad {
 	/** @var bool Ad active status */
 	protected $active = false;
 
-	//</editor-fold>
+	// </editor-fold>
 
 	/**
 	 * @var string Pattern for bool
 	 */
 	const BOOLEAN_PARAM_FILTER = '/true|false/';
 
-	//<editor-fold desc="Constructors">
+	// <editor-fold desc="Constructors">
 	/**
 	 * Create an ad object from a known ID. Must already be
 	 * an object in the database. If a fully new ad is to be created
@@ -156,9 +158,9 @@ class Ad {
 
 		return $obj;
 	}
-	//</editor-fold>
+	// </editor-fold>
 
-	//<editor-fold desc="Basic metadata getters/setters">
+	// <editor-fold desc="Basic metadata getters/setters">
 	/**
 	 * Get the unique ID for this ad.
 	 *
@@ -257,8 +259,8 @@ class Ad {
 		return $this;
 	}
 
-	public function setStartDate($date) {
-		$this->startDate = empty($date) ? null : new MWTimestamp($date);
+	public function setStartDate( $date ) {
+		$this->startDate = empty( $date ) ? null : new MWTimestamp( $date );
 	}
 
 	public function getStartDate() {
@@ -267,8 +269,8 @@ class Ad {
 		return $this->startDate;
 	}
 
-	public function setEndDate($date) {
-		$this->endDate = empty($date) ? null : new MWTimestamp($date);
+	public function setEndDate( $date ) {
+		$this->endDate = empty( $date ) ? null : new MWTimestamp( $date );
 	}
 
 	public function getEndDate() {
@@ -280,7 +282,7 @@ class Ad {
 	public function isNotExpired() {
 		$this->populateBasicData();
 
-		if ( $this->endDate === NULL ) {
+		if ( $this->endDate === null ) {
 			return true;
 		}
 
@@ -348,17 +350,17 @@ class Ad {
 
 		// What are we using to select on?
 		if ( $this->name !== null ) {
-			$selector = array( 'ad_name' => $this->name );
+			$selector = [ 'ad_name' => $this->name ];
 		} elseif ( $this->id !== null ) {
-			$selector = array( 'ad_id' => $this->id );
+			$selector = [ 'ad_id' => $this->id ];
 		} else {
 			throw new AdDataException( 'Cannot retrieve ad data without name or ID.' );
 		}
 
 		// Query!
 		$rowRes = $db->select(
-			array( 'ads' => 'pr_ads' ),
-			array(
+			[ 'ads' => 'pr_ads' ],
+			[
 				 'ad_id',
 				 'ad_name',
 				 'ad_title',
@@ -369,8 +371,8 @@ class Ad {
 				 'ad_date_start',
 				 'ad_date_end',
 				 'ad_active'
-				 //'ad_archived',
-			),
+				 // 'ad_archived',
+			],
 			$selector,
 			__METHOD__
 		);
@@ -385,12 +387,12 @@ class Ad {
 			$this->tags['new'] = (bool)$row->ad_tag_new;
 			$this->adCaption = $row->ad_title;
 			$this->adLink = $row->ad_mainlink;
-			$this->setStartDate($row->ad_date_start);
-			$this->setEndDate($row->ad_date_end);
+			$this->setStartDate( $row->ad_date_start );
+			$this->setEndDate( $row->ad_date_end );
 			$this->active = (bool)$row->ad_active;
-			//$this->archived = (bool)$row->ad_archived;
+			// $this->archived = (bool)$row->ad_archived;
 		} else {
-			$keystr = array();
+			$keystr = [];
 			foreach ( $selector as $key => $value ) {
 				$keystr[] = "{$key} = {$value}";
 			}
@@ -415,7 +417,7 @@ class Ad {
 	 * @param DatabaseBase $db
 	 */
 	protected function initializeDbBasicData( $db ) {
-		$db->insert( 'pr_ads', array( 'ad_name' => $this->name ), __METHOD__ );
+		$db->insert( 'pr_ads', [ 'ad_name' => $this->name ], __METHOD__ );
 		$this->id = $db->insertId();
 	}
 
@@ -426,28 +428,28 @@ class Ad {
 	protected function saveBasicData( $db ) {
 		if ( $this->dirtyFlags['basic'] ) {
 			$db->update( 'pr_ads',
-				array(
+				[
 					 'ad_display_anon'    => (int)$this->allocateAnon,
 					 'ad_display_user' => (int)$this->allocateUser,
 					 'ad_tag_new' => (int)$this->tags['new'],
 					 'ad_title' => $this->adCaption,
 					 'ad_mainlink' => $this->adLink,
-					 'ad_date_start' => $db->timestampOrNull($this->startDate),
-					 'ad_date_end' => $db->timestampOrNull($this->endDate),
+					 'ad_date_start' => $db->timestampOrNull( $this->startDate ),
+					 'ad_date_end' => $db->timestampOrNull( $this->endDate ),
 					 'ad_active' => $this->active
-					 //'ad_archived'        => $this->archived,
-					 //'ad_category'        => $this->category,
-				),
-				array(
+					 // 'ad_archived'        => $this->archived,
+					 // 'ad_category'        => $this->category,
+				],
+				[
 					 'ad_id'              => $this->id
-				),
+				],
 				__METHOD__
 			);
 		}
 	}
-	//</editor-fold>
+	// </editor-fold>
 
-	//<editor-fold desc="Ad body content">
+	// <editor-fold desc="Ad body content">
 	public function getDbKey() {
 		$name = $this->getName();
 		return "Promoter-ad-{$name}";
@@ -461,7 +463,7 @@ class Ad {
 	 * Returns an array of Title objects that have been included as templates
 	 * in this ad.
 	 *
-	 * @return Array of Title
+	 * @return array of Title
 	 */
 	public function getIncludedTemplates() {
 		return $this->getTitle()->getTemplateLinksFrom();
@@ -524,10 +526,10 @@ class Ad {
 
 		}
 	}
-	//</editor-fold>
+	// </editor-fold>
 
-	//<editor-fold desc="Ad actions">
-	//<editor-fold desc="Saving">
+	// <editor-fold desc="Ad actions">
+	// <editor-fold desc="Saving">
 	/**
 	 * Saves any changes made to the ad object into the database
 	 *
@@ -562,7 +564,9 @@ class Ad {
 			$db->commit( __METHOD__ );
 
 			// Clear the dirty flags
-			foreach ( $this->dirtyFlags as $flag => &$value ) { $value = false; }
+			foreach ( $this->dirtyFlags as $flag => &$value ) {
+				$value = false;
+			}
 
 		} catch ( Exception $ex ) {
 			$db->rollback( __METHOD__ );
@@ -600,7 +604,7 @@ class Ad {
 	protected function saveAdInternal( $db ) {
 		$this->saveBasicData( $db );
 	}
-	//</editor-fold>
+	// </editor-fold>
 
 	/**
 	 * Archive an ad.
@@ -654,7 +658,7 @@ class Ad {
 		$adObj = Ad::fromName( $name );
 		$id = $adObj->getId();
 		$dbr = PRDatabase::getDb();
-		$res = $dbr->select( 'pr_adlinks', 'adl_id', array( 'ad_id' => $id ), __METHOD__ );
+		$res = $dbr->select( 'pr_adlinks', 'adl_id', [ 'ad_id' => $id ], __METHOD__ );
 
 		if ( $dbr->numRows( $res ) > 0 ) {
 			throw new MWException( 'Cannot remove an ad still bound to a campaign!' );
@@ -667,7 +671,7 @@ class Ad {
 			$dbw = PRDatabase::getDb();
 			$dbw->begin();
 			$dbw->delete( 'pr_ads',
-				array( 'ad_id' => $id ),
+				[ 'ad_id' => $id ],
 				__METHOD__
 			);
 			$dbw->commit();
@@ -679,28 +683,26 @@ class Ad {
 			$article->doDeleteArticle( 'Promoter automated removal' );
 		}
 	}
-	//</editor-fold>
+	// </editor-fold>
 
 	/**
 	 * Return settings for an ad
 	 *
-	 * @param $adName string name of ad
-	 * @param $detailed boolean if true, get some more expensive info
-	 *
-	 * @throws MWException
 	 * @return array an array of ad settings
+	 * @throws AdDataException
+	 * @throws MWException
 	 */
 	public function getAdSettings() {
 		if ( !$this->exists() ) {
 			throw new MWException( "Ad doesn't exist!" );
 		}
 
-		$details = array(
+		$details = [
 			'anon' => (int)$this->allocateToAnon(),
 			'user' => (int)$this->allocateToUser(),
 			'new'  => (int)$this->isNew(),
 			'active' => $this->active
-		);
+		];
 
 		return $details;
 	}
@@ -710,9 +712,11 @@ class Ad {
 	 *
 	 * @param $name
 	 * @param $ts
+	 *
 	 * @return array|null ad settings as an associative array, with these properties:
 	 *    display_anon: 0/1 whether the ad is displayed to anonymous users
 	 *    display_account: 0/1 same, for logged-in users
+	 * @throws AdDataException
 	 */
 	static function getHistoricalAd( $name, $ts ) {
 		$id = Ad::fromName( $name )->getId();
@@ -721,13 +725,13 @@ class Ad {
 
 		$newestLog = $dbr->selectRow(
 			"pr_ad_log",
-			array(
+			[
 				"log_id" => "MAX(adlog_id)",
-			),
-			array(
+			],
+			[
 				"adlog_timestamp <= $ts",
 				"adlog_ad_id = $id",
-			),
+			],
 			__METHOD__
 		);
 
@@ -737,13 +741,13 @@ class Ad {
 
 		$row = $dbr->selectRow(
 			"pr_ad_log",
-			array(
+			[
 				"display_anon" => "adlog_end_anon",
 				"display_account" => "adlog_end_account",
-			),
-			array(
+			],
+			[
 				"adlog_id = {$newestLog->log_id}",
-			),
+			],
 			__METHOD__
 		);
 		$ad['display_anon'] = (int) $row->display_anon;
@@ -764,11 +768,11 @@ class Ad {
 	 * @param bool|int $displayUser integer flag for display to logged in users
 	 *
 	 * @return bool true or false depending on whether ad was successfully added
+	 * @throws AdDataException
 	 */
 	static function addAd(
 		$name, $body, $caption, $mainlink, $user, $displayAnon = true, $displayUser = true
 	) {
-		//if ( $name == '' || !Ad::isValidAdName( $name ) || $body == '' ) {
 		if ( $name == '' || !Ad::isValidAdName( $name ) ) {
 			return 'promoter-null-string';
 		}
@@ -779,7 +783,6 @@ class Ad {
 		}
 
 		$ad->setAllocation( $displayAnon, $displayUser );
-
 
 		$ad->setCaption( $caption );
 		$ad->setMainLink( $mainlink );
@@ -797,22 +800,22 @@ class Ad {
 	 * @param $user          User causing the change
 	 * @param $beginSettings array of ad settings before changes (optional)
 	 */
-	function logAdChange( $action, $user, $beginSettings = array() ) {
-		$endSettings = array();
+	function logAdChange( $action, $user, $beginSettings = [] ) {
+		$endSettings = [];
 		if ( $action !== 'removed' ) {
 			$endSettings = Ad::getAdSettings( $this->getName(), true );
 		}
 
 		$dbw = PRDatabase::getDb();
 
-		$log = array(
+		$log = [
 			'adlog_timestamp'     => $dbw->timestamp(),
 			'adlog_user_id'       => $user->getId(),
 			'adlog_action'        => $action,
 			'adlog_ad_id'   => $this->getId(),
 			'adlog_ad_name' => $this->getName(),
 			'adlog_content_change'=> (int)$this->dirtyFlags['content'],
-		);
+		];
 
 		foreach ( $endSettings as $key => $value ) {
 			if ( is_array( $value ) ) {
@@ -824,7 +827,7 @@ class Ad {
 
 		$dbw->insert( 'pr_ad_log', $log );
 	}
-	//</editor-fold>
+	// </editor-fold>
 
 	/**
 	 * Validation function for ad names. Will return true iff the name fits
@@ -851,9 +854,9 @@ class Ad {
 	public function exists() {
 		$db = PRDatabase::getDb();
 		if ( $this->name !== null ) {
-			$selector = array( 'ad_name' => $this->name );
+			$selector = [ 'ad_name' => $this->name ];
 		} elseif ( $this->id !== null ) {
-			$selector = array( 'ad_id' => $this->id );
+			$selector = [ 'ad_id' => $this->id ];
 		} else {
 			throw new AdDataException( 'Cannot determine ad existence without name or ID.' );
 		}
@@ -876,27 +879,27 @@ class Ad {
 			null : Skin::makeInternalOrExternalUrl( $this->getMainLink() );
 
 		$adHtml = HTML::openElement(
-			'div', array( 'class' => 'promotion', 'data-adname' => $this->getName() )
+			'div', [ 'class' => 'promotion', 'data-adname' => $this->getName() ]
 		);
-			$adHtml .= HTML::openElement( 'div', array( 'class' => 'header' ) );
-				//$adHtml .= HTML::element( 'span', array( 'class' => 'icon pull-right' ) );
+			$adHtml .= HTML::openElement( 'div', [ 'class' => 'header' ] );
+				// $adHtml .= HTML::element( 'span', [ 'class' => 'icon pull-right' ] );
 				if ( empty( $adMainLink ) ) {
-					$adHtml .= HTML::element( 'span', array( 'class' => 'caption' ), $adCaption );
+					$adHtml .= HTML::element( 'span', [ 'class' => 'caption' ], $adCaption );
 				} else {
 					$adHtml .= HTML::element(
 						'a',
-						array( 'class' => 'caption', 'href' => $adMainLink ),
+						[ 'class' => 'caption', 'href' => $adMainLink ],
 						$adCaption
 					);
 				}
 
 		 	$adHtml .= HTML::closeElement( 'div' );
-		 	$adHtml .= HTML::rawElement( 'div', array( 'class' => 'content' ), $adBody );
+		 	$adHtml .= HTML::rawElement( 'div', [ 'class' => 'content' ], $adBody );
 		 	if ( $adMainLink ) {
-				$adHtml .= HTML::openElement( 'div', array( 'class' => 'mainlink' ) );
-				$adHtml .= HTML::element( 'a', array( 'href' => $adMainLink ), 'לפרטים נוספים...' );
+				$adHtml .= HTML::openElement( 'div', [ 'class' => 'mainlink' ] );
+				$adHtml .= HTML::element( 'a', [ 'href' => $adMainLink ], 'לפרטים נוספים...' );
 				$adHtml .= HTML::closeElement( 'div' );
-			}
+			 }
 		$adHtml .= HTML::closeElement( 'div' );
 
 		 return $adHtml;
@@ -906,18 +909,16 @@ class Ad {
 		return Linker::link(
 			SpecialPage::getTitleFor( 'PromoterAds', "edit/{$this->getName()}" ),
 			htmlspecialchars( $this->getName() ),
-			array( 'class' => 'pr-ad-title' )
+			[ 'class' => 'pr-ad-title' ]
 		);
 	}
 
 	// @TODO do a join with pr_campaign instead of getting campaign names one by one
 	function getLinkedCampaignNames() {
-		$campaignNames = array();
+		$campaignNames = [];
 		$dbr = wfGetDB( DB_SLAVE );
 		$res = $dbr->select( 'pr_adlinks', 'cmp_id',
-			array(
-				'ad_id' => $this->getId(),
-			)
+			[ 'ad_id' => $this->getId() ]
 		);
 		foreach ( $res as $row ) {
 			$campaignNames[] = AdCampaign::getCampaignName( $row->cmp_id );

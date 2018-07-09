@@ -32,7 +32,9 @@
  */
 class HTMLPromoterAd extends HTMLInfoField {
 	/** Empty - no validation can be done on a ad */
-	function validate( $value, $alldata ) { return true; }
+	function validate( $value, $alldata ) {
+		return true;
+	}
 
 	/** Get a preview of the ad */
 	public function getInputHTML( $value ) {
@@ -49,18 +51,18 @@ class HTMLPromoterAd extends HTMLInfoField {
 		$previewUrl = $wgPromoterAdPreview . "/{$adName}/{$adName}_{$language}.png";
 		$preview = Html::Element(
 			'img',
-			array(
+			[
 				'src' => $previewUrl,
 				'alt' => $adName,
-			)
+			]
 		);
 
 		return Xml::tags(
 			'div',
-			array(
+			[
 				 'id' => Sanitizer::escapeId( "pr-ad-preview-$adName" ),
 				 'class' => 'pr-ad-preview-div',
-			),
+			],
 			$preview
 		);
 	}
@@ -85,33 +87,33 @@ class HTMLPromoterAd extends HTMLInfoField {
 
 		$html = Xml::openElement(
 			'div',
-			array(
+			[
 				 'id' =>  Sanitizer::escapeId( "pr-ad-list-element-{$this->mParams['ad']}" ),
 				 'class' => "pr-ad-list-element",
-			)
+			]
 		);
 
 		// Make the label; this consists of a text link to the ad editor, and a series of status icons
 		if ( array_key_exists( 'withlabel', $this->mParams ) ) {
 			$adName =  $this->mParams['ad'];
-			$html .= Xml::openElement( 'div', array( 'class' => 'pr-ad-list-element-label' ) );
+			$html .= Xml::openElement( 'div', [ 'class' => 'pr-ad-list-element-label' ] );
 			$html .= Linker::link(
 				SpecialPage::getTitleFor( 'PromoterAds', "edit/$adName" ),
 				htmlspecialchars( $adName ),
-				array( 'class' => 'pr-ad-list-element-label-text' )
+				[ 'class' => 'pr-ad-list-element-label-text' ]
 			);
 			$html .= ' (' . Linker::link(
 				SpecialPage::getTitleFor( 'Randompage' ),
 				$this->msg( 'promoter-live-preview' ),
-				array( 'class' => 'pr-ad-list-element-label-text' ),
-				array(
+				[ 'class' => 'pr-ad-list-element-label-text' ],
+				[
 					 'ad' => $adName,
 					 'uselang' => $language,
 					 'force' => '1'
-				)
+				]
 			) . ')';
 			// TODO: Output status icons
-			$html .= Xml::tags( 'div', array( 'class' => 'pr-ad-list-element-label-icons' ), '' );
+			$html .= Xml::tags( 'div', [ 'class' => 'pr-ad-list-element-label-icons' ], '' );
 			$html .= Xml::closeElement( 'div' );
 		}
 

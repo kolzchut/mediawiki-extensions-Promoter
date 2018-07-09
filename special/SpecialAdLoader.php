@@ -9,7 +9,6 @@ class SpecialAdLoader extends UnlistedSpecialPage {
 	/** @var boolean Should we display a page with ad preview? */
 	protected $isPreview;
 
-
 	function __construct() {
 		// Register special page
 		parent::__construct( "AdLoader" );
@@ -29,7 +28,7 @@ class SpecialAdLoader extends UnlistedSpecialPage {
 			$error = $e->getMessage();
 		}
 
-		if( $this->isPreview ) {
+		if ( $this->isPreview ) {
 			$this->setHeaders();
 			$html = $error ?
 				"Exception {$error}." : '<div id="adPreview" class="col-md-3 col-sm-4">' . $html . '</div>';
@@ -38,7 +37,7 @@ class SpecialAdLoader extends UnlistedSpecialPage {
 			$this->getOutput()->disable();
 			$this->sendHeaders();
 
-			if( $error ) {
+			if ( $error ) {
 				echo "mw.promoter.adController.insertAd( false /* due to internal exception ({$error}) */ );";
 			} else {
 				echo $this->getJsData( $chosenAd );
@@ -51,12 +50,12 @@ class SpecialAdLoader extends UnlistedSpecialPage {
 		$adName = $request->getText( 'ad' ) ?: null;
 		$preview = ( $this->getSanitized( 'preview', Ad::BOOLEAN_PARAM_FILTER ) === 'true' );
 
-		$required_values = array(
+		$required_values = [
 			$adName
-		);
+		];
 		foreach ( $required_values as $value ) {
 			if ( is_null( $value ) || $value === '' ) {
-				throw new adLoaderMissingRequiredParamsException();
+				throw new AdLoaderMissingRequiredParamsException();
 			}
 		}
 
@@ -65,7 +64,7 @@ class SpecialAdLoader extends UnlistedSpecialPage {
 	}
 
 	function getSanitized( $param, $filter ) {
-		$matches = array();
+		$matches = [];
 		if ( preg_match( $filter, $this->getRequest()->getText( $param ), $matches ) ) {
 			return $matches[0];
 		}
@@ -106,11 +105,11 @@ class SpecialAdLoader extends UnlistedSpecialPage {
 			throw new EmptyAdException( $ad->getName() );
 		}
 
-		$adArray = array(
+		$adArray = [
 			'adName' => $ad->getName(),
 			'adCaption' => $adCaption,
 			'adHtml' => $adHtml,
-		);
+		];
 
 		$adJson = FormatJson::encode( $adArray );
 
@@ -139,5 +138,5 @@ class AdLoaderException extends MWException {
 class EmptyAdException extends AdLoaderException {
 }
 
-class adLoaderMissingRequiredParamsException extends AdLoaderException {
+class AdLoaderMissingRequiredParamsException extends AdLoaderException {
 }

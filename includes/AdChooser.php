@@ -13,9 +13,11 @@ class AdChooser {
 	/**
 	 * @param string $campaignName
 	 * @param bool $anonymous
+	 *
 	 * @throws NoAdsMatchingCriteriaException
 	 * @throws NoFallbackCampaign
 	 * @throws FallbackCampaignDisabled
+	 * @throws AdCampaignExistenceException
 	 */
 	function __construct( $campaignName, $anonymous = false ) {
 		global $wgPromoterFallbackCampaign;
@@ -26,7 +28,7 @@ class AdChooser {
 		if ( !AdCampaign::campaignExists( $campaignName ) || !$campaign->isEnabled() ) {
 			/* If the selected campaign doesn't exist or is disabled, fallback: */
 			$campaign = new AdCampaign( $wgPromoterFallbackCampaign );
-			if ( !AdCampaign::campaignExists( $wgPromoterFallbackCampaign )  ) {
+			if ( !AdCampaign::campaignExists( $wgPromoterFallbackCampaign ) ) {
 				throw new NoFallbackCampaign();
 			} elseif ( !$campaign->isEnabled() ) {
 				throw new FallbackCampaignDisabled();
@@ -38,7 +40,7 @@ class AdChooser {
 
 		$this->filterAds();
 
-		if( count( $this->ads ) < 1 ) {
+		if ( count( $this->ads ) < 1 ) {
 			throw new NoAdsMatchingCriteriaException( $this->campaignName );
 		}
 
@@ -48,12 +50,7 @@ class AdChooser {
 		echo '</pre>';
 		*/
 
-
 		$this->allocate();
-
-
-
-		//$chosenAd = $this->chooseAd();
 
 	}
 
@@ -69,7 +66,7 @@ class AdChooser {
 		$randomNum = mt_rand( 0, $this->campaignTotalWeight );
 		$weightCounter = 0;
 
-		foreach( $this->ads as $ad ) {
+		foreach ( $this->ads as $ad ) {
 			$weightCounter += $ad['weight'];
 			if ( $weightCounter > $randomNum ) {
 				return $ad;
@@ -77,8 +74,6 @@ class AdChooser {
 		}
 
 	}
-
-
 
 	/**
 	 * From the selected group of ads we wish to now filter only for those that
@@ -110,7 +105,7 @@ class AdChooser {
 	 */
 	protected function allocate() {
 		$this->campaignTotalWeight = 0;
-		foreach( $this->ads as $ad ) {
+		foreach ( $this->ads as $ad ) {
 			$this->campaignTotalWeight += $ad['weight'];
 		}
 	}
@@ -132,14 +127,17 @@ class NoAdsMatchingCriteriaException extends MWException {
 class NoFallbackCampaign extends MWException {
 	function __construct() {
 		global $wgPromoterFallbackCampaign;
-		$this->message = get_called_class() . ": No campaign was found, not even the fallback '" . $wgPromoterFallbackCampaign ."' campaign";
+		$this->message = get_called_class() .
+		                 ": No campaign was found, not even the fallback '" .
+		                 $wgPromoterFallbackCampaign ."' campaign";
 	}
 }
 
 class FallbackCampaignDisabled extends MWException {
 	function __construct() {
 		global $wgPromoterFallbackCampaign;
-		$this->message = get_called_class() . ": The fallback campaign, '" . $wgPromoterFallbackCampaign .",' is disabled";
+		$this->message = get_called_class() . ": The fallback campaign, '" .
+		                 $wgPromoterFallbackCampaign .",' is disabled";
 	}
 }
 
