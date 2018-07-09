@@ -340,6 +340,15 @@ class SpecialPromoterAds extends Promoter {
 
 		$formDescriptor = [];
 
+		$formDescriptor['ad-active'] = [
+			'section' => 'settings',
+			'type' => 'check',
+			'disabled' => !$this->editable,
+			'label-message' => 'promoter-ad-active',
+			'default' => $adSettings['active'],
+			'cssclass' => 'separate-form-element',
+		];
+
 		/* --- Ad Settings --- */
 		/*
 		$formDescriptor['ad-class'] = array(
@@ -407,15 +416,6 @@ class SpecialPromoterAds extends Promoter {
 			'disabled' => !$this->editable,
 			'label-message' => 'promoter-ad-date-end',
 			'default' => $ad->getEndDate() ? $ad->getEndDate()->format( 'Y-m-d' ) : ''
-		];
-
-		$formDescriptor['ad-active'] = [
-			'section' => 'settings',
-			'type' => 'check',
-			'disabled' => !$this->editable,
-			'label-message' => 'promoter-ad-active',
-			'default' => $adSettings['active'],
-			'cssclass' => 'separate-form-element',
 		];
 
 		/* -- The ad editor -- */
