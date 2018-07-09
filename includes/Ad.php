@@ -701,7 +701,7 @@ class Ad {
 			'anon' => (int)$this->allocateToAnon(),
 			'user' => (int)$this->allocateToUser(),
 			'new'  => (int)$this->isNew(),
-			'active' => $this->active
+			'active' => (int)$this->active
 		];
 
 		return $details;
@@ -766,12 +766,14 @@ class Ad {
 	 * @param $user             User causing the change
 	 * @param bool|int $displayAnon integer flag for display to anonymous users
 	 * @param bool|int $displayUser integer flag for display to logged in users
+	 * @param bool|int $isActive
 	 *
 	 * @return bool true or false depending on whether ad was successfully added
 	 * @throws AdDataException
 	 */
 	static function addAd(
-		$name, $body, $caption, $mainlink, $user, $displayAnon = true, $displayUser = true
+		$name, $body, $caption, $mainlink, $user,
+		$displayAnon = true, $displayUser = true, $isActive = false
 	) {
 		if ( $name == '' || !Ad::isValidAdName( $name ) ) {
 			return 'promoter-null-string';
@@ -786,7 +788,7 @@ class Ad {
 
 		$ad->setCaption( $caption );
 		$ad->setMainLink( $mainlink );
-
+		$ad->setActiveStatus( $isActive );
 		$ad->setBodyContent( $body );
 
 		$ad->save( $user );
