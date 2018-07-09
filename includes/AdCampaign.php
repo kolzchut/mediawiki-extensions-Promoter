@@ -149,9 +149,7 @@ class AdCampaign {
 	 */
 	static function campaignExists( $campaignName ) {
 		$dbr = PRDatabase::getDb();
-
-		$eCampaignName = htmlspecialchars( $campaignName );
-		return (bool)$dbr->selectRow( 'pr_campaigns', 'cmp_name', [ 'cmp_name' => $eCampaignName ] );
+		return (bool)$dbr->selectRow( 'pr_campaigns', 'cmp_name', [ 'cmp_name' => $campaignName ] );
 	}
 
 	/**
@@ -405,9 +403,7 @@ class AdCampaign {
 	 */
 	static function addAdTo( $campaignName, $adName, $weight ) {
 		$dbw = PRDatabase::getDb();
-
-		$eCampaignName = htmlspecialchars( $campaignName );
-		$campaignId = AdCampaign::getCampaignId( $eCampaignName );
+		$campaignId = AdCampaign::getCampaignId( $campaignName );
 		$adId = Ad::fromName( $adName )->getId();
 		$res = $dbw->select( 'pr_adlinks', 'adl_id',
 			[
@@ -421,7 +417,7 @@ class AdCampaign {
 		}
 
 		$dbw->begin();
-		$campaignId = AdCampaign::getCampaignId( $eCampaignName );
+		$campaignId = AdCampaign::getCampaignId( $campaignName );
 		$dbw->insert( 'pr_adlinks',
 			[
 				'ad_id'     => $adId,
@@ -506,8 +502,7 @@ class AdCampaign {
 	 */
 	static function getCampaignId( $campaignName ) {
 		$dbr = PRDatabase::getDb();
-		$eCampaignName = htmlspecialchars( $campaignName );
-		$row = $dbr->selectRow( 'pr_campaigns', 'cmp_id', [ 'cmp_name' => $eCampaignName ] );
+		$row = $dbr->selectRow( 'pr_campaigns', 'cmp_id', [ 'cmp_name' => $campaignName ] );
 		if ( $row ) {
 			return $row->cmp_id;
 		} else {
