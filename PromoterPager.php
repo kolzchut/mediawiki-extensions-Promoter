@@ -1,10 +1,6 @@
 <?php
 
 class PromoterPager extends AdPager {
-	private $viewPage, $special;
-	private $editable;
-	private $filter;
-
 	function __construct( $special, $filter = '' ) {
 		parent::__construct( $special, $filter );
 	}
