@@ -242,7 +242,7 @@ class SpecialPromoterAds extends Promoter {
 					}
 
 					if ( Ad::fromName( $this->adName )->exists() ) {
-						return wfMessage( 'promoter-ad-exists' )->text();
+						return wfMessage( 'promoter-ad-already-exists', $this->adName )->text();
 					} else {
 						$retval = Ad::addAd(
 							$this->adName,
@@ -302,7 +302,7 @@ class SpecialPromoterAds extends Promoter {
 		$out->addModules( 'ext.promoter.adminUi.adEditor' );
 
 		if ( !Ad::isValidAdName( $this->adName ) ) {
-			throw new ErrorPageError( 'campaignad', 'promoter-generic-error' );
+			throw new ErrorPageError( 'campaignad', 'promoter-ad-name-error' );
 		}
 		$out->setPageTitle( $this->adName );
 
@@ -336,8 +336,11 @@ class SpecialPromoterAds extends Promoter {
 
 	protected function generateAdEditForm() {
 		$ad = Ad::fromName( $this->adName );
-		$adSettings = $ad->getAdSettings();
-
+		try {
+			$adSettings = $ad->getAdSettings();
+		} catch ( MWException $e ) {
+			throw new ErrorPageError( 'promoter', 'promoter-ad-doesnt-exists', $this->adName );
+		}
 		$formDescriptor = [];
 
 		$formDescriptor['ad-active'] = [
@@ -588,7 +591,13 @@ class SpecialPromoterAds extends Promoter {
 					return null;
 				}
 				$newAdName = $formData[ 'cloneName' ];
-				Ad::fromName( $this->adName )->cloneAd( $newAdName, $this->getUser() );
+				try {
+					Ad::fromName( $this->adName )->cloneAd( $newAdName, $this->getUser() );
+				} catch ( AdExistenceException $e ) {
+					throw new ErrorPageError( 'promoter', 'promoter-ad-already-exists', $newAdName );
+				} catch ( AdDataException $e ) {
+					throw new ErrorPageError( 'promoter', 'promoter-ad-name-error' );
+				}
 				$this->getOutput()->redirect(
 					$this->getPageTitle( "Edit/$newAdName" )->getCanonicalURL()
 				);

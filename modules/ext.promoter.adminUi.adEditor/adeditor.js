@@ -51,7 +51,7 @@
 			dialogObj[0].name = 'addAdDialog';
 			dialogObj.append( $( '#pr-formsection-clone-ad' ).children( 'div' ).clone().show() )
 				.dialog( {
-					title: mw.message('promoter-clone-notice' ).text(),
+					title: mw.message('promoter-clone' ).text(),
 					modal: true,
 					buttons: buttons,
 					width: 'auto'

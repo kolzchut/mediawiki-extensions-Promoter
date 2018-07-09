@@ -128,7 +128,7 @@ class Ad {
 	 */
 	public static function fromName( $name ) {
 		if ( !Ad::isValidAdName( $name ) ) {
-			throw new AdDataException( "Invalid ad name supplied." );
+			throw new AdDataException( 'promoter-ad-name-error' );
 		}
 
 		$obj = new Ad();
@@ -146,7 +146,7 @@ class Ad {
 	 */
 	public static function newFromName( $name ) {
 		if ( !Ad::isValidAdName( $name ) ) {
-			throw new AdDataException( "Invalid ad name supplied." );
+			throw new AdDataException( 'promoter-ad-name-error' );
 		}
 
 		$obj = new Ad();
@@ -354,7 +354,7 @@ class Ad {
 		} elseif ( $this->id !== null ) {
 			$selector = [ 'ad_id' => $this->id ];
 		} else {
-			throw new AdDataException( 'Cannot retrieve ad data without name or ID.' );
+			throw new MWException( 'Cannot retrieve ad data without name or ID.' );
 		}
 
 		// Query!
@@ -397,7 +397,7 @@ class Ad {
 				$keystr[] = "{$key} = {$value}";
 			}
 			$keystr = implode( " AND ", $keystr );
-			throw new AdExistenceException( "No ad exists where {$keystr}. Could not load." );
+			throw new AdExistenceException( [ 'promoter-ad-doesnt-exists', $keystr ] );
 		}
 
 		// Set the dirty flag to not dirty because we just loaded clean data
@@ -505,7 +505,7 @@ class Ad {
 		$bodyPage = $this->getTitle();
 		$curRev = Revision::newFromTitle( $bodyPage );
 		if ( !$curRev ) {
-			throw new AdContentException( "No content for ad: {$this->name}" );
+			throw new MWException( "No content for ad: {$this->name}" );
 		}
 		$this->bodyContent = ContentHandler::getContentText( $curRev->getContent() );
 
@@ -626,12 +626,12 @@ class Ad {
 
 	public function cloneAd( $destination, $user ) {
 		if ( !$this->isValidAdName( $destination ) ) {
-			throw new AdDataException( "Ad name must be in format /^[A-Za-z0-9_]+$/" );
+			throw new AdDataException( 'promoter-ad-name-error' );
 		}
 
 		$destAd = Ad::newFromName( $destination );
 		if ( $destAd->exists() ) {
-			throw new AdExistenceException( "Ad by that name already exists!" );
+			throw new AdExistenceException( [ 'promoter-ad-already-exists', $destination ] );
 		}
 
 		$destAd->setAllocation( $this->allocateToAnon(), $this->allocateToUser() );
@@ -775,7 +775,7 @@ class Ad {
 		$name, $body, $caption, $mainlink, $user,
 		$displayAnon = true, $displayUser = true, $isActive = false
 	) {
-		if ( $name == '' || !Ad::isValidAdName( $name ) ) {
+		if ( !Ad::isValidAdName( $name ) ) {
 			return 'promoter-null-string';
 		}
 
@@ -842,6 +842,10 @@ class Ad {
 	static function isValidAdName( $name ) {
 		global $wgExperimentalHtmlIds;
 
+		if ( empty( $name ) ) {
+			return false;
+		}
+
 		$pattern = $wgExperimentalHtmlIds ? '/^[A-Za-zא-ת0-9_]+$/' : '/^[A-Za-z0-9_]+$/';
 
 		return preg_match( $pattern, $name );
@@ -851,7 +855,7 @@ class Ad {
 	 * Check to see if an ad actually exists in the database
 	 *
 	 * @return bool
-	 * @throws AdDataException If it's a silly query
+	 * @throws MWException If it's a silly query
 	 */
 	public function exists() {
 		$db = PRDatabase::getDb();
@@ -860,7 +864,7 @@ class Ad {
 		} elseif ( $this->id !== null ) {
 			$selector = [ 'ad_id' => $this->id ];
 		} else {
-			throw new AdDataException( 'Cannot determine ad existence without name or ID.' );
+			throw new MWException( 'Cannot determine ad existence without name or ID.' );
 		}
 		$row = $db->selectRow( 'pr_ads', 'ad_name', $selector );
 		if ( $row ) {
@@ -930,9 +934,7 @@ class Ad {
 	}
 }
 
-class AdDataException extends MWException {
-}
-class AdContentException extends AdDataException {
+class AdDataException extends LocalizedException {
 }
 class AdExistenceException extends AdDataException {
 }

@@ -81,7 +81,6 @@ class PromoterHooks {
 		$wgAutoloadClasses[ 'Promoter' ] = $specialDir . 'SpecialPromoter.php';
 		$wgAutoloadClasses[ 'Ad' ] = $includeDir . 'Ad.php';
 		$wgAutoloadClasses[ 'AdDataException' ] = $includeDir . 'Ad.php';
-		$wgAutoloadClasses[ 'AdContentException' ] = $includeDir . 'Ad.php';
 		$wgAutoloadClasses[ 'AdExistenceException' ] = $includeDir . 'Ad.php';
 		$wgAutoloadClasses[ 'AdMessage' ] = $includeDir . 'AdMessage.php';
 		$wgAutoloadClasses[ 'AdChooser' ] = $includeDir . 'AdChooser.php';

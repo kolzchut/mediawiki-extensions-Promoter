@@ -40,7 +40,9 @@
 	"promoter-filter-ad-header": "סינון פרסומות",
 	"promoter-filter-ad-prompt": "סינון פרסומות (למשל Jimmy 2008)",
 	"promoter-filter-ad-submit": "החלת מסנן",
-	"promoter-ad-already-exists": "הפרסומת כבר קשורה למסע פרסום.\nהתוספת לא תיעשה.",
+	"promoter-ad-already-linked": "הפרסומת כבר קשורה למסע פרסום.\nהתוספת לא תיעשה.",
+	"promoter-ad-already-exists": "הפרסומת $1 כבר קיימת.",
+	"promoter-ad-doesnt-exists": "הפרסומת $1 אינה קיימת.",
 	"promoter-add": "הוספה",
 
 	"promoter-all": "הכול",

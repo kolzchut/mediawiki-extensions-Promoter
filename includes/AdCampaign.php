@@ -413,7 +413,7 @@ class AdCampaign {
 		);
 
 		if ( $dbw->numRows( $res ) > 0 ) {
-			return 'promoter-ad-already-exists';
+			return 'promoter-ad-already-linked';
 		}
 
 		$dbw->begin();
