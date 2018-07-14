@@ -192,31 +192,31 @@
 			$( '#mw-htmlform-preview > div' ).empty().append( adPreviewDOM );
 		},
 		triggerAdChange: function () {
-			var url = $( '#mw-input-wpad-link' ).val();
-			var urlType = null;
-			var blogUrl = mw.discovery.config.blogUrl;
+			var url = $( '#mw-input-wpad-link' ).val(),
+				urlType = 'internal',
+				blogUrl = mw.discovery.config.blogUrl,
+				itemData,
+				adHTML;
 
 			if ( url.indexOf( blogUrl ) > -1 ) {
 				urlType = 'blog';
-			}
-			else if ( url.indexOf( 'www' ) === 0 || url.indexOf( 'http' ) === 0 ) {
+			} else if ( url.indexOf( 'www' ) === 0 || url.indexOf( 'http' ) === 0 ) {
 				url = '//' + url;
 				urlType = 'external';
-			}
-			else {
+			} else {
 				url = mw.util.getUrl( url );
 			}
 
-			var itemData = {
+			itemData = {
 				content: $( '#mw-input-wpad-body' ).val(),
 				url: url,
-				type: urlType,
+				urlType: urlType,
 				indicators: {
-					"new": Number( $( '#mw-input-wpad-tags-new' ).prop( 'checked' ) )
+					'new': Number( $( '#mw-input-wpad-tags-new' ).prop( 'checked' ) )
 				}
 			};
 
-			var adHTML = mw.discovery.buildDiscoveryItem( itemData );
+			adHTML = mw.discovery.buildDiscoveryItem( itemData );
 			adHTML.find( 'a' ).attr( 'target', '_blank' );
 
 			$( '.discovery > div' ).html( adHTML );
