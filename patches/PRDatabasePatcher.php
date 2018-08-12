@@ -17,7 +17,7 @@ class PRDatabasePatcher {
 	 * @param $updater DatabaseUpdater|null
 	 * @return bool
 	 */
-	public static function applydates( $updater = null ) {
+	public static function applyUpdates( $updater = null ) {
 		$base = __DIR__;
 
 		if ( $updater->getDB()->getType() == 'mysql' ) {
