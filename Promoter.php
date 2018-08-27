@@ -63,6 +63,4 @@ $wgGroupPermissions[ 'sysop' ][ 'promoter-admin' ] = true; // Only sysops can ma
 
 /* Hooks */
 $wgExtensionFunctions[] = 'PromoterHooks::efWikiRightsPromoterSetup';
-$wgHooks[ 'LoadExtensionSchemaUpdates' ][ ] = 'PRDatabasePatcher::applyUpdates';
-$wgHooks[ 'SkinTemplateNavigation::SpecialPage' ][ ] = [ 'Promoter::addNavigationTabs' ];
 

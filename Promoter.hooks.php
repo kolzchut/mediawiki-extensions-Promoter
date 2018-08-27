@@ -118,6 +118,8 @@ class PromoterHooks {
 		$wgHooks[ 'SkinHelenaSidebar::End' ][ ] = 'PromoterHooks::efPromoterDisplay';
 		$wgHooks['ParserFirstCallInit'][] = 'PromoterGallery::onParserFirstCallInit';
 		$wgHooks['ResourceLoaderGetConfigVars'][] = 'PromoterHooks::onResourceLoaderGetConfigVars';
+		$wgHooks[ 'LoadExtensionSchemaUpdates' ][ ] = 'PRDatabasePatcher::applyUpdates';
+		$wgHooks[ 'SkinTemplateNavigation::SpecialPage' ][ ] = [ 'Promoter::addNavigationTabs' ];
 
 		// Register special pages
 		$wgSpecialPages[ 'AdLoader' ] = 'SpecialAdLoader';
