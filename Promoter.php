@@ -17,7 +17,7 @@ $wgExtensionCredits[ 'other' ][] = [
 		'Dror S. [FFS] ([http://www.kolzchut.org.il Kol-Zchut])',
 		'based on [https://mediawiki.org/wiki/Extension:CentralNotice Extension:CentralNotice]'
 	],
-	'version'        => '2017-08-07',
+	'version'        => '2018-08-28',
 	'url'            => 'https://github.com/kolzchut/mediawiki-extensions-Promoter',
 	'descriptionmsg' => 'promoter-desc',
 	'license-name' => 'GPL-2.0+',
@@ -32,6 +32,8 @@ $wgPromoterTrackAds = [
 	'view' => true,
 	'click' => true
 ];
+
+$wgPromoterShowAds = true;
 
 // Name of the fallback campaign
 $wgPromoterFallbackCampaign = 'general';

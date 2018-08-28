@@ -141,8 +141,11 @@ class PromoterHooks {
 	 * @return bool
 	 */
 	static function efPromoterLoader( $out, $skin ) {
-		// Insert the ad controller
-		$out->addModules( 'ext.promoter.adController' );
+		global $wgPromoterShowAds;
+		if ( $wgPromoterShowAds === true ) {
+			// Insert the ad controller
+			$out->addModules( 'ext.promoter.adController' );
+		}
 		return true;
 	}
 
@@ -154,7 +157,10 @@ class PromoterHooks {
 	 * @return bool
 	 */
 	static function efPromoterDisplay( &$skin ) {
-		echo Html::element( 'li', [ 'id' => 'sidebar-promotion' ] );
+		global $wgPromoterShowAds;
+		if ( $wgPromoterShowAds === true ) {
+			echo Html::element( 'li', [ 'id' => 'sidebar-promotion' ] );
+		}
 		return true;
 	}
 }

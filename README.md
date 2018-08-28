@@ -1,6 +1,14 @@
 # Promoter - extension semi-documentation
 
+This extension is currently unstable; we have started changing it to be
+used with our extension Discovery, so that Promoter only handles creating
+campaigns and ads, but Discovery is in charge of display logic, etc.
+The plan is for the two extensions to merge eventually.
+
 ## Configuration
+- $wgPromoterShowAds - turn off the automatic showing of ads in the
+  sidebar. This is mainly useful when Promoter is used together with
+  extension:Discovery.
 - $wgPromoterFallbackCampaign - A non-existant campaign will fall backs
   to this default campaign. By default this is set to 'general'.
 - $wgPromoterTrackAds - disable view and/or click tracking. Possible
@@ -42,6 +50,9 @@ which tries to load all ads for the current page.
 
 
 ## Changelog
+- 2018-08-28
+  * Add configuration $wgPromoterShowAds
+  * Change the extension for use with extension:Discovery
 - 2017-08-07
   * Upgrade owl-carousel
 - 2016-02-29
