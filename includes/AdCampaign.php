@@ -273,7 +273,6 @@ class AdCampaign {
 		$dbr       = wfGetDB( DB_REPLICA );
 
 		$now = $dbr->timestamp();
-		$urls = '"' . implode( '","', $urls ) . '"';
 
 		$result = $dbr->select(
 			[
@@ -288,7 +287,7 @@ class AdCampaign {
 				'cmp.cmp_name'    => $campaigns,
 				'ads.ad_date_end > ' . $now . ' OR ads.ad_date_end IS NULL',
 				'ads.ad_date_start < ' . $now . ' OR ads.ad_date_start IS NULL',
-				'ads.ad_mainlink NOT IN ('. $urls .')'
+				'ads.ad_mainlink NOT IN ('. $dbr->makeList( $urls ) . ')'
 			],
 			__METHOD__,
 			[
