@@ -241,13 +241,34 @@ class AdCampaign {
 	}
 
 	/**
-	 * Get all the campaigns in the database
+	 * Get all the campaigns in the database, even disabled and archived campaigns
+	 * This is made available for b/c, and calls getCampaignNames() internally
 	 *
 	 * @return array an array of campaign names
 	 */
 	static function getAllCampaignNames() {
+		return self::getCampaignNames( false, true );
+	}
+
+	/**
+	 * Get campaign names from DB
+	 *
+	 * @param bool $enabled - get only enabled campaigns
+	 * @param bool $archived - get archived campaigns as well?
+	 *
+	 * @return array an array of campaign names
+	 */
+	static function getCampaignNames( $enabled = true, $archived = false ) {
 		$dbr = PRDatabase::getDb();
-		$res = $dbr->select( 'pr_campaigns', 'cmp_name', null, __METHOD__ );
+		$conds = [];
+		if ( $enabled === true ) {
+			$conds[ 'cmp_enabled'] = 1;
+		}
+		if ( $archived === false ) {
+			$conds[ 'cmp_archived'] = 0;
+		}
+
+		$res = $dbr->select( 'pr_campaigns', 'cmp_name', $conds, __METHOD__ );
 		$campaigns = [];
 		foreach ( $res as $row ) {
 			$campaigns[ ] = $row->cmp_name;
