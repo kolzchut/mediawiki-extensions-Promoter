@@ -4,7 +4,6 @@
  * This file is part of the Promoter Extension to MediaWiki
  * https://www.mediawiki.org/wiki/Extension:Promoter
  *
- * @section LICENSE
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -19,11 +18,12 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  * http://www.gnu.org/copyleft/gpl.html
- *
- * @file
  */
 ( function () {
-	var adManager = mw.promoter.adminUi.adManager = {
+
+	var am;
+
+	am = mw.promoter.adminUi.adManager = {
 		/**
 		 * State tracking variable for the number of items currently selected
 		 * @protected
@@ -38,6 +38,7 @@
 
 		/**
 		 * Display the 'Create Ad' dialog
+		 *
 		 * @return {boolean}
 		 */
 		doAddAdDialog: function () {
@@ -47,21 +48,28 @@
 				dialogObj = $( '<form></form>' );
 
 			// Implement the functionality
+			buttons[ cancelButtonText ] = function () {
+				$( this ).dialog( 'close' );
+			};
+
+			// We'll submit the real form (outside the dialog).
+			// Copy in values to that form before submitting.
 			buttons[ okButtonText ] = function () {
 				var formobj = $( '#pr-ad-manager' )[ 0 ];
 				formobj.wpaction.value = 'create';
 				formobj.wpnewAdName.value = $( this )[ 0 ].wpnewAdName.value;
+
+				formobj.wpnewAdEditSummary.value =
+					$( this )[ 0 ].wpnewAdEditSummary.value;
+
 				formobj.submit();
-			};
-			buttons[ cancelButtonText ] = function () {
-				$( this ).dialog( 'close' );
 			};
 
 			// Create the dialog by copying the textfield element into a new form
 			dialogObj[ 0 ].name = dialogObj[ 0 ].id = 'addAdDialog';
 			dialogObj.append( $( '#pr-formsection-addAd' ).children( 'div' ).clone().show() )
 				.dialog( {
-					title: mw.message( 'promoter-add-new-ad-title' ).text(),
+					title: mw.message( 'promoter-add-new-ad-title' ).escaped(),
 					modal: true,
 					buttons: buttons,
 					width: 400
@@ -76,30 +84,40 @@
 		 * the form with the 'remove' action.
 		 */
 		doRemoveAds: function () {
-			var dialogObj = $( '<div></div>' ),
+			var dialogObj = $( '<form></form>' ),
+				dialogMessage = $( '<div class="pr-dialog-message" />' ),
 				buttons = {},
 				deleteText = mw.message( 'promoter-delete-ad' ).text(),
 				cancelButtonText = mw.message( 'promoter-delete-ad-cancel' ).text();
 
+			// We'll submit the real form (outside the dialog).
+			// Copy in values to that form before submitting.
 			buttons[ deleteText ] = function () {
 				var formobj = $( '#pr-ad-manager' )[ 0 ];
 				formobj.wpaction.value = 'remove';
+
+				formobj.wpremoveAdEditSummary.value =
+					$( this )[ 0 ].wpremoveAdEditSummary.value;
+
 				formobj.submit();
 			};
 			buttons[ cancelButtonText ] = function () {
 				$( this ).dialog( 'close' );
 			};
 
-			dialogObj.text( mw.message( 'promoter-delete-ad-confirm' ).text() );
-			dialogObj.dialog( {
-				title: mw.message(
-					'promoter-delete-ad-title',
-					adManager.selectedItemCount
-				).text(),
-				resizable: false,
-				modal: true,
-				buttons: buttons
-			} );
+			dialogObj.append( dialogMessage );
+			dialogMessage.text( mw.message( 'promoter-delete-ad-confirm' ).text() );
+
+			dialogObj.append( $( '#pr-formsection-removeAd' ).children( 'div' ).clone().show() )
+				.dialog( {
+					title: mw.message(
+						'promoter-delete-ad-title',
+						am.selectedItemCount
+					).escaped(),
+					width: '35em',
+					modal: true,
+					buttons: buttons
+				} );
 		},
 
 		/**
@@ -124,8 +142,8 @@
 			dialogObj.dialog( {
 				title: mw.message(
 					'promoter-archive-ad-title',
-					adManager.selectedItemCount
-				).text(),
+					am.selectedItemCount
+				).escaped(),
 				resizable: false,
 				modal: true,
 				buttons: buttons
@@ -138,18 +156,17 @@
 		checkAllStateAltered: function () {
 			var checkBoxes = $( 'input.pr-adlist-check-applyto' );
 			if ( $( '#mw-input-wpselectAllAds' ).prop( 'checked' ) ) {
-				adManager.selectedItemCount =
-					adManager.totalSelectableItems;
+				am.selectedItemCount = am.totalSelectableItems;
 				checkBoxes.each( function () {
 					$( this ).prop( 'checked', true );
 				} );
 			} else {
-				adManager.selectedItemCount = 0;
+				am.selectedItemCount = 0;
 				checkBoxes.each( function () {
 					$( this ).prop( 'checked', false );
 				} );
 			}
-			adManager.checkedCountUpdated();
+			am.checkedCountUpdated();
 		},
 
 		/**
@@ -157,11 +174,11 @@
 		 */
 		selectCheckStateAltered: function () {
 			if ( $( this ).prop( 'checked' ) === true ) {
-				adManager.selectedItemCount++;
+				am.selectedItemCount++;
 			} else {
-				adManager.selectedItemCount--;
+				am.selectedItemCount--;
 			}
-			adManager.checkedCountUpdated();
+			am.checkedCountUpdated();
 		},
 
 		/**
@@ -171,14 +188,12 @@
 			var selectAllCheck = $( '#mw-input-wpselectAllAds' ),
 				deleteButton = $( ' #mw-input-wpdeleteSelectedAds' );
 
-			if ( adManager.selectedItemCount ===
-				adManager.totalSelectableItems
-			) {
+			if ( am.selectedItemCount === am.totalSelectableItems ) {
 				// Everything selected
 				selectAllCheck.prop( 'checked', true );
 				selectAllCheck.prop( 'indeterminate', false );
 				deleteButton.prop( 'disabled', false );
-			} else if ( adManager.selectedItemCount === 0 ) {
+			} else if ( am.selectedItemCount === 0 ) {
 				// Nothing selected
 				selectAllCheck.prop( 'checked', false );
 				selectAllCheck.prop( 'indeterminate', false );
@@ -189,21 +204,66 @@
 				selectAllCheck.prop( 'indeterminate', true );
 				deleteButton.prop( 'disabled', false );
 			}
+		},
+
+		/**
+		 * Reload the page with a URL query for the requested ad name
+		 * filter (or lack thereof).
+		 */
+		applyFilter: function () {
+			var newUri, filterStr;
+
+			filterStr = $( '#mw-input-wpadNameFilter' ).val();
+			newUri = new mw.Uri();
+
+			// If there's a filter, reload with a filter query param.
+			// If there's no filter, reload with no such param.
+			if ( filterStr.length > 0 ) {
+				filterStr = am.sanitizeFilterStr( filterStr );
+				newUri.extend( { filter: filterStr } );
+			} else {
+				delete newUri.query.filter;
+			}
+
+			location.replace( newUri.toString() );
+		},
+
+		/**
+		 * Filter text box keypress handler; applies the filter when enter is
+		 * pressed.
+		 */
+		filterTextBoxKeypress: function ( e ) {
+			if ( e.which === 13 ) {
+				am.applyFilter();
+				return false;
+			}
+		},
+
+		/**
+		 * Remove characters not allowed in ad names. See server-side
+		 * Ad::isValidAdName() and
+		 * SpecialPromoter::sanitizeSearchTerms().
+		 */
+		sanitizeFilterStr: function ( $origFilterStr ) {
+			return $origFilterStr.replace( /[^0-9a-zA-Zא-ת_-]/g, '' );
 		}
 	};
 
 	// Attach event handlers
-	$( '#mw-input-wpaddNewAd' ).click( adManager.doAddAdDialog );
-	$( '#mw-input-wpdeleteSelectedAds' ).click( adManager.doRemoveAds );
-	$( '#mw-input-wparchiveSelectedAds' ).click( adManager.doArchiveAds );
-	$( '#mw-input-wpselectAllAds' ).click( adManager.checkAllStateAltered );
+	$( '#mw-input-wpaddNewAd' ).click( am.doAddAdDialog );
+	$( '#mw-input-wpdeleteSelectedAds' ).click( am.doRemoveAds );
+	$( '#mw-input-wparchiveSelectedAds' ).click( am.doArchiveAds );
+	$( '#mw-input-wpselectAllAds' ).click( am.checkAllStateAltered );
+	$( '#mw-input-wpfilterApply' ).click( am.applyFilter );
+	$( '#mw-input-wpadNameFilter' ).keypress( am.filterTextBoxKeypress );
+
 	$( 'input.pr-adlist-check-applyto' ).each( function () {
-		$( this ).click( adManager.selectCheckStateAltered );
-		adManager.totalSelectableItems++;
+		$( this ).click( am.selectCheckStateAltered );
+		am.totalSelectableItems++;
 	} );
 
 	// Some initial display work
-	adManager.checkAllStateAltered();
+	am.checkAllStateAltered();
 	$( '#pr-js-error-warn' ).hide();
 
 }() );

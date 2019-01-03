@@ -53,10 +53,12 @@
 #mw-htmlform-ad-search .mw-htmlform-field-HTMLSubmitField {
 	float: right;
 }
+
 #mw-htmlform-ad-search .mw-htmlform-field-HTMLTextField {
 	float: left;
 }
-#mw-input-wpadNameLike {
+
+#mw-input-wpadNameFilter {
 	width: 17em;
 }
 

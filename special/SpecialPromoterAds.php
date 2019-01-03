@@ -24,14 +24,7 @@ class SpecialPromoterAds extends Promoter {
 		// Make sure we have a session
 		$this->getRequest()->getSession()->persist();
 
-		// Load things that may have been serialized into the session
-		$this->adFilterString = $this->getPRSessionVar( 'adFilterString', '' );
-
 		$this->allCampaigns = AdCampaign::getAllCampaignNames();
-	}
-
-	function __destruct() {
-		$this->setPRSessionVar( 'adFilterString', $this->adFilterString );
 	}
 
 	/**
@@ -136,7 +129,7 @@ class SpecialPromoterAds extends Promoter {
 	protected function generateAdListForm( $filter = '' ) {
 		// --- Create the ad search form --- //
 		$formDescriptor = [
-			'adNameLike' => [
+			'adNameFilter' => [
 				'section' => 'header/ad-search',
 				'class' => 'HTMLTextField',
 				// 'cssclass' => 'form-control',
@@ -144,7 +137,7 @@ class SpecialPromoterAds extends Promoter {
 				'filter-callback' => [ $this, 'sanitizeSearchTerms' ],
 				'default' => $filter,
 			],
-			'filterSubmit' => [
+			'filterApply' => [
 				'section' => 'header/ad-search',
 				'class' => 'HTMLSubmitField',
 				// 'cssclass' => 'btn',
@@ -228,7 +221,7 @@ class SpecialPromoterAds extends Promoter {
 	 * @throws MWException
 	 */
 	public function processAdList( $formData ) {
-		$this->adFilterString = $formData[ 'adNameLike' ];
+		$this->setFilterFromUrl();
 
 		if ( $formData[ 'action' ] && $this->editable ) {
 			switch ( strtolower( $formData[ 'action' ] ) ) {
@@ -561,6 +554,24 @@ class SpecialPromoterAds extends Promoter {
 		];
 
 		return $formDescriptor;
+	}
+
+	/**
+	 * Use a URL parameter to set the filter string for the banner list.
+	 */
+	protected function setFilterFromUrl() {
+		// This is the normal param on visible URLs.
+		$filterParam = $this->getRequest()->getVal( 'filter', null );
+		// If the form was posted the filter parameter'll have a different name.
+		if ( $filterParam === null ) {
+			$filterParam =
+				$this->getRequest()->getVal( 'wpadNameFilter', null );
+		}
+		// Clean, clean...
+		if ( $filterParam !== null ) {
+			$this->adFilterString
+				= static::sanitizeSearchTerms( $filterParam );
+		}
 	}
 
 	public function processEditAd( $formData ) {
