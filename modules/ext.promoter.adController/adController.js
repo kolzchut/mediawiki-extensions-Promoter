@@ -22,12 +22,9 @@
  *
  * @file
  */
-/* jshint jquery:true */
-/* global mediaWiki */
-( function ( $, mw ) {
-	'use strict';
-
-	var rPlus = /\+/g;
+( function () {
+	var rPlus = /\+/g,
+		adController;
 	function decode( s ) {
 		try {
 			// decodeURIComponent can throw an exception for unknown char encodings.
@@ -38,7 +35,7 @@
 	}
 
 	mw.promoter = mw.promoter || {};
-	var adController = mw.promoter.adController = {
+	adController = mw.promoter.adController = {
 		/**
 		 * Promoter Required Data
 		 */
@@ -93,38 +90,38 @@
 				debug: adController.data.getVars.debug
 			};
 
-			$.ajax({
+			$.ajax( {
 				url: mw.config.get( 'wgScriptPath' ) + '?' + $.param( adPageQuery ),
 				dataType: 'script',
 				cache: true
-			});
+			} );
 		},
 		loadRandomAd: function () {
-			var wgCategories = mw.config.get( 'wgCategories' );
-			var wrMainCategory = ( wgCategories.length > 1 ) ? wgCategories['1'] : null;
-			var adDispatchQuery = {
-				anonymous: mw.config.get( 'wgUserName' ) === null,
-				campaign: wrMainCategory,
-				debug: adController.data.getVars.debug
-			};
-			var scriptUrl = mw.config.get( 'wgPromoterAdDispatcher' ) + '?' + $.param( adDispatchQuery );
+			var wgCategories = mw.config.get( 'wgCategories' ),
+				wrMainCategory = ( wgCategories.length > 1 ) ? wgCategories[ '1' ] : null,
+				adDispatchQuery = {
+					anonymous: mw.config.get( 'wgUserName' ) === null,
+					campaign: wrMainCategory,
+					debug: adController.data.getVars.debug
+				},
+				scriptUrl = mw.config.get( 'wgPromoterAdDispatcher' ) + '?' + $.param( adDispatchQuery );
 
-			$.ajax({
+			$.ajax( {
 				url: scriptUrl,
 				dataType: 'script',
 				cache: true
-			});
+			} );
 		},
-		insertAd: function( adJson ) {
+		insertAd: function ( adJson ) {
 			if ( adJson ) {
 				// Ok, we have an ad!
 				// All conditions fulfilled, inject the ad
 				adController.adData.adName = adJson.adName;
 				$( adController.containerElement ).prepend( adJson.adHtml );
 
-				if(
-					adController.data.testing !== true
-					&& !adController.data.getVars.ad
+				if (
+					adController.data.testing !== true &&
+					!adController.data.getVars.ad
 				) {
 					// not a forced preview of a specific ad, send analytics hit
 					adController.trackAd( adJson.adName, adJson.campaign );
@@ -132,38 +129,38 @@
 				adController.adShown = true;
 			}
 		},
-		trackAd: function( adName, campaign ) {
-			if( mw.loader.getState( 'ext.googleUniversalAnalytics.utils' ) === null ) {
+		trackAd: function ( adName, campaign ) {
+			if ( mw.loader.getState( 'ext.googleUniversalAnalytics.utils' ) === null ) {
 				return;
 			}
-			mw.loader.using( 'ext.googleUniversalAnalytics.utils' ).then( function() {
-				if (adController.config.trackAdViews) {
+			mw.loader.using( 'ext.googleUniversalAnalytics.utils' ).then( function () {
+				if ( adController.config.trackAdViews ) {
 					// Send view hit
-					mw.googleAnalytics.utils.recordEvent({
+					mw.googleAnalytics.utils.recordEvent( {
 						eventCategory: 'ad-impressions',
 						eventAction: campaign,
 						eventLabel: adName,
 						nonInteraction: true
-					});
+					} );
 				}
 
-				if (adController.config.trackAdClicks) {
+				if ( adController.config.trackAdClicks ) {
 					// And bind another event to a possible click...
-					$(adController.containerElement).find('.mainlink > a, a.caption').click(function (e) {
-						mw.googleAnalytics.utils.recordClickEvent(e, {
+					$( adController.containerElement ).find( '.mainlink > a, a.caption' ).click( function ( e ) {
+						mw.googleAnalytics.utils.recordClickEvent( e, {
 							eventCategory: 'ad-clicks',
 							eventAction: campaign,
 							eventLabel: adName,
 							nonInteraction: false
-						});
-					});
+						} );
+					} );
 				}
-			});
+			} );
 		},
 
 		loadQueryStringVariables: function () {
 			document.location.search.replace( /\??(?:([^=]+)=([^&]*)&?)/g, function ( str, p1, p2 ) {
-				adController.data.getVars[decode( p1 )] = decode( p2 );
+				adController.data.getVars[ decode( p1 ) ] = decode( p2 );
 			} );
 		},
 		initialize: function () {
@@ -174,12 +171,12 @@
 			adController.isInitialized = true;
 
 			// Load configuration that comes from PHP side
-			adController.config = mw.config.get('wgPromoter');
+			adController.config = mw.config.get( 'wgPromoter' );
 
 			// === Attempt to load parameters from the query string ===
 			adController.loadQueryStringVariables();
 
-			adController.isPreviewFrame = (mw.config.get( 'wgCanonicalSpecialPageName' ) === 'AdPreview');
+			adController.isPreviewFrame = ( mw.config.get( 'wgCanonicalSpecialPageName' ) === 'AdPreview' );
 
 			// === Do not actually load a ad on a special page ===
 			//     But we keep this after the above initialization for Promoter pages
@@ -189,7 +186,7 @@
 			}
 
 			// === Do not load ads on main page for now (special case) ===
-			if ( mw.config.get( 'wgIsMainPage') === true ) {
+			if ( mw.config.get( 'wgIsMainPage' ) === true ) {
 				mw.log( 'No ads on main page' );
 				return;
 			}
@@ -200,15 +197,15 @@
 
 			// === Final prep to loading ad ===
 			// Add the Promoter div so that insert ad has something to latch on to.
-			//$( '#sidebar-promotion' ).prepend();
+			// $( '#sidebar-promotion' ).prepend();
 
 			adController.loadAd();
 		}
 	};
 
 	// Initialize Promoter
-	$( function() {
+	$( function () {
 		adController.initialize();
-	});
+	} );
 
-} )( jQuery, mediaWiki );
+}() );

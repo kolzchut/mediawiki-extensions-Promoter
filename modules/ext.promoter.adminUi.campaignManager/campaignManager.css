@@ -25,8 +25,8 @@
 
 .pr-formsection-emphasis {
 	padding: 0.5em;
-	background-color: #FFFFFF;
-	border: 1px solid #2F6FAB;
+	background-color: #fff;
+	border: 1px solid #2f6fab;
 }
 
 .pr-buttons {
@@ -34,7 +34,7 @@
 }
 
 .pr-active-campaign {
-	background-color: #ddffdd;
+	background-color: #dfd;
 }
 
 #pr-preferences .ui-slider {

@@ -7,7 +7,7 @@
  *
  * @file
  * @ingroup Extensions
- * @license GNU General Public Licence 2.0 or later
+ * @license GPL-2.0-or-later
  */
 
 $wgExtensionCredits[ 'other' ][] = [
@@ -61,8 +61,8 @@ $wgExtensionMessagesFiles[ 'PromoterAliases' ] = __DIR__ . '/Promoter.alias.php'
 
 // Register user rights
 $wgAvailableRights[] = 'promoter-admin';
-$wgGroupPermissions[ 'sysop' ][ 'promoter-admin' ] = true; // Only sysops can make changes
+// Only sysops can make changes
+$wgGroupPermissions[ 'sysop' ][ 'promoter-admin' ] = true;
 
 /* Hooks */
 $wgExtensionFunctions[] = 'PromoterHooks::efWikiRightsPromoterSetup';
-

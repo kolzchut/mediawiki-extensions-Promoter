@@ -22,20 +22,20 @@
  *
  * @file
  */
-( function ( $ ) {
+( function () {
 	var RAND_MAX = 30,
-		step_size = 100 / RAND_MAX;
+		STEP_SIZE = 100 / RAND_MAX;
 	$( '#promoter-throttle-amount' ).slider( {
-		range: "min",
+		range: 'min',
 		min: 0,
 		max: 100,
-		value: $( "#promoter-throttle-cur" ).val(),
-		step: step_size,
-		slide: function( event, element ) {
+		value: $( '#promoter-throttle-cur' ).val(),
+		step: STEP_SIZE,
+		slide: function ( event, element ) {
 			var val = Number( element.value ),
 				rounded = Math.round( val * 10 ) / 10;
-			$( "#promoter-throttle-echo" ).html( String( rounded ) + "%" );
-			$( "#promoter-throttle-cur" ).val( val );
+			$( '#promoter-throttle-echo' ).html( String( rounded ) + '%' );
+			$( '#promoter-throttle-cur' ).val( val );
 		}
 	} );
 
@@ -57,14 +57,14 @@
 	}
 	$( '#balanced' ).click( updateWeightColumn );
 
-	$( '#promoter-showarchived' ).click( function() {
+	$( '#promoter-showarchived' ).click( function () {
 		if ( $( this ).prop( 'checked' ) === true ) {
 			$( '.pr-archived-item' ).show();
 		} else {
 			$( '.pr-archived-item' ).hide();
 		}
-	});
+	} );
 
 	updateThrottle();
 	updateWeightColumn();
-} )( jQuery );
+}() );

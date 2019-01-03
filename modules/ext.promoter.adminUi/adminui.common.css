@@ -1,7 +1,7 @@
 #pr-js-error-warn {
 	padding: 0.5em;
-	background-color: #FFCCCC;
-	border: 2px solid #FF0000;
+	background-color: #fcc;
+	border: 2px solid #f00;
 	margin-bottom: 0.5em;
 	font-weight: bold;
 	text-align: center;
@@ -13,16 +13,16 @@
 	padding: 0;
 }
 
-
 div.separate-form-element {
 	margin: 0.5em 0;
 }
 
 fieldset#pr-formsection-form-actions {
 	padding: 0.5em;
-	background-color: #F9F9F9;
-	border: 1px solid #2F6FAB;
+	background-color: #f9f9f9;
+	border: 1px solid #2f6fab;
 }
+
 .pr-formbutton {
 	clear: none;
 	float: right;
@@ -33,18 +33,22 @@ fieldset#pr-formsection-form-actions {
 #mw-htmlform-ad-list {
 	margin-left: 0.9em;
 }
+
 .pr-ad-list-element {
 	margin: 0.25em 0 0.5em 0.25em;
 }
+
 .pr-ad-preview-div {
-	border: 1px solid #A7D7F9;
+	border: 1px solid #a7d7f9;
 	padding: 1em;
 	margin-top: 0.5em;
 }
+
 #mw-htmlform-ad-list .mw-htmlform-field-HTMLCheckField {
 	display: inline-block;
 	float: left;
 }
+
 #mw-htmlform-ad-list .mw-label {
 	display: none;
 }

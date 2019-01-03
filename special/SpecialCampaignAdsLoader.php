@@ -41,7 +41,7 @@ class SpecialCampaignAdsLoader extends UnlistedSpecialPage {
 			} else {
 				$html = '<div id="adPreview clearfix">';
 				foreach ( $renderedAds as $ad ) {
-					$html .= '<div class="col-sm-4">' .$ad . '</div>';
+					$html .= '<div class="col-sm-4">' . $ad . '</div>';
 				}
 				$html .= '</div>';
 			}
@@ -104,7 +104,7 @@ class SpecialCampaignAdsLoader extends UnlistedSpecialPage {
 	 * @internal param string $adName
 	 * @return string of Javascript containing a call to insertAd()
 	 *   with JSON containing the ad content as the parameter
-	 * @throw SpecialAdLoaderException
+	 * @throws SpecialAdLoaderException
 	 */
 	public function getJsData( Ad &$ad ) {
 		$adHtml = $ad->renderHtml();
@@ -127,4 +127,3 @@ class SpecialCampaignAdsLoader extends UnlistedSpecialPage {
 		return $adJs;
 	}
 }
-

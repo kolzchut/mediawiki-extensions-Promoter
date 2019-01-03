@@ -1,11 +1,11 @@
 @import "mediawiki.mixins";
 
 /* Copied verbatim from Helena/variables.less */
-@color-blue: #4C728A;
-@color-blue-bg-darker: #E4EBEF;
-@color-blue-lighter: #427DA4;
+@color-blue: #4c728a;
+@color-blue-bg-darker: #e4ebef;
+@color-blue-lighter: #427da4;
 @link-color-blue: @color-blue-lighter;
-@link-hover-color-blue: darken(@link-color-blue, 15%);
+@link-hover-color-blue: darken( @link-color-blue, 15% );
 /* /Copied */
 
 @gallery-border: lighten( @color-blue, 25% );
@@ -14,16 +14,16 @@
 	text-decoration: none !important;
 	color: @link-color-blue;
 
+	& + a {
+		margin-left: 10px;
+	}
+
 	&:hover,
 	&:focus,
 	&:active,
 	&.active {
 		color: @link-hover-color-blue !important;
 	}
-}
-
-.gallery-controls a + a {
-	margin-left: 10px;
 }
 
 .promotion-gallery {
@@ -38,6 +38,7 @@
 		font-size: 19px;
 		color: @color-blue;
 	}
+
 	.owl-carousel {
 		background-color: @color-blue-bg-darker;
 		padding: 10px;
@@ -71,10 +72,10 @@
 			& > .caption {
 				font-size: 16px;
 			}
+
 			& > .icon {
 				display: none;
 			}
 		}
 	}
 }
-

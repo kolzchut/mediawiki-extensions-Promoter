@@ -76,7 +76,6 @@ class AdPager extends ReverseChronologicalPager {
 	 * @throws AdDataException
 	 */
 	function formatRow( $row ) {
-
 		// Begin ad row
 		$htmlOut = Xml::openElement( 'tr' );
 

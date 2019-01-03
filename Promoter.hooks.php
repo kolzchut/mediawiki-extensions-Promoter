@@ -31,7 +31,7 @@ class PromoterHooks {
 	 * ResourceLoaderGetConfigVars hook handler
 	 * Send php config vars to js via ResourceLoader
 	 *
-	 * @param &$vars : variables to be added to the output of the startup module
+	 * @param array &$vars : variables to be added to the output of the startup module
 	 *
 	 * @return bool
 	 * @throws MWException
@@ -68,9 +68,9 @@ class PromoterHooks {
 	/**
 	 * Load all the classes, register special pages, etc. Called through wgExtensionFunctions.
 	 */
-	static function efWikiRightsPromoterSetup() {
+	public static function efWikiRightsPromoterSetup() {
 		global $wgHooks, $wgAutoloadClasses, $wgSpecialPages,
-		       $wgSpecialPageGroups;
+			   $wgSpecialPageGroups;
 
 		$dir = __DIR__ . '/';
 		$specialDir = $dir . 'special/';
@@ -127,20 +127,20 @@ class PromoterHooks {
 		$wgSpecialPages[ 'CampaignAdsLoader' ] = 'SpecialCampaignAdsLoader';
 
 		$wgSpecialPages[ 'Promoter' ] = 'Promoter';
-		$wgSpecialPageGroups[ 'Promoter' ] = 'wiki'; // Wiki data and tools
+		// Wiki data and tools
+		$wgSpecialPageGroups[ 'Promoter' ] = 'wiki';
 		$wgSpecialPages[ 'PromoterAds'] = 'SpecialPromoterAds';
-
 	}
 
 	/**
 	 * BeforePageDisplay hook handler
 	 * This function adds the banner controller
 	 *
-	 * @param $out  OutputPage
-	 * @param $skin Skin
+	 * @param OutputPage $out
+	 * @param Skin $skin
 	 * @return bool
 	 */
-	static function efPromoterLoader( $out, $skin ) {
+	public static function efPromoterLoader( $out, $skin ) {
 		global $wgPromoterShowAds;
 		if ( $wgPromoterShowAds === true ) {
 			// Insert the ad controller
@@ -153,10 +153,10 @@ class PromoterHooks {
 	 * SkinHelenaSidebar::End hook handler
 	 * This function outputs the ad wrapper div.
 	 *
-	 * @param $skin
+	 * @param Skin &$skin
 	 * @return bool
 	 */
-	static function efPromoterDisplay( &$skin ) {
+	public static function efPromoterDisplay( &$skin ) {
 		global $wgPromoterShowAds;
 		if ( $wgPromoterShowAds === true ) {
 			echo Html::element( 'li', [ 'id' => 'sidebar-promotion' ] );
@@ -164,7 +164,3 @@ class PromoterHooks {
 		return true;
 	}
 }
-
-
-
-

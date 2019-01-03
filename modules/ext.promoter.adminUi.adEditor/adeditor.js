@@ -23,39 +23,38 @@
  *
  * @file
  */
-/* jshint jquery:true */
-/* global mediaWiki */
-( function ( $, mw ) {
-	"use strict";
+( function () {
 	mw.promoter.adminUi.adEditor = {
 		/**
 		 * Display the 'Create Ad' dialog
-		 * @returns {boolean}
+		 * @return {boolean}
 		 */
-		doCloneAdDialog: function() {
+		doCloneAdDialog: function () {
 			var buttons = {},
-				okButtonText = mw.message('promoter-clone').text(),
-				cancelButtonText = mw.message('promoter-clone-cancel').text(),
-				dialogObj = $('<form></form>');
+				okButtonText = mw.message( 'promoter-clone' ).text(),
+				cancelButtonText = mw.message( 'promoter-clone-cancel' ).text(),
+				dialogObj = $( '<form></form>' );
 
 			// Implement the functionality
-			buttons[ cancelButtonText ] = function() { $(this).dialog("close"); };
-			buttons[ okButtonText ] = function() {
-				var formobj = $('#pr-ad-editor')[0];
+			buttons[ cancelButtonText ] = function () {
+				$( this ).dialog( 'close' );
+			};
+			buttons[ okButtonText ] = function () {
+				var formobj = $( '#pr-ad-editor' )[ 0 ];
 				formobj.wpaction.value = 'clone';
-				formobj.wpcloneName.value = $(this)[0].wpcloneName.value;
+				formobj.wpcloneName.value = $( this )[ 0 ].wpcloneName.value;
 				formobj.submit();
 			};
 
 			// Create the dialog by copying the textfield element into a new form
-			dialogObj[0].name = 'addAdDialog';
+			dialogObj[ 0 ].name = 'addAdDialog';
 			dialogObj.append( $( '#pr-formsection-clone-ad' ).children( 'div' ).clone().show() )
 				.dialog( {
-					title: mw.message('promoter-clone' ).text(),
+					title: mw.message( 'promoter-clone' ).text(),
 					modal: true,
 					buttons: buttons,
 					width: 'auto'
-				});
+				} );
 
 			// Do not submit the form... that's up to the ok button
 			return false;
@@ -63,11 +62,11 @@
 
 		/**
 		 * Validates the contents of the ad body before submission.
-		 * @returns {boolean}
+		 * @return {boolean}
 		 */
-		doSaveAd: function() {
+		doSaveAd: function () {
 			if ( $( '#mw-input-wpad-body' ).prop( 'value' ).indexOf( 'document.write' ) > -1 ) {
-				window.alert( mediaWiki.msg( 'promoter-documentwrite-error' ) );
+				OO.ui.alert( mw.msg( 'promoter-documentwrite-error' ) );
 			} else {
 				return true;
 			}
@@ -78,58 +77,62 @@
 		 * Asks the user if they actually wish to delete the selected ads and if yes will submit
 		 * the form with the 'remove' action.
 		 */
-		doDeleteAd: function() {
+		doDeleteAd: function () {
 			var dialogObj = $( '<div></div>' ),
 				buttons = {},
 				deleteText = mw.message( 'promoter-delete-ad' ).text(),
-				cancelButtonText = mw.message('promoter-delete-ad-cancel').text();
+				cancelButtonText = mw.message( 'promoter-delete-ad-cancel' ).text();
 
-			buttons[ deleteText ] = function() {
-				var formobj = $('#pr-ad-editor')[0];
+			buttons[ deleteText ] = function () {
+				var formobj = $( '#pr-ad-editor' )[ 0 ];
 				formobj.wpaction.value = 'delete';
 				formobj.submit();
 			};
-			buttons[ cancelButtonText ] = function() {  $( this ).dialog( "close" ); };
+			buttons[ cancelButtonText ] = function () {
+				$( this ).dialog( 'close' );
+			};
 
 			dialogObj.text( mw.message( 'promoter-delete-ad-confirm' ).text() );
-			dialogObj.dialog({
+			dialogObj.dialog( {
 				title: mw.message( 'promoter-delete-ad-title', 1 ).text(),
 				resizable: false,
 				modal: true,
 				buttons: buttons
-			});
+			} );
 		},
 
 		/**
 		 * Submits the form with the archive action.
 		 */
-		doArchiveAd: function() {
+		doArchiveAd: function () {
 			var dialogObj = $( '<div></div>' ),
 				buttons = {},
 				archiveText = mw.message( 'promoter-archive-ad' ).text(),
-				cancelButtonText = mw.message('promoter-archive-ad-cancel').text();
+				cancelButtonText = mw.message( 'promoter-archive-ad-cancel' ).text();
 
-			buttons[ archiveText ] = function() {
-				var formobj = $('#pr-ad-editor')[0];
+			buttons[ archiveText ] = function () {
+				var formobj = $( '#pr-ad-editor' )[ 0 ];
 				formobj.wpaction.value = 'archive';
 				formobj.submit();
 			};
-			buttons[ cancelButtonText ] = function() {  $( this ).dialog( "close" ); };
+			buttons[ cancelButtonText ] = function () {
+				$( this ).dialog( 'close' );
+			};
 
 			dialogObj.text( mw.message( 'promoter-archive-ad-confirm' ).text() );
-			dialogObj.dialog({
+			dialogObj.dialog( {
 				title: mw.message( 'promoter-archive-ad-title', 1 ).text(),
 				resizable: false,
 				modal: true,
 				buttons: buttons
-			});
+			} );
 		},
 
 		/**
 		 * Shows or hides the landing pages edit box control based on the status of
 		 * the "Automatically create landing page link" check box.
 		 */
-		showHideLpEditBox: function() {
+		showHideLpEditBox: function () {
 			if ( $( '#mw-input-wpcreate-landingpage-link' ).prop( 'checked' ) ) {
 				$( '#mw-input-wplanding-pages' ).parent().parent().show();
 			} else {
@@ -141,8 +144,8 @@
 		 * Hook function from onclick of the translate language drop down -- will submit the
 		 * form in order to update the language of the preview and the displayed translations.
 		 */
-		updateLanguage: function() {
-			var formobj = $('#pr-ad-editor')[0];
+		updateLanguage: function () {
+			var formobj = $( '#pr-ad-editor' )[ 0 ];
 			formobj.wpaction.value = 'update-lang';
 			formobj.submit();
 		},
@@ -151,31 +154,35 @@
 		 * Legacy insert close button code. Happens on link click above the edit area
 		 * TODO: Make this jQuery friendly...
 		 *
-		 * @param buttonType
+		 * @param {string} buttonType
 		 */
-		insertButton: function( buttonType ) {
-			var buttonValue, sel;
-			var adField = document.getElementById( 'mw-input-wpad-body' );
+		insertButton: function ( buttonType ) {
+			var buttonValue,
+				sel,
+				adField = document.getElementById( 'mw-input-wpad-body' ),
+				startPos,
+				endPos;
+
 			if ( buttonType === 'close' ) {
-				buttonValue = '<a href="#" title="'
-					+ mediaWiki.msg( 'promoter-close-title' )
-					+ '" onclick="mw.promoter.hideAd();return false;">'
-					+ '<img border="0" src="' + mediaWiki.config.get( 'wgNoticeCloseButton' )
-					+ '" alt="' + mediaWiki.msg( 'promoter-close-title' )
-					+ '" /></a>';
+				buttonValue = '<a href="#" title="' +
+					mw.msg( 'promoter-close-title' ) +
+					'" onclick="mw.promoter.hideAd();return false;">' +
+					'<img border="0" src="' + mw.config.get( 'wgNoticeCloseButton' ) +
+					'" alt="' + mw.msg( 'promoter-close-title' ) +
+					'" /></a>';
 			}
 			if ( document.selection ) {
 				// IE support
 				adField.focus();
 				sel = document.selection.createRange();
 				sel.text = buttonValue;
-			} else if ( adField.selectionStart || adField.selectionStart == '0' ) {
+			} else if ( adField.selectionStart || adField.selectionStart === '0' ) {
 				// Mozilla support
-				var startPos = adField.selectionStart;
-				var endPos = adField.selectionEnd;
-				adField.value = adField.value.substring(0, startPos)
-					+ buttonValue
-					+ adField.value.substring(endPos, adField.value.length);
+				startPos = adField.selectionStart;
+				endPos = adField.selectionEnd;
+				adField.value = adField.value.substring( 0, startPos ) +
+					buttonValue +
+					adField.value.substring( endPos, adField.value.length );
 			} else {
 				adField.value += buttonValue;
 			}
@@ -226,16 +233,16 @@
 		},
 		updateCharCount: function () {
 			var maxChars = mw.discovery.MAX_CHARS,
-				currentCharCount = $( '#mw-input-wpad-body' ).val().length;
+				currentCharCount = $( '#mw-input-wpad-body' ).val().length,
+				$charCounter = $( '.char-counter' );
 
 			if ( currentCharCount > maxChars ) {
-				$( '.char-counter' ).addClass( 'red' );
-			}
-			else {
-				$( '.char-counter' ).removeClass( 'red' );
+				$charCounter.addClass( 'red' );
+			} else {
+				$charCounter.removeClass( 'red' );
 			}
 
-			$( '.char-counter' ).text( currentCharCount + '/' + maxChars );
+			$charCounter.text( currentCharCount + '/' + maxChars );
 		}
 	};
 
@@ -248,15 +255,15 @@
 	$( '#mw-input-wpcreate-landingpage-link' ).change( mw.promoter.adminUi.adEditor.showHideLpEditBox );
 
 	$( '#mw-input-wpad-tags-new' ).change( mw.promoter.adminUi.adEditor.triggerAdChange );
-    	$( '#mw-input-wpad-body, #mw-input-wpad-link' ).keyup( mw.promoter.adminUi.adEditor.triggerAdChange );
-    	$( '#mw-input-wpad-body' ).keyup( mw.promoter.adminUi.adEditor.updateCharCount )
+	$( '#mw-input-wpad-body, #mw-input-wpad-link' ).keyup( mw.promoter.adminUi.adEditor.triggerAdChange );
+	$( '#mw-input-wpad-body' ).keyup( mw.promoter.adminUi.adEditor.updateCharCount );
 
 	// And do some initial form work
 	mw.promoter.adminUi.adEditor.showHideLpEditBox();
 	mw.promoter.adminUi.adEditor.createAdPreview();
 	mw.promoter.adminUi.adEditor.triggerAdChange();
-    	mw.promoter.adminUi.adEditor.createCharCounter();
-    	mw.promoter.adminUi.adEditor.updateCharCount();
+	mw.promoter.adminUi.adEditor.createCharCounter();
+	mw.promoter.adminUi.adEditor.updateCharCount();
 	$( '#pr-js-error-warn' ).hide();
 
-} ( jQuery, mediaWiki ));
+}() );

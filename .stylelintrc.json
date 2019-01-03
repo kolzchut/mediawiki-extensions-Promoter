@@ -1,0 +1,7 @@
+{
+	"extends": "stylelint-config-wikimedia",
+	"rules": {
+		"selector-max-id": 2
+	},
+	"ignoreFiles": "modules/jquery.owl-carousel/**"
+}

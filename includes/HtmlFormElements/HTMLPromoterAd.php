@@ -88,14 +88,14 @@ class HTMLPromoterAd extends HTMLInfoField {
 		$html = Xml::openElement(
 			'div',
 			[
-				 'id' =>  Sanitizer::escapeId( "pr-ad-list-element-{$this->mParams['ad']}" ),
+				 'id' => Sanitizer::escapeId( "pr-ad-list-element-{$this->mParams['ad']}" ),
 				 'class' => "pr-ad-list-element",
 			]
 		);
 
 		// Make the label; this consists of a text link to the ad editor, and a series of status icons
 		if ( array_key_exists( 'withlabel', $this->mParams ) ) {
-			$adName =  $this->mParams['ad'];
+			$adName = $this->mParams['ad'];
 			$html .= Xml::openElement( 'div', [ 'class' => 'pr-ad-list-element-label' ] );
 			$html .= Linker::link(
 				SpecialPage::getTitleFor( 'PromoterAds', "edit/$adName" ),

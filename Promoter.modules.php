@@ -73,7 +73,8 @@ $wgResourceModules[ 'ext.promoter.adminUi.adEditor' ] = [
 	'remoteExtPath' => $promoterRemoteExtPath,
 	'dependencies' => [
 		'ext.promoter.adminUi',
-		'jquery.ui.dialog'
+		'jquery.ui.dialog',
+		'oojs-ui-windows'
 	],
 	'scripts'       => 'ext.promoter.adminUi.adEditor/adeditor.js',
 	'styles'        => 'ext.promoter.adminUi.adEditor/adeditor.css',

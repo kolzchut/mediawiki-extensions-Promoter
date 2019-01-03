@@ -95,7 +95,7 @@ class SpecialAdLoader extends UnlistedSpecialPage {
 	 * @internal param string $adName
 	 * @return string of Javascript containing a call to insertAd()
 	 *   with JSON containing the ad content as the parameter
-	 * @throw SpecialAdLoaderException
+	 * @throws SpecialAdLoaderException
 	 */
 	public function getJsData( Ad &$ad ) {
 		$adHtml = $ad->renderHtml();

@@ -53,7 +53,7 @@ class Ad {
 	];
 
 	// !!! NOTE !!! It is not recommended to use directly. It is almost always more
-	//              correct to use the accessor/setter function.
+	// correct to use the accessor/setter function.
 
 	/** @var int Unique database identifier key. */
 	protected $id = null;
@@ -127,7 +127,7 @@ class Ad {
 	 * @throws AdDataException
 	 */
 	public static function fromName( $name ) {
-		if ( !Ad::isValidAdName( $name ) ) {
+		if ( !self::isValidAdName( $name ) ) {
 			throw new AdDataException( 'promoter-ad-name-error' );
 		}
 
@@ -145,7 +145,7 @@ class Ad {
 	 * @throws AdDataException
 	 */
 	public static function newFromName( $name ) {
-		if ( !Ad::isValidAdName( $name ) ) {
+		if ( !self::isValidAdName( $name ) ) {
 			throw new AdDataException( 'promoter-ad-name-error' );
 		}
 
@@ -517,7 +517,6 @@ class Ad {
 	}
 
 	protected function saveBodyContent() {
-
 		if ( $this->dirtyFlags['content'] ) {
 			$wikiPage = new WikiPage( $this->getTitle() );
 
@@ -629,7 +628,7 @@ class Ad {
 			throw new AdDataException( 'promoter-ad-name-error' );
 		}
 
-		$destAd = Ad::newFromName( $destination );
+		$destAd = self::newFromName( $destination );
 		if ( $destAd->exists() ) {
 			throw new AdExistenceException( [ 'promoter-ad-already-exists', $destination ] );
 		}
@@ -651,11 +650,11 @@ class Ad {
 		if ( $user === null ) {
 			$user = $wgUser;
 		}
-		Ad::removeAd( $this->getName(), $user );
+		self::removeAd( $this->getName(), $user );
 	}
 
 	static function removeAd( $name, $user ) {
-		$adObj = Ad::fromName( $name );
+		$adObj = self::fromName( $name );
 		$id = $adObj->getId();
 		$dbr = PRDatabase::getDb();
 		$res = $dbr->select( 'pr_adlinks', 'adl_id', [ 'ad_id' => $id ], __METHOD__ );
@@ -719,7 +718,7 @@ class Ad {
 	 * @throws AdDataException
 	 */
 	static function getHistoricalAd( $name, $ts ) {
-		$id = Ad::fromName( $name )->getId();
+		$id = self::fromName( $name )->getId();
 
 		$dbr = PRDatabase::getDb();
 
@@ -750,8 +749,8 @@ class Ad {
 			],
 			__METHOD__
 		);
-		$ad['display_anon'] = (int) $row->display_anon;
-		$ad['display_account'] = (int) $row->display_account;
+		$ad['display_anon'] = (int)$row->display_anon;
+		$ad['display_account'] = (int)$row->display_account;
 
 		return $ad;
 	}
@@ -775,11 +774,11 @@ class Ad {
 		$name, $body, $caption, $mainlink, $user,
 		$displayAnon = true, $displayUser = true, $isActive = false
 	) {
-		if ( !Ad::isValidAdName( $name ) ) {
+		if ( !self::isValidAdName( $name ) ) {
 			return 'promoter-null-string';
 		}
 
-		$ad = Ad::newFromName( $name );
+		$ad = self::newFromName( $name );
 		if ( $ad->exists() ) {
 			return 'promoter-ad-exists';
 		}
@@ -805,7 +804,7 @@ class Ad {
 	function logAdChange( $action, $user, $beginSettings = [] ) {
 		$endSettings = [];
 		if ( $action !== 'removed' ) {
-			$endSettings = Ad::getAdSettings( $this->getName(), true );
+			$endSettings = self::getAdSettings( $this->getName(), true );
 		}
 
 		$dbw = PRDatabase::getDb();
@@ -816,7 +815,7 @@ class Ad {
 			'adlog_action'        => $action,
 			'adlog_ad_id'   => $this->getId(),
 			'adlog_ad_name' => $this->getName(),
-			'adlog_content_change'=> (int)$this->dirtyFlags['content'],
+			'adlog_content_change' => (int)$this->dirtyFlags['content'],
 		];
 
 		foreach ( $endSettings as $key => $value ) {
@@ -899,13 +898,13 @@ class Ad {
 					);
 				}
 
-		 	$adHtml .= HTML::closeElement( 'div' );
-		 	$adHtml .= HTML::rawElement( 'div', [ 'class' => 'content' ], $adBody );
-		 	if ( $adMainLink ) {
+			$adHtml .= HTML::closeElement( 'div' );
+			$adHtml .= HTML::rawElement( 'div', [ 'class' => 'content' ], $adBody );
+			if ( $adMainLink ) {
 				$adHtml .= HTML::openElement( 'div', [ 'class' => 'mainlink' ] );
 				$adHtml .= HTML::element( 'a', [ 'href' => $adMainLink ], 'לפרטים נוספים...' );
 				$adHtml .= HTML::closeElement( 'div' );
-			 }
+			}
 		$adHtml .= HTML::closeElement( 'div' );
 
 		 return $adHtml;
@@ -922,7 +921,7 @@ class Ad {
 	// @TODO do a join with pr_campaign instead of getting campaign names one by one
 	function getLinkedCampaignNames() {
 		$campaignNames = [];
-		$dbr = wfGetDB( DB_SLAVE );
+		$dbr = wfGetDB( DB_REPLICA );
 		$res = $dbr->select( 'pr_adlinks', 'cmp_id',
 			[ 'ad_id' => $this->getId() ]
 		);

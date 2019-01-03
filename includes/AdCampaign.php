@@ -308,7 +308,7 @@ class AdCampaign {
 				'cmp.cmp_name'    => $campaigns,
 				'ads.ad_date_end > ' . $now . ' OR ads.ad_date_end IS NULL',
 				'ads.ad_date_start < ' . $now . ' OR ads.ad_date_start IS NULL',
-				'ads.ad_mainlink NOT IN ('. $dbr->makeList( $urls ) . ')'
+				'ads.ad_mainlink NOT IN (' . $dbr->makeList( $urls ) . ')'
 			],
 			__METHOD__,
 			[
@@ -342,7 +342,7 @@ class AdCampaign {
 	// static function addCampaign( $campaignName, $catPageId = 0, $enabled, $user ) {
 	static function addCampaign( $campaignName, $enabled, $user ) {
 		$campaignName = trim( $campaignName );
-		if ( AdCampaign::campaignExists( $campaignName ) ) {
+		if ( self::campaignExists( $campaignName ) ) {
 			return 'promoter-campaign-exists';
 		}
 
@@ -397,14 +397,14 @@ class AdCampaign {
 			return 'promoter-remove-campaign-doesnt-exist';
 		}
 
-		AdCampaign::removeCampaignByName( $campaignName, $user );
+		self::removeCampaignByName( $campaignName, $user );
 
 		return true;
 	}
 
 	private static function removeCampaignByName( $campaignName, $user ) {
 		// Log the removal of the campaign
-		$campaignId = AdCampaign::getCampaignId( $campaignName );
+		$campaignId = self::getCampaignId( $campaignName );
 		// Campaign::logCampaignChange( 'removed', $campaignId, $user );
 
 		$dbw = PRDatabase::getDb();
@@ -423,7 +423,7 @@ class AdCampaign {
 	 */
 	static function addAdTo( $campaignName, $adName, $weight ) {
 		$dbw = PRDatabase::getDb();
-		$campaignId = AdCampaign::getCampaignId( $campaignName );
+		$campaignId = self::getCampaignId( $campaignName );
 		$adId = Ad::fromName( $adName )->getId();
 		$res = $dbw->select( 'pr_adlinks', 'adl_id',
 			[
@@ -437,7 +437,7 @@ class AdCampaign {
 		}
 
 		$dbw->begin();
-		$campaignId = AdCampaign::getCampaignId( $campaignName );
+		$campaignId = self::getCampaignId( $campaignName );
 		$dbw->insert( 'pr_adlinks',
 			[
 				'ad_id'     => $adId,
@@ -456,7 +456,7 @@ class AdCampaign {
 	static function removeAdFor( $campaignName, $adName ) {
 		$dbw = PRDatabase::getDb();
 		$dbw->begin();
-		$campaignId = AdCampaign::getCampaignId( $campaignName );
+		$campaignId = self::getCampaignId( $campaignName );
 		$adId = Ad::fromName( $adName )->getId();
 		$dbw->delete( 'pr_adlinks', [ 'ad_id' => $adId, 'cmp_id' => $campaignId ] );
 		$dbw->commit();
@@ -552,7 +552,7 @@ class AdCampaign {
 	 * @param $settingValue int: Value to use for the setting, 0 or 1
 	 */
 	static function setBooleanCampaignSetting( $campaignName, $settingName, $settingValue ) {
-		if ( !AdCampaign::campaignExists( $campaignName ) ) {
+		if ( !self::campaignExists( $campaignName ) ) {
 			// Exit quietly since campaign may have been deleted at the same time.
 			return;
 		} else {
@@ -594,14 +594,14 @@ class AdCampaign {
 			$settingValue = $min;
 		}
 
-		if ( !AdCampaign::campaignExists( $campaignName ) ) {
+		if ( !self::campaignExists( $campaignName ) ) {
 			// Exit quietly since campaign may have been deleted at the same time.
 			return;
 		} else {
 			$settingName = strtolower( $settingName );
 			$dbw = PRDatabase::getDb();
 			$dbw->update( 'pr_campaigns',
-				[ 'cmp_'.$settingName => $settingValue ],
+				[ 'cmp_' . $settingName => $settingValue ],
 				[ 'cmp_name' => $campaignName ]
 			);
 		}
@@ -616,7 +616,7 @@ class AdCampaign {
 	 */
 	static function updateWeight( $campaignName, $adId, $weight ) {
 		$dbw = PRDatabase::getDb();
-		$campaignId = AdCampaign::getCampaignId( $campaignName );
+		$campaignId = self::getCampaignId( $campaignName );
 		$dbw->update( 'pr_adlinks',
 			[ 'adl_weight' => $weight ],
 			[
@@ -630,4 +630,3 @@ class AdCampaign {
 
 class AdCampaignExistenceException extends MWException {
 }
-

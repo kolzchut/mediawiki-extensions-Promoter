@@ -51,7 +51,6 @@ class AdChooser {
 		*/
 
 		$this->allocate();
-
 	}
 
 	/**
@@ -72,7 +71,6 @@ class AdChooser {
 				return $ad;
 			}
 		}
-
 	}
 
 	/**
@@ -94,7 +92,7 @@ class AdChooser {
 	protected function filterAdsOnColumn( $key, $value ) {
 		$this->ads = array_filter(
 			$this->ads,
-			function( $ad ) use ( $key, $value ) {
+			function ( $ad ) use ( $key, $value ) {
 				return ( $ad[$key] === $value );
 			}
 		);
@@ -128,8 +126,8 @@ class NoFallbackCampaign extends MWException {
 	function __construct() {
 		global $wgPromoterFallbackCampaign;
 		$this->message = get_called_class() .
-		                 ": No campaign was found, not even the fallback '" .
-		                 $wgPromoterFallbackCampaign ."' campaign";
+						 ": No campaign was found, not even the fallback '" .
+						 $wgPromoterFallbackCampaign . "' campaign";
 	}
 }
 
@@ -137,7 +135,6 @@ class FallbackCampaignDisabled extends MWException {
 	function __construct() {
 		global $wgPromoterFallbackCampaign;
 		$this->message = get_called_class() . ": The fallback campaign, '" .
-		                 $wgPromoterFallbackCampaign .",' is disabled";
+						 $wgPromoterFallbackCampaign . ",' is disabled";
 	}
 }
-

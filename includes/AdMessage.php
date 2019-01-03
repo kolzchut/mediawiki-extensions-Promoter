@@ -28,7 +28,7 @@ class AdMessage {
 	 * Add or update message contents
 	 */
 	function update( $translation, $user ) {
-		$savePage = function( $title, $text ) {
+		$savePage = function ( $title, $text ) {
 			$wikiPage = new WikiPage( $title );
 			$content = ContentHandler::makeContent( $text, $title );
 			$result = $wikiPage->doEditContent( $content, '/* PR admin */', EDIT_FORCE_BOT );
@@ -37,7 +37,6 @@ class AdMessage {
 		};
 
 		$savePage( $this->getTitle(), $translation );
-
 	}
 
 	/**
@@ -49,7 +48,7 @@ class AdMessage {
 	 * because those messages are set via the PR UI; not the translate UI.
 	 *
 	 * @param WikiPage $page Page containing the message to protect
-	 * @param User     $user User doing the protection (ie: the last one to edit the page)
+	 * @param User $user User doing the protection (ie: the last one to edit the page)
 	 */
 	protected function protectMessageInPrNamespaces( $page, $user ) {
 		global $wgPromoterProtectGroup;

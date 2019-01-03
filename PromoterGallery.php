@@ -15,7 +15,7 @@ class PromoterGallery {
 	 *  wikitext into html, or parser methods.
 	 * @param PPFrame $frame : unsed
 	 *
-	 * @return string: HTML to insert in the page.
+	 * @return string HTML to insert in the page.
 	 */
 	public static function renderGallery( $input, array $args, Parser $parser, PPFrame $frame ) {
 		$parser->getOutput()->addModules( 'ext.promoter.gallery' );
@@ -38,9 +38,9 @@ class PromoterGallery {
 		}
 
 		$html = '<div class="promotion-gallery hidden hidden-print">'
-	        . '<h5 class="sr-only">זוהי גלריה המקדמת ערכים שונים באתר.</h5>'
+			. '<h5 class="sr-only">זוהי גלריה המקדמת ערכים שונים באתר.</h5>'
 			. '<div class="gallery-controls">'
-		        . '<span class="sr-only">בכל רגע מוצגות 3 ידיעות בגלריה. ניתן להציג ידיעה נוספת או לחזור לאחור באמצעות הכפתורים הבאים, או באמצעות מקשי החיצים כאשר הפוקוס הוא על הגלריה</span>'
+				. '<span class="sr-only">בכל רגע מוצגות 3 ידיעות בגלריה. ניתן להציג ידיעה נוספת או לחזור לאחור באמצעות הכפתורים הבאים, או באמצעות מקשי החיצים כאשר הפוקוס הוא על הגלריה</span>'
 				. '<a href="#" class="owl-prev"><span class="fa fa-chevron-right fa-lg" title="הקודם"></span><span class="sr-only">הצגת הידיעה הקודמת</span></a>'
 				. '<a href="#" class="owl-next"><span class="fa fa-chevron-left fa-lg" title="הבא"></span><span class="sr-only">הצגת הידיעה הבאה</span></a>'
 			. '</div>';
@@ -54,6 +54,5 @@ class PromoterGallery {
 			. '</div>';
 
 		return $html;
-
 	}
 }

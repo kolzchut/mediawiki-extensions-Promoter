@@ -32,19 +32,22 @@ form#pr-ad-editor .mw-input.mw-htmlform-nolabel {
 	font-weight: bold;
 	margin-left: 0;
 }
+
 form#pr-ad-editor .mw-input {
 	/* Everything else */
 	margin-left: 1em;
 }
 
 form#pr-ad-editor textarea {
-	width: auto; // Override default style of 100%
+	/* Override default style of 100% */
+	width: auto;
 }
 
 #pr-formsection-clone-ad {
 	border: none;
 	display: none;
 }
+
 #pr-formsection-clone-ad legend {
 	display: none;
 }
@@ -55,14 +58,20 @@ form#pr-ad-editor textarea {
 	font-size: 1em;
 	width: 100%;
 }
-.pr-message-text-origin, .pr-message-text-native, .pr-message-text-origin-header, .pr-message-text-native-header {
+
+.pr-message-text-origin,
+.pr-message-text-native,
+.pr-message-text-origin-header,
+.pr-message-text-native-header {
 	width: 50%;
 	vertical-align: top;
 }
+
 .pr-message-text-origin {
 	padding: 0;
 	margin: 0;
 }
+
 .pr-message-text-native {
 	padding: 0;
 	margin: 0.2em;

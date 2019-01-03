@@ -65,7 +65,7 @@ class SpecialPromoterAds extends Promoter {
 
 		// Now figure out wth to display
 		$parts = explode( '/', $page );
-		$action = ( isset( $parts[0] ) && $parts[0] ) ? $parts[0]: 'list';
+		$action = ( isset( $parts[0] ) && $parts[0] ) ? $parts[0] : 'list';
 
 		switch ( strtolower( $action ) ) {
 			case 'list':
@@ -629,11 +629,9 @@ class SpecialPromoterAds extends Promoter {
 		}
 
 		return null;
-
 	}
 
 	protected function processSaveAdAction( $formData ) {
-
 		$startDate = null;
 		$endDate = null;
 
@@ -663,11 +661,11 @@ class SpecialPromoterAds extends Promoter {
 		$campaignsToAddTo = array_diff( $campaignsToAddTo, $linkedCampaigns );
 
 		// Get campaign IDs
-		$campaignsToAddTo = array_map( function( $campaign ) {
+		$campaignsToAddTo = array_map( function ( $campaign ) {
 			return AdCampaign::getCampaignId( $campaign );
 		}, $campaignsToAddTo );
 
-		$campaignsToRemoveFrom = array_map( function( $campaign ) {
+		$campaignsToRemoveFrom = array_map( function ( $campaign ) {
 			return AdCampaign::getCampaignId( $campaign );
 		}, $campaignsToRemoveFrom );
 

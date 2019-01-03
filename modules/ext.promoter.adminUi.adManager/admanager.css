@@ -31,6 +31,7 @@
 	margin: 0;
 	padding: 0;
 }
+
 #pr-ad-manager legend {
 	display: none;
 }
@@ -43,8 +44,8 @@
 /* General header */
 #pr-ad-manager #pr-formsection-header {
 	padding: 0.5em;
-	background-color: #F9F9F9;
-	border: 1px solid #2F6FAB;
+	background-color: #f9f9f9;
+	border: 1px solid #2f6fab;
 }
 
 /* Style the search sub form */
@@ -63,6 +64,7 @@
 #pr-formsection-header-ad-bulk-manage {
 	float: left;
 }
+
 #pr-formsection-header-ad-bulk-manage div {
 	display: inline;
 }
@@ -82,6 +84,7 @@ fieldset #pr-formsection-header-one-off {
 #pr-formsection-addAd {
 	display: none;
 }
+
 .ui-dialog-content legend {
 	display: none;
 }

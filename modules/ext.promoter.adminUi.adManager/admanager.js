@@ -22,10 +22,7 @@
  *
  * @file
  */
-/* jshint jquery:true */
-/* global mediaWiki */
-( function ( $, mw ) {
-	'use strict';
+( function () {
 	var adManager = mw.promoter.adminUi.adManager = {
 		/**
 		 * State tracking variable for the number of items currently selected
@@ -41,33 +38,34 @@
 
 		/**
 		 * Display the 'Create Ad' dialog
-		 * @returns {boolean}
+		 * @return {boolean}
 		 */
-		doAddAdDialog: function() {
+		doAddAdDialog: function () {
 			var buttons = {},
-				okButtonText = mw.message('promoter-add-ad-button').text(),
-				cancelButtonText = mw.message('promoter-add-ad-cancel-button').text(),
-				dialogObj = $('<form></form>');
+				okButtonText = mw.message( 'promoter-add-ad-button' ).text(),
+				cancelButtonText = mw.message( 'promoter-add-ad-cancel-button' ).text(),
+				dialogObj = $( '<form></form>' );
 
 			// Implement the functionality
-			buttons[ okButtonText ] = function() {
-				var formobj = $('#pr-ad-manager')[0];
+			buttons[ okButtonText ] = function () {
+				var formobj = $( '#pr-ad-manager' )[ 0 ];
 				formobj.wpaction.value = 'create';
-				formobj.wpnewAdName.value = $(this)[0].wpnewAdName.value;
+				formobj.wpnewAdName.value = $( this )[ 0 ].wpnewAdName.value;
 				formobj.submit();
 			};
-			buttons[ cancelButtonText ] = function() { $(this).dialog('close'); };
-
+			buttons[ cancelButtonText ] = function () {
+				$( this ).dialog( 'close' );
+			};
 
 			// Create the dialog by copying the textfield element into a new form
-			dialogObj[0].name = dialogObj[0].id = 'addAdDialog';
+			dialogObj[ 0 ].name = dialogObj[ 0 ].id = 'addAdDialog';
 			dialogObj.append( $( '#pr-formsection-addAd' ).children( 'div' ).clone().show() )
 				.dialog( {
 					title: mw.message( 'promoter-add-new-ad-title' ).text(),
 					modal: true,
 					buttons: buttons,
 					width: 400
-				});
+				} );
 
 			// Do not submit the form... that's up to the ok button
 			return false;
@@ -77,21 +75,23 @@
 		 * Asks the user if they actually wish to delete the selected ads and if yes will submit
 		 * the form with the 'remove' action.
 		 */
-		doRemoveAds: function() {
+		doRemoveAds: function () {
 			var dialogObj = $( '<div></div>' ),
 				buttons = {},
 				deleteText = mw.message( 'promoter-delete-ad' ).text(),
 				cancelButtonText = mw.message( 'promoter-delete-ad-cancel' ).text();
 
-			buttons[ deleteText ] = function() {
-				var formobj = $( '#pr-ad-manager' )[0];
+			buttons[ deleteText ] = function () {
+				var formobj = $( '#pr-ad-manager' )[ 0 ];
 				formobj.wpaction.value = 'remove';
 				formobj.submit();
 			};
-			buttons[ cancelButtonText ] = function() {  $( this ).dialog( 'close' ); };
+			buttons[ cancelButtonText ] = function () {
+				$( this ).dialog( 'close' );
+			};
 
 			dialogObj.text( mw.message( 'promoter-delete-ad-confirm' ).text() );
-			dialogObj.dialog({
+			dialogObj.dialog( {
 				title: mw.message(
 					'promoter-delete-ad-title',
 					adManager.selectedItemCount
@@ -99,27 +99,29 @@
 				resizable: false,
 				modal: true,
 				buttons: buttons
-			});
+			} );
 		},
 
 		/**
 		 * Submits the form with the archive action.
 		 */
-		doArchiveAds: function() {
+		doArchiveAds: function () {
 			var dialogObj = $( '<div></div>' ),
 				buttons = {},
 				archiveText = mw.message( 'promoter-archive-ad' ).text(),
-				cancelButtonText = mw.message('promoter-archive-ad-cancel').text();
+				cancelButtonText = mw.message( 'promoter-archive-ad-cancel' ).text();
 
-			buttons[ archiveText ] = function() {
-				var formobj = $('#pr-ad-manager')[0];
+			buttons[ archiveText ] = function () {
+				var formobj = $( '#pr-ad-manager' )[ 0 ];
 				formobj.wpaction.value = 'archive';
 				formobj.submit();
 			};
-			buttons[ cancelButtonText ] = function() {  $( this ).dialog( 'close' ); };
+			buttons[ cancelButtonText ] = function () {
+				$( this ).dialog( 'close' );
+			};
 
 			dialogObj.text( mw.message( 'promoter-archive-ad-confirm' ).text() );
-			dialogObj.dialog({
+			dialogObj.dialog( {
 				title: mw.message(
 					'promoter-archive-ad-title',
 					adManager.selectedItemCount
@@ -127,21 +129,25 @@
 				resizable: false,
 				modal: true,
 				buttons: buttons
-			});
+			} );
 		},
 
 		/**
 		 * Updates all the ad check boxes when the 'checkAll' check box is clicked
 		 */
-		checkAllStateAltered: function() {
+		checkAllStateAltered: function () {
 			var checkBoxes = $( 'input.pr-adlist-check-applyto' );
 			if ( $( '#mw-input-wpselectAllAds' ).prop( 'checked' ) ) {
 				adManager.selectedItemCount =
 					adManager.totalSelectableItems;
-				checkBoxes.each( function() { $( this ).prop( 'checked', true ); } );
+				checkBoxes.each( function () {
+					$( this ).prop( 'checked', true );
+				} );
 			} else {
 				adManager.selectedItemCount = 0;
-				checkBoxes.each( function() { $( this ).prop( 'checked', false ); } );
+				checkBoxes.each( function () {
+					$( this ).prop( 'checked', false );
+				} );
 			}
 			adManager.checkedCountUpdated();
 		},
@@ -149,7 +155,7 @@
 		/**
 		 * Updates the 'checkAll' check box if any of the ad check boxes are checked
 		 */
-		selectCheckStateAltered: function() {
+		selectCheckStateAltered: function () {
 			if ( $( this ).prop( 'checked' ) === true ) {
 				adManager.selectedItemCount++;
 			} else {
@@ -163,7 +169,7 @@
 		 */
 		checkedCountUpdated: function () {
 			var selectAllCheck = $( '#mw-input-wpselectAllAds' ),
-				deleteButton = $(' #mw-input-wpdeleteSelectedAds' );
+				deleteButton = $( ' #mw-input-wpdeleteSelectedAds' );
 
 			if ( adManager.selectedItemCount ===
 				adManager.totalSelectableItems
@@ -191,7 +197,7 @@
 	$( '#mw-input-wpdeleteSelectedAds' ).click( adManager.doRemoveAds );
 	$( '#mw-input-wparchiveSelectedAds' ).click( adManager.doArchiveAds );
 	$( '#mw-input-wpselectAllAds' ).click( adManager.checkAllStateAltered );
-	$( 'input.pr-adlist-check-applyto' ).each( function() {
+	$( 'input.pr-adlist-check-applyto' ).each( function () {
 		$( this ).click( adManager.selectCheckStateAltered );
 		adManager.totalSelectableItems++;
 	} );
@@ -200,4 +206,4 @@
 	adManager.checkAllStateAltered();
 	$( '#pr-js-error-warn' ).hide();
 
-} )( jQuery, mediaWiki );
+}() );

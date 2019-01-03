@@ -17,49 +17,62 @@
 }
 
 #pr-preferences fieldset.prefsection {
-	margin:0;
+	margin: 0;
 	padding: 1em;
 	border-top: 1px solid;
 }
+
 #pr-preferences fieldset.prefsection:first-child {
-	border-top: none;
+	border-top: 0;
 }
+
 #pr-preferences fieldset.prefsection h2 {
-	border:none;
+	border: 0;
 }
+
 #pr-preferences div.pr-pager {
-	margin:1em 0;
+	margin: 1em 0;
 }
+
 #pr-preferences div.pr-error {
-	color:#AA0000;
-	margin:1em;
+	color: #a00;
+	margin: 1em;
 }
+
 #pr-preferences fieldset.prefsection div.pr-error {
-	margin:0;
+	margin: 0;
 }
+
 #pr-preferences table#envpicker {
 	margin-bottom: 1em;
 }
+
 #pr-preferences table#envpicker td {
-	white-space:nowrap;
+	white-space: nowrap;
 }
+
 #pr-preferences .pr-date-column {
-	white-space:nowrap;
+	white-space: nowrap;
 }
+
 #pr-preferences td.pr-timepicker {
 	text-align: left; /* To ensure RTL flipping */
 }
+
 #pr-preferences input#clone {
-	margin-left:0.25em;
+	margin-left: 0.25em;
 }
+
 #pr-preferences fieldset.prefsection fieldset.pr-adpreview {
 	border: 1px solid;
 	margin-top: 0;
 }
+
 #pr-preferences div#fundraisingInterface {
-	margin-left:1.6em;
-	margin-right:1.6em;
+	margin-left: 1.6em;
+	margin-right: 1.6em;
 }
+
 #pr-preferences div#pr-log-filters-container {
 	margin: 1em 0;
 }
@@ -70,43 +83,53 @@
 }
 */
 
-
 #pr-preferences div#pr-log-filters table td {
 	padding: 0.5em;
 }
+
 #pr-preferences table#pr-campaign-logs td.primary {
 	white-space: nowrap;
-	background-color: #F0F0F0;
+	background-color: #f0f0f0;
 }
+
 #pr-preferences .pr-new-value {
 	color: #006400;
 }
+
 #pr-preferences .pr-old-value {
-	color: #8B0000;
+	color: #8b0000;
 }
+
 #pr-preferences .pr-log-label {
 	font-weight: bold;
 }
+
 #pr-preferences .pr-filter-buttons {
 	margin-right: 0.5em;
 }
+
 #pr-preferences #pr-log-switcher label {
 	margin-right: 1em;
 }
+
 #pr-preferences #pr-template-searchbox {
-    border: 1px solid #CCCCCC;
-    line-height: 1.5em;
-    margin: 1em 0;
-    padding: 0 1em 1em;
-    display: block;
+	border: 1px solid #ccc;
+	line-height: 1.5em;
+	margin: 1em 0;
+	padding: 0 1em 1em;
+	display: block;
 }
+
 #pr-preferences #pr-template-searchbox legend {
-    font-size: 95%;
-    color: black;
+	font-size: 95%;
+	color: #000;
 }
-#pr-preferences #pr-template-searchbox label,input {
-    margin-right: 0.25em;
+
+#pr-preferences #pr-template-searchbox label,
+#pr-preferences #pr-template-searchbox input {
+	margin-right: 0.25em;
 }
+
 #pr-preferences a.pr-ad-title {
 	font-size: large;
 	margin-top: 1em;
@@ -117,7 +140,7 @@
 	/* Leaving room for the background image. */
 	padding-left: 17px !important;
 	/* @embed */
-	background: url('down-arrow-ltr.png') no-repeat scroll left center transparent;
+	background: url( 'down-arrow-ltr.png' ) no-repeat scroll left center transparent;
 }
 
 .select-hint {
@@ -125,7 +148,7 @@
 	/* Leaving room for the background image. */
 	padding-left: 17px !important;
 	/* @embed */
-	background: url('up-arrow-ltr.png') no-repeat scroll left top transparent;
+	background: url( 'up-arrow-ltr.png' ) no-repeat scroll left top transparent;
 }
 
 select.pr-multiselect {
@@ -135,40 +158,38 @@ select.pr-multiselect {
 
 /* Vector-specific definitions */
 body.skin-vector #pr-preferences fieldset.prefsection {
-	border-color:#CCCCCC;
+	border-color: #ccc;
 }
+
 body.skin-vector #pr-preferences fieldset.prefsection fieldset.pr-adpreview {
-	border-color:#CCCCCC;
+	border-color: #ccc;
 }
 
 /* Monobook-specific definitions */
 body.skin-monobook #pr-preferences fieldset.prefsection {
-	border-color:#AAAAAA;
+	border-color: #aaa;
 }
 
 /* For HTMLForm generated forms */
 form .error {
-	color: #000000;
+	color: #000;
 	margin: 0 0 0.5em 0;
 	padding: 0.5em;
-	background-color: #FFCCCC;
-	border: 2px solid #FF0000;
+	background-color: #fcc;
+	border: 2px solid #f00;
 }
 
 /* Ad preview override rules */
 .discovery-wrapper {
-    margin: 30px 0 0 0;
+	margin: 30px 0 0 0;
+	border-bottom: 0;
 }
 
 .discovery-wrapper .discovery .discovery-item {
-    height: 146px;
-}
-
-.discovery-wrapper {
-    border-bottom: 0;
+	height: 146px;
 }
 
 /* Character counter rules */
 .char-counter.red {
-    color: red;
+	color: #f00;
 }

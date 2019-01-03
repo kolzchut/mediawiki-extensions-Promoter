@@ -409,7 +409,6 @@ class Promoter extends SpecialPage {
 	 * @throws MWException
 	 */
 	function listCampaignDetail( $campaign ) {
-
 		$c = new AdCampaign( $campaign ); // Todo: Convert the rest of this page to use this object
 		try {
 			if ( $c->isArchived() ) {
@@ -572,7 +571,6 @@ class Promoter extends SpecialPage {
 	 * @return string
 	 */
 	function campaignDetailForm( $campaignNameOrId ) {
-
 		if ( $this->editable ) {
 			$readonly = [];
 		} else {
@@ -670,7 +668,6 @@ class Promoter extends SpecialPage {
 	 * @throws AdDataException
 	 */
 	function assignedAdsForm( $campaign ) {
-
 		$dbr = PRDatabase::getDb();
 		$res = $dbr->select(
 			// Aliases are needed to avoid problems with table prefixes
@@ -821,8 +818,8 @@ class Promoter extends SpecialPage {
 		$htmlOut .= Html::element(
 			'input',
 			[
-				'type'=> 'submit',
-				'name'=> 'ad-search',
+				'type' => 'submit',
+				'name' => 'ad-search',
 				'value' => $this->msg( 'promoter-filter-ad-submit' )->text()
 			]
 		);
@@ -874,9 +871,9 @@ class Promoter extends SpecialPage {
 	/**
 	 * @static Obtains the parameter $param, sanitizes by returning the first match to $regex or
 	 * $default if there was no match.
-	 * @param string    $param    Name of GET/POST parameter
-	 * @param string    $regex    Sanitization regular expression
-	 * @param string    $default  Default value to return on error
+	 * @param string $param Name of GET/POST parameter
+	 * @param string $regex Sanitization regular expression
+	 * @param string|null $default Default value to return on error
 	 * @return null|string The sanitized value
 	 */
 	protected function getTextAndSanitize( $param, $regex, $default = null ) {
@@ -898,7 +895,7 @@ class Promoter extends SpecialPage {
 		$retval = ' '; // The space is important... it gets trimmed later
 
 		foreach ( preg_split( '/\s+/', $terms ) as $term ) {
-			preg_match( '/[0-9a-zA-Z_\-]+/', $term, $matches );
+			preg_match( '/[0-9a-zA-Zא-ת_\-]+/', $term, $matches );
 			if ( $matches ) {
 				$retval .= $matches[ 0 ];
 				$retval .= ' ';
@@ -915,7 +912,7 @@ class Promoter extends SpecialPage {
 	 * @param Skin $skin Reference to the Skin object
 	 * @param array $tabs Any current skin tabs
 	 *
-	 * @return boolean
+	 * @return bool
 	 * @throws MWException
 	 */
 	public static function addNavigationTabs( Skin $skin, array &$tabs ) {
@@ -943,7 +940,7 @@ class Promoter extends SpecialPage {
 	 * Loads a Promoter variable from session data.
 	 *
 	 * @param string $variable Name of the variable
-	 * @param object $default Default value of the variable
+	 * @param object|null $default Default value of the variable
 	 *
 	 * @return object Stored variable or default
 	 */
@@ -961,7 +958,7 @@ class Promoter extends SpecialPage {
 	 * session does not exist for the user.
 	 *
 	 * @param string $variable Name of the variable
-	 * @param object $value    Value for the variable
+	 * @param object $value Value for the variable
 	 */
 	public function setPRSessionVar( $variable, $value ) {
 		$this->getRequest()->setSessionData( "promoter-{$variable}", $value );

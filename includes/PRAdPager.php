@@ -19,11 +19,11 @@ class PRAdPager extends ReverseChronologicalPager {
 
 	/**
 	 * @param IContextSource $hostTitle
-	 * @param string         $formSection
-	 * @param array          $prependPrototypes
-	 * @param array          $appendPrototypes
-	 * @param string         $adFilter
-	 * @param bool           $editable
+	 * @param string|null $formSection
+	 * @param array $prependPrototypes
+	 * @param array $appendPrototypes
+	 * @param string $adFilter
+	 * @param bool $editable
 	 */
 	function __construct( $hostTitle, $formSection = null, $prependPrototypes = [],
 		$appendPrototypes = [], $adFilter = '', $editable = false
