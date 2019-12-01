@@ -207,7 +207,7 @@
 
 			if ( url.indexOf( blogUrl ) > -1 ) {
 				urlType = 'blog';
-			} else if ( url.indexOf( 'www' ) === 0 || url.indexOf( 'http' ) === 0 ) {
+			} else if ( url.indexOf( 'www' ) === 0 ) {
 				url = '//' + url;
 				urlType = 'external';
 			} else {
