@@ -207,8 +207,7 @@
 
 			if ( url.indexOf( blogUrl ) > -1 ) {
 				urlType = 'blog';
-			} else if ( url.indexOf( 'www' ) === 0 ) {
-				url = '//' + url;
+			} else if ( url.indexOf( 'http' ) === 0 ) {
 				urlType = 'external';
 			} else {
 				url = mw.util.getUrl( url );
