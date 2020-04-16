@@ -1,0 +1,106 @@
+{
+	"@metadata": {
+		"authors": []
+	},
+	"promoter": "ממשק ניהול פרסומות",
+	"promoter-desc": "ניהול קידום תכנים ברחבי הויקי",
+	"campaignad": "ניהול מסעות פרסום",
+
+	"promoter-summary": "המודול הזה מאפשר לך לערוך את מסעות הפרסום המוגדרים כעת.\nניתן להשתמש בו גם כדי להוסיף ולהסיר מסעות פרסום ישנים.",
+	"promoter-manage": "ניהול מסעות פרסום",
+	"promoter-no-campaigns-exist": "אין עדיין מסעות פרסום.\nהוסיפו אחד למטה.",
+	"promoter-archive-show": "הצגת מסעות פרסום מאורכבים",
+	"promoter-campaign-name": "שם מסע הפרסום",
+	"promoter-campaign-linked-to": "שיוך",
+	"promoter-enabled": "מופעל",
+	"promoter-archive-campaign": "ארכיון",
+	"promoter-modify": "שליחה",
+
+	"promoter-add-campaign": "הוספת מסע פרסום",
+	"promoter-null-string": "לא ניתן להוסיף מחרוזת ריקה.\nההוספה לא תיעשה.",
+	"promoter-campaign-exists": "מסע הפרסום כבר קיים.\nההוספה לא תיעשה.",
+
+	"promoter-campaign-doesnt-exist": "מסע הפרסום אינו קיים.",
+	"promoter-archive-edit-prevented": "עריכת מסע הפרסום הזה כבויה כי הוא נעול או מאורכב. יש לשנות את המצב הזה דרך הדף [[Special:Promoter]].",
+	"promoter-no-assigned-cat" : "לא שויך לקטגוריה/עמוד",
+	"promoter-no-ads": "לא נמצאו פרסומות.\nהוסיפו כמה!",
+	"promoter-assigned-ads": "פרסומות משויכות",
+	"promoter-no-ads-assigned": "אין פרסומות שמשויכות למסע פרסום.\nהוסיפו כמה!",
+	"promoter-add-ad": "הוספת פרסומת",
+	"promoter-add-new-ad-title": "פרסומת חדשה",
+
+	"promoter-balanced": "לתת משקל שווה לכל הפרסומות",
+	"promoter-weight": "משקל",
+	"promoter-locked": "נעול",
+	"promoter-ads": "פרסומות",
+	"promoter-campaigns": "מסעות פרסום",
+
+	"promoter-campaign-heading": "מסע פרסום: $1",
+	"promoter-available-ads": "פרסומות זמינות",
+	"promoter-filter-ad-header": "סינון פרסומות",
+	"promoter-filter-ad-prompt": "סינון פרסומות (למשל Jimmy 2008)",
+	"promoter-filter-ad-submit": "החלת מסנן",
+	"promoter-ad-already-linked": "הפרסומת כבר קשורה למסע פרסום.\nהתוספת לא תיעשה.",
+	"promoter-ad-already-exists": "הפרסומת $1 כבר קיימת.",
+	"promoter-ad-doesnt-exists": "הפרסומת $1 אינה קיימת.",
+	"promoter-add": "הוספה",
+
+	"promoter-all": "הכול",
+	"promoter-all-except": "הכול למעט $1",
+
+	"promoter-manage-ads": "ניהול פרסומות",
+	"promoter-ad-name": "שם הפרסומת:",
+	"promoter-remove": "הסרה",
+	"promoter-live-preview": "תצוגה מקדימה בוויקי",
+
+	"promoter-preview": "תצוגה מקדימה",
+	"promoter-settings": "הגדרות",
+	"promoter-ad-class": "קטגוריה",
+	"promoter-ad-display": "להציג בפני:",
+	"promoter-ad-anonymous": "גולשים אלמוניים",
+	"promoter-ad-user": "משתמשים רשומים",
+	"promoter-anon": "להציג לגולשים אלמוניים",
+	"promoter-user": "להציג למשתמשים רשומים",
+	"promoter-edit-ad": "עריכת הפרסומת",
+	"promoter-ad-title": "כותרת",
+	"promoter-ad-body": "תוכן",
+	"promoter-ad-link": "קישור מרכזי",
+
+	"promoter-ad-tags-label": "תגיות",
+	"promoter-ad-tag-new": "חדש",
+
+	"promoter-ad-date-start": "תאריך התחלת חשיפה",
+	"promoter-ad-date-end": "תאריך סוף חשיפה",
+	"promoter-ad-inconsistent-dates-error": "יש לסמן תאריך התחלת חשיפה ותאריך סוף חשיפה, או להשאיר את שני השדות ריקים",
+	"promoter-ad-date-end-bigger-than-date-start": "תאריך סוף החשיפה צריך להיות בתאריך מאוחר יותר מתאריך תחילת החשיפה",
+
+	"promoter-ad-active-label": "סטטוס פעילות",
+	"promoter-ad-active": "פרסומת פעילה",
+
+	"promoter-ad-linked-campaigns": "מסעות פרסום מקושרים",
+	"promoter-ad-linked-campaigns-empty": "אין מסעות פרסום מקושרים. הפרסומת גלמודה.",
+	"promoter-edit-ad-summary": "כדי ליצור הודעה שאפשר לתרגם, יש לתחום מחרוזות עם מקפים בשלושה סוגריים מסולסלים, למשל {{{jimbo-quote}}}.",
+	"promoter-edit-ad-magicwords": "מילות קסם: $1",
+	"promoter-insert": "הוספה: $1",
+	"promoter-close-button": "לחצן סגירה",
+	"promoter-save-ad": "שמירה",
+	"promoter-clone": "שכפול",
+	"promoter-archive-ad": "ארכיון",
+	"promoter-delete-ad": "מחיקה",
+	"promoter-clone-name": "שם:",
+	"promoter-add-ad-button": "יצירה",
+	"promoter-add-ad-cancel-button": "ביטול",
+	"promoter-ad-name-error": "ניתן שם בלתי־תקין לפרסומת. שמות תקינים מכילים רק אותיות, ספרות, וקווים תחתיים.",
+
+	"promoter-delete-ad-title": "למחוק את {{PLURAL:$1|הפרסומת|הפרסומות}}?",
+	"promoter-delete-ad-confirm": "לא ניתן לשחזר את הפעולה הזאת.",
+	"promoter-delete-ad-cancel": "ביטול",
+	"promoter-ad-still-bound": "לא ניתן להסיר את הפרסומת \"$1\" כי היא עדיין מקושרת למסע פרסום.\nההסרה לא תתבצע.",
+	"promoter-clone-cancel": "ביטול",
+
+	"adloader": "טעינת פרסומת",
+	"adrandom": "טעינת פרסומת אקראית מתוך קמפיין",
+	"campaignadsloader": "טעינת כל הפרסומות מתוך קמפיין"
+
+
+}
