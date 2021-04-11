@@ -24,7 +24,7 @@ class PRDatabasePatcher {
 			$updater->addExtensionUpdate(
 				[
 					 'addTable', 'pr_campaigns',
-					 $base . '/../Promoter.sql', true
+					 $base . '/Promoter.sql', true
 				]
 			);
 			$updater->addExtensionUpdate(

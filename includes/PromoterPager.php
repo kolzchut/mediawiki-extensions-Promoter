@@ -1,14 +1,17 @@
 <?php
 
-class PromoterPager extends AdPager {
-	function __construct( $special, $filter = '' ) {
-		parent::__construct( $special, $filter );
-	}
+namespace MediaWiki\Extension\Promoter;
 
+use MediaWiki\Extension\Promoter\Special\SpecialPromoter;
+use Xml;
+
+class PromoterPager extends AdPager {
 	/**
 	 * Pull ads from the database
+	 *
+	 * @return array
 	 */
-	function getQueryInfo() {
+	public function getQueryInfo() {
 		$dbr = PRDatabase::getDb();
 
 		// First we must construct the filter before we pull ads
@@ -67,8 +70,13 @@ class PromoterPager extends AdPager {
 
 	/**
 	 * Generate the content of each table row (1 row = 1 ad)
+	 *
+	 * @param array|\stdClass $row Database row
+	 *
+	 * @return string
+	 * @throws AdDataException
 	 */
-	function formatRow( $row ) {
+	public function formatRow( $row ) {
 		// Begin ad row
 		$htmlOut = Xml::openElement( 'tr' );
 
@@ -80,7 +88,7 @@ class PromoterPager extends AdPager {
 			// Weight select
 			$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top', 'class' => 'pr-weight' ],
 				Xml::listDropDown( "weight[$row->ad_id]",
-					Promoter::dropDownList(
+					SpecialPromoter::dropDownList(
 						$this->msg( 'promoter-weight' )->text(), range( 0, 100, 5 )
 					),
 					'',
@@ -108,9 +116,8 @@ class PromoterPager extends AdPager {
 	 *
 	 * @return string
 	 */
-	function getStartBody() {
-		$htmlOut = '';
-		$htmlOut .= Xml::openElement( 'table', [ 'cellpadding' => 9 ] );
+	protected function getStartBody() {
+		$htmlOut = Xml::openElement( 'table', [ 'cellpadding' => 9 ] );
 		$htmlOut .= Xml::openElement( 'tr' );
 		if ( $this->editable ) {
 			$htmlOut .= Xml::element( 'th', [ 'align' => 'left', 'width' => '5%' ],
@@ -132,7 +139,7 @@ class PromoterPager extends AdPager {
 	 *
 	 * @return string
 	 */
-	function getEndBody() {
+	protected function getEndBody() {
 		return Xml::closeElement( 'table' );
 	}
 }

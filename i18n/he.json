@@ -1,9 +1,9 @@
 {
-    "@metadata": {
-        "authors": []
-    },
-    "promoter": "ממשק ניהול פרסומות",
-	"promoter-desc": "ניהול קידום תכנים ברחבי הויקי",
+	"@metadata": {
+		"authors": []
+	},
+	"promoter": "ממשק ניהול פרסומות",
+	"promoter-desc": "עריכת מסעות פרסום ופרסומות לשימוש הרחבות אחרות",
 	"campaignad": "ניהול מסעות פרסום",
 
 	"promoter-summary": "המודול הזה מאפשר לך לערוך את מסעות הפרסום המוגדרים כעת.\nניתן להשתמש בו גם כדי להוסיף ולהסיר מסעות פרסום ישנים.",
@@ -22,7 +22,7 @@
 
 	"promoter-campaign-doesnt-exist": "מסע הפרסום אינו קיים.",
 	"promoter-archive-edit-prevented": "עריכת מסע הפרסום הזה כבויה כי הוא נעול או מאורכב. יש לשנות את המצב הזה דרך הדף [[Special:Promoter]].",
-	"promoter-no-assigned-cat" : "לא שויך לקטגוריה/עמוד",
+	"promoter-no-assigned-cat": "לא שויך לקטגוריה/עמוד",
 	"promoter-no-ads": "לא נמצאו פרסומות.\nהוסיפו כמה!",
 	"promoter-assigned-ads": "פרסומות משויכות",
 	"promoter-no-ads-assigned": "אין פרסומות שמשויכות למסע פרסום.\nהוסיפו כמה!",
@@ -64,22 +64,22 @@
 	"promoter-edit-ad": "עריכת הפרסומת",
 	"promoter-ad-title": "כותרת",
 	"promoter-ad-body": "תוכן",
-    "promoter-ad-link": "קישור מרכזי",
-    
-    "promoter-ad-tags-label": "תגיות",
-    "promoter-ad-tag-new": "חדש",
-    
-    "promoter-ad-date-start": "תאריך התחלת חשיפה",
-    "promoter-ad-date-end": "תאריך סוף חשיפה",
-    "promoter-ad-inconsistent-dates-error": "יש לסמן תאריך התחלת חשיפה ותאריך סוף חשיפה, או להשאיר את שני השדות ריקים",
-    "promoter-ad-date-end-bigger-than-date-start": "תאריך סוף החשיפה צריך להיות בתאריך מאוחר יותר מתאריך תחילת החשיפה",
+	"promoter-ad-link": "קישור מרכזי",
+
+	"promoter-ad-tags-label": "תגיות",
+	"promoter-ad-tag-new": "חדש",
+
+	"promoter-ad-date-start": "תאריך התחלת חשיפה",
+	"promoter-ad-date-end": "תאריך סוף חשיפה",
+	"promoter-ad-inconsistent-dates-error": "יש לסמן תאריך התחלת חשיפה ותאריך סוף חשיפה, או להשאיר את שני השדות ריקים",
+	"promoter-ad-date-end-bigger-than-date-start": "תאריך סוף החשיפה צריך להיות בתאריך מאוחר יותר מתאריך תחילת החשיפה",
 
 	"promoter-ad-active-label": "סטטוס פעילות",
 	"promoter-ad-active": "פרסומת פעילה",
 
-  	"promoter-ad-linked-campaigns": "מסעות פרסום מקושרים",
-  	"promoter-ad-linked-campaigns-empty": "אין מסעות פרסום מקושרים. הפרסומת גלמודה.",
-  	"promoter-edit-ad-summary": "כדי ליצור הודעה שאפשר לתרגם, יש לתחום מחרוזות עם מקפים בשלושה סוגריים מסולסלים, למשל {{{jimbo-quote}}}.",
+	"promoter-ad-linked-campaigns": "מסעות פרסום מקושרים",
+	"promoter-ad-linked-campaigns-empty": "אין מסעות פרסום מקושרים. הפרסומת גלמודה.",
+	"promoter-edit-ad-summary": "כדי ליצור הודעה שאפשר לתרגם, יש לתחום מחרוזות עם מקפים בשלושה סוגריים מסולסלים, למשל {{{jimbo-quote}}}.",
 	"promoter-edit-ad-magicwords": "מילות קסם: $1",
 	"promoter-insert": "הוספה: $1",
 	"promoter-close-button": "לחצן סגירה",
@@ -96,11 +96,5 @@
 	"promoter-delete-ad-confirm": "לא ניתן לשחזר את הפעולה הזאת.",
 	"promoter-delete-ad-cancel": "ביטול",
 	"promoter-ad-still-bound": "לא ניתן להסיר את הפרסומת \"$1\" כי היא עדיין מקושרת למסע פרסום.\nההסרה לא תתבצע.",
-	"promoter-clone-cancel": "ביטול",
-
-	"adloader": "טעינת פרסומת",
-	"adrandom": "טעינת פרסומת אקראית מתוך קמפיין",
-	"campaignadsloader": "טעינת כל הפרסומות מתוך קמפיין"
-
-
+	"promoter-clone-cancel": "ביטול"
 }

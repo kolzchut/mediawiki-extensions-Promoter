@@ -22,17 +22,20 @@
  * @file
  */
 
+namespace MediaWiki\Extension\Promoter;
+
+use ContentHandler;
+use DatabaseBase;
+use Html;
+use MWException;
+use MWTimestamp;
+use Revision;
+use Title;
+use User;
+use WikiPage;
+
 /**
  * Promoter ad object. Ads are pieces of rendered wikimarkup
- * injected as HTML onto MediaWiki pages via the sitenotice hook.
- *
- * - They allow 'mixins', pieces of javascript that add additional standard
- *   functionality to the ad.
- * - They have a concept of 'messages' which are translatable strings marked
- *   out by {{{name}}} in the ad body.
- *
- * @see AdChooser
- * @see AdMessage
  */
 class Ad {
 	/**
@@ -98,9 +101,10 @@ class Ad {
 	/**
 	 * @var string Pattern for bool
 	 */
-	const BOOLEAN_PARAM_FILTER = '/true|false/';
+	public const BOOLEAN_PARAM_FILTER = '/true|false/';
 
 	// <editor-fold desc="Constructors">
+
 	/**
 	 * Create an ad object from a known ID. Must already be
 	 * an object in the database. If a fully new ad is to be created
@@ -121,7 +125,7 @@ class Ad {
 	 * an object in the database. If a fully new ad is to be created
 	 * use @see newFromName().
 	 *
-	 * @param $name
+	 * @param string $name
 	 *
 	 * @return Ad
 	 * @throws AdDataException
@@ -139,7 +143,7 @@ class Ad {
 	/**
 	 * Create a brand new ad object.
 	 *
-	 * @param $name
+	 * @param string $name
 	 *
 	 * @return Ad
 	 * @throws AdDataException
@@ -158,9 +162,11 @@ class Ad {
 
 		return $obj;
 	}
+
 	// </editor-fold>
 
 	// <editor-fold desc="Basic metadata getters/setters">
+
 	/**
 	 * Get the unique ID for this ad.
 	 *
@@ -248,6 +254,12 @@ class Ad {
 		return $this;
 	}
 
+	/**
+	 * @param array $tags
+	 *
+	 * @return $this
+	 * @throws AdDataException|AdExistenceException
+	 */
 	public function setTags( $tags ) {
 		$this->populateBasicData();
 		$this->setBasicDataDirty();
@@ -259,26 +271,44 @@ class Ad {
 		return $this;
 	}
 
+	/**
+	 * @param string $date
+	 */
 	public function setStartDate( $date ) {
 		$this->startDate = empty( $date ) ? null : new MWTimestamp( $date );
 	}
 
+	/**
+	 * @return MWTimestamp|null
+	 * @throws AdDataException|AdExistenceException
+	 */
 	public function getStartDate() {
 		$this->populateBasicData();
 
 		return $this->startDate;
 	}
 
+	/**
+	 * @param string $date
+	 */
 	public function setEndDate( $date ) {
 		$this->endDate = empty( $date ) ? null : new MWTimestamp( $date );
 	}
 
+	/**
+	 * @return MWTimestamp|null
+	 * @throws AdDataException|AdExistenceException
+	 */
 	public function getEndDate() {
 		$this->populateBasicData();
 
 		return $this->endDate;
 	}
 
+	/**
+	 * @return bool
+	 * @throws AdDataException|AdExistenceException
+	 */
 	public function isNotExpired() {
 		$this->populateBasicData();
 
@@ -293,11 +323,21 @@ class Ad {
 		return ( $now < $endDate && $startDate < $now );
 	}
 
+	/**
+	 * @return string
+	 * @throws AdDataException|AdExistenceException
+	 */
 	public function getCaption() {
 		$this->populateBasicData();
 		return $this->adCaption;
 	}
 
+	/**
+	 * @param string $value
+	 *
+	 * @return $this
+	 * @throws AdDataException|AdExistenceException
+	 */
 	public function setCaption( $value ) {
 		$this->populateBasicData();
 
@@ -309,11 +349,21 @@ class Ad {
 		return $this;
 	}
 
+	/**
+	 * @return string
+	 * @throws AdDataException|AdExistenceException
+	 */
 	public function getMainLink() {
 		$this->populateBasicData();
 		return $this->adLink;
 	}
 
+	/**
+	 * @param string $value
+	 *
+	 * @return $this
+	 * @throws AdDataException|AdExistenceException
+	 */
 	public function setMainLink( $value ) {
 		$this->populateBasicData();
 
@@ -406,6 +456,10 @@ class Ad {
 
 	/**
 	 * Sets the flag which will save basic metadata on next save()
+	 *
+	 * @param bool $dirty
+	 *
+	 * @return bool
 	 */
 	protected function setBasicDataDirty( $dirty = true ) {
 		return (bool)wfSetVar( $this->dirtyFlags['basic'], $dirty, true );
@@ -447,14 +501,22 @@ class Ad {
 			);
 		}
 	}
+
 	// </editor-fold>
 
 	// <editor-fold desc="Ad body content">
+
+	/**
+	 * @return string
+	 */
 	public function getDbKey() {
 		$name = $this->getName();
 		return "Promoter-ad-{$name}";
 	}
 
+	/**
+	 * @return Title|null
+	 */
 	public function getTitle() {
 		return Title::newFromText( $this->getDbKey(), NS_MEDIAWIKI );
 	}
@@ -512,30 +574,39 @@ class Ad {
 		$this->markBodyContentDirty( false );
 	}
 
+	/**
+	 * @param bool $dirty
+	 *
+	 * @return bool
+	 */
 	protected function markBodyContentDirty( $dirty = true ) {
 		return (bool)wfSetVar( $this->dirtyFlags['content'], $dirty, true );
 	}
 
+	/**
+	 * @throws MWException|\MWContentSerializationException
+	 */
 	protected function saveBodyContent() {
 		if ( $this->dirtyFlags['content'] ) {
 			$wikiPage = new WikiPage( $this->getTitle() );
 
 			$contentObj = ContentHandler::makeContent( $this->bodyContent, $wikiPage->getTitle() );
-			$pageResult = $wikiPage->doEditContent( $contentObj, '', EDIT_FORCE_BOT );
+			$wikiPage->doEditContent( $contentObj, '', EDIT_FORCE_BOT );
 
 		}
 	}
+
 	// </editor-fold>
 
-	// <editor-fold desc="Ad actions">
 	// <editor-fold desc="Saving">
+
 	/**
 	 * Saves any changes made to the ad object into the database
 	 *
 	 * @param null $user
 	 *
 	 * @return $this
-	 * @throws Exception
+	 * @throws \Exception
 	 */
 	public function save( $user = null ) {
 		global $wgUser;
@@ -547,30 +618,20 @@ class Ad {
 			$user = $wgUser;
 		}
 
-		try {
-			$this->saveBodyContent(); // Do not move into saveAdInternal -- cannot be in a transaction
+		$this->saveBodyContent();
 
-			// Open a transaction so that everything is consistent
-			$db->begin( __METHOD__ );
-
-			if ( !$this->exists() ) {
-				$action = 'created';
-				$this->initializeDbForNewAd( $db );
-			}
-			$this->saveAdInternal( $db );
-			$this->logAdChange( $action, $user );
-
-			$db->commit( __METHOD__ );
-
-			// Clear the dirty flags
-			foreach ( $this->dirtyFlags as $flag => &$value ) {
-				$value = false;
-			}
-
-		} catch ( Exception $ex ) {
-			$db->rollback( __METHOD__ );
-			throw $ex;
+		if ( !$this->exists() ) {
+			$action = 'created';
+			$this->initializeDbForNewAd( $db );
 		}
+		$this->saveAdInternal( $db );
+		$this->logAdChange( $action, $user );
+
+		// Clear the dirty flags
+		foreach ( $this->dirtyFlags as $flag => &$value ) {
+			$value = false;
+		}
+
 
 		return $this;
 	}
@@ -603,6 +664,7 @@ class Ad {
 	protected function saveAdInternal( $db ) {
 		$this->saveBasicData( $db );
 	}
+
 	// </editor-fold>
 
 	/**
@@ -623,6 +685,13 @@ class Ad {
 		return $this;
 	}
 
+	/**
+	 * @param string $destination
+	 * @param User $user
+	 *
+	 * @return Ad
+	 * @throws AdDataException|AdExistenceException|MWException
+	 */
 	public function cloneAd( $destination, $user ) {
 		if ( !$this->isValidAdName( $destination ) ) {
 			throw new AdDataException( 'promoter-ad-name-error' );
@@ -645,6 +714,13 @@ class Ad {
 		return $destAd;
 	}
 
+	/**
+	 * @param User|null $user
+	 *
+	 * @throws AdDataException
+	 * @throws MWException
+	 * @throws \FatalError
+	 */
 	public function remove( $user = null ) {
 		global $wgUser;
 		if ( $user === null ) {
@@ -653,7 +729,13 @@ class Ad {
 		self::removeAd( $this->getName(), $user );
 	}
 
-	static function removeAd( $name, $user ) {
+	/**
+	 * @param string $name
+	 * @param User $user
+	 *
+	 * @throws AdDataException|MWException|\FatalError
+	 */
+	public static function removeAd( $name, $user ) {
 		$adObj = self::fromName( $name );
 		$id = $adObj->getId();
 		$dbr = PRDatabase::getDb();
@@ -676,12 +758,13 @@ class Ad {
 			$dbw->commit();
 
 			// Delete the MediaWiki page that contains the ad source
-			$article = new Article(
+			$article = new \Article(
 				Title::newFromText( "promoter-ad-{$name}", NS_MEDIAWIKI )
 			);
 			$article->doDeleteArticle( 'Promoter automated removal' );
 		}
 	}
+
 	// </editor-fold>
 
 	/**
@@ -707,62 +790,13 @@ class Ad {
 	}
 
 	/**
-	 * FIXME: a little thin, it's just enough to get the job done
-	 *
-	 * @param $name
-	 * @param $ts
-	 *
-	 * @return array|null ad settings as an associative array, with these properties:
-	 *    display_anon: 0/1 whether the ad is displayed to anonymous users
-	 *    display_account: 0/1 same, for logged-in users
-	 * @throws AdDataException
-	 */
-	static function getHistoricalAd( $name, $ts ) {
-		$id = self::fromName( $name )->getId();
-
-		$dbr = PRDatabase::getDb();
-
-		$newestLog = $dbr->selectRow(
-			"pr_ad_log",
-			[
-				"log_id" => "MAX(adlog_id)",
-			],
-			[
-				"adlog_timestamp <= $ts",
-				"adlog_ad_id = $id",
-			],
-			__METHOD__
-		);
-
-		if ( $newestLog->log_id === null ) {
-			return null;
-		}
-
-		$row = $dbr->selectRow(
-			"pr_ad_log",
-			[
-				"display_anon" => "adlog_end_anon",
-				"display_account" => "adlog_end_account",
-			],
-			[
-				"adlog_id = {$newestLog->log_id}",
-			],
-			__METHOD__
-		);
-		$ad['display_anon'] = (int)$row->display_anon;
-		$ad['display_account'] = (int)$row->display_account;
-
-		return $ad;
-	}
-
-	/**
 	 * Create a new ad
 	 *
-	 * @param $name             string name of ad
-	 * @param $body             string content of ad
-	 * @param $caption            string caption/heading of ad
-	 * @param $mainlink            string main link for the ad (link caption to page)
-	 * @param $user             User causing the change
+	 * @param string $name name of ad
+	 * @param string $body content of ad
+	 * @param string $caption caption/heading of ad
+	 * @param string $mainlink main link for the ad (link caption to page)
+	 * @param User $user causing the change
 	 * @param bool|int $displayAnon integer flag for display to anonymous users
 	 * @param bool|int $displayUser integer flag for display to logged in users
 	 * @param bool|int $isActive
@@ -770,7 +804,7 @@ class Ad {
 	 * @return bool true or false depending on whether ad was successfully added
 	 * @throws AdDataException
 	 */
-	static function addAd(
+	public static function addAd(
 		$name, $body, $caption, $mainlink, $user,
 		$displayAnon = true, $displayUser = true, $isActive = false
 	) {
@@ -797,14 +831,14 @@ class Ad {
 	/**
 	 * Log setting changes related to an ad
 	 *
-	 * @param $action        string: 'created', 'modified', or 'removed'
-	 * @param $user          User causing the change
-	 * @param $beginSettings array of ad settings before changes (optional)
+	 * @param string $action 'created', 'modified', or 'removed'
+	 * @param User $user causing the change
+	 * @param array $beginSettings array of ad settings before changes (optional)
 	 */
-	function logAdChange( $action, $user, $beginSettings = [] ) {
+	private function logAdChange( $action, $user, $beginSettings = [] ) {
 		$endSettings = [];
 		if ( $action !== 'removed' ) {
-			$endSettings = self::getAdSettings( $this->getName(), true );
+			$endSettings = $this->getAdSettings();
 		}
 
 		$dbw = PRDatabase::getDb();
@@ -820,7 +854,7 @@ class Ad {
 
 		foreach ( $endSettings as $key => $value ) {
 			if ( is_array( $value ) ) {
-				$value = FormatJSON::encode( $value );
+				$value = \FormatJSON::encode( $value );
 			}
 
 			$log[ 'adlog_end_' . $key ] = $value;
@@ -828,6 +862,7 @@ class Ad {
 
 		$dbw->insert( 'pr_ad_log', $log );
 	}
+
 	// </editor-fold>
 
 	/**
@@ -838,14 +873,12 @@ class Ad {
 	 *
 	 * @return bool True if valid
 	 */
-	static function isValidAdName( $name ) {
-		global $wgExperimentalHtmlIds;
-
+	public static function isValidAdName( $name ) {
 		if ( empty( $name ) ) {
 			return false;
 		}
 
-		$pattern = $wgExperimentalHtmlIds ? '/^[A-Za-zא-ת0-9_]+$/' : '/^[A-Za-z0-9_]+$/';
+		$pattern = '/^[A-Za-zא-ת0-9_]+$/';
 
 		return preg_match( $pattern, $name );
 	}
@@ -875,51 +908,57 @@ class Ad {
 
 	/**
 	 * Get the body of the ad, with all transformations applied.
+	 *
+	 * @return string
 	 */
 	public function renderHtml() {
 		$adCaption = $this->getCaption();
 		$adBody = wfMessage( $this->getDbKey() )->parse();
 		$adMainLink = $this->getMainLink();
 		$adMainLink = empty( $adMainLink ) ?
-			null : Skin::makeInternalOrExternalUrl( $this->getMainLink() );
+			null : \Skin::makeInternalOrExternalUrl( $this->getMainLink() );
 
-		$adHtml = HTML::openElement(
+		$adHtml = Html::openElement(
 			'div', [ 'class' => 'promotion', 'data-adname' => $this->getName() ]
 		);
-			$adHtml .= HTML::openElement( 'div', [ 'class' => 'header' ] );
+			$adHtml .= Html::openElement( 'div', [ 'class' => 'header' ] );
 				// $adHtml .= HTML::element( 'span', [ 'class' => 'icon pull-right' ] );
 				if ( empty( $adMainLink ) ) {
-					$adHtml .= HTML::element( 'span', [ 'class' => 'caption' ], $adCaption );
+					$adHtml .= Html::element( 'span', [ 'class' => 'caption' ], $adCaption );
 				} else {
-					$adHtml .= HTML::element(
+					$adHtml .= Html::element(
 						'a',
 						[ 'class' => 'caption', 'href' => $adMainLink ],
 						$adCaption
 					);
 				}
 
-			$adHtml .= HTML::closeElement( 'div' );
-			$adHtml .= HTML::rawElement( 'div', [ 'class' => 'content' ], $adBody );
+			$adHtml .= Html::closeElement( 'div' );
+			$adHtml .= Html::rawElement( 'div', [ 'class' => 'content' ], $adBody );
 			if ( $adMainLink ) {
-				$adHtml .= HTML::openElement( 'div', [ 'class' => 'mainlink' ] );
-				$adHtml .= HTML::element( 'a', [ 'href' => $adMainLink ], 'לפרטים נוספים...' );
-				$adHtml .= HTML::closeElement( 'div' );
+				$adHtml .= Html::openElement( 'div', [ 'class' => 'mainlink' ] );
+				$adHtml .= Html::element( 'a', [ 'href' => $adMainLink ], 'לפרטים נוספים...' );
+				$adHtml .= Html::closeElement( 'div' );
 			}
-		$adHtml .= HTML::closeElement( 'div' );
+		$adHtml .= Html::closeElement( 'div' );
 
 		 return $adHtml;
 	}
 
-	function linkToPreview() {
-		return Linker::link(
-			SpecialPage::getTitleFor( 'PromoterAds', "edit/{$this->getName()}" ),
+	public function linkToPreview() {
+		return \Linker::link(
+			\SpecialPage::getTitleFor( 'PromoterAds', "edit/{$this->getName()}" ),
 			htmlspecialchars( $this->getName() ),
 			[ 'class' => 'pr-ad-title' ]
 		);
 	}
 
-	// @TODO do a join with pr_campaign instead of getting campaign names one by one
-	function getLinkedCampaignNames() {
+	/**
+	 * @todo do a join with pr_campaign instead of getting campaign names one by one
+	 *
+	 * @return array
+	 */
+	public function getLinkedCampaignNames() {
 		$campaignNames = [];
 		$dbr = wfGetDB( DB_REPLICA );
 		$res = $dbr->select( 'pr_adlinks', 'cmp_id',
@@ -931,9 +970,4 @@ class Ad {
 
 		return $campaignNames;
 	}
-}
-
-class AdDataException extends LocalizedException {
-}
-class AdExistenceException extends AdDataException {
 }

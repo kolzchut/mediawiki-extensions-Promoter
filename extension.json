@@ -1,0 +1,130 @@
+{
+	"name": "Promoter",
+	"version": "1.0.0",
+	"author": [
+		"Dror S. [FFS] ([http://www.kolzchut.org.il Kol-Zchut])",
+		"based on [https://mediawiki.org/wiki/Extension:CentralNotice Extension:CentralNotice]"
+	],
+	"url": "https://github.com/kolzchut/mediawiki-extensions-Promoter",
+	"descriptionmsg": "promoter-desc",
+	"license-name": "GPL-2.0+",
+	"type": "other",
+	"requires": {
+		"MediaWiki": ">= 1.35.0"
+	},
+	"AutoloadNamespaces": {
+		"MediaWiki\\Extension\\Promoter\\": "includes/"
+	},
+	"ResourceModules": {
+		"ext.promoter.adminUi": {
+			"scripts": "ext.promoter.adminUi/promoter.js",
+			"styles": [
+				"ext.promoter.adminUi/promoter.css",
+				"ext.promoter.adminUi/adminui.common.css"
+			],
+			"dependencies": "mediawiki.jqueryMsg",
+			"messages": [
+				"promoter-documentwrite-error",
+				"promoter-close-title"
+			]
+		},
+		"ext.promoter.adminUi.adManager": {
+			"dependencies": [
+				"ext.promoter.adminUi",
+				"jquery.ui"
+			],
+			"scripts": "ext.promoter.adminUi.adManager/admanager.js",
+			"styles": "ext.promoter.adminUi.adManager/admanager.css",
+			"messages": [
+				"promoter-add-ad-button",
+				"promoter-add-ad-cancel-button",
+				"promoter-archive-ad",
+				"promoter-archive-ad-title",
+				"promoter-archive-ad-confirm",
+				"promoter-archive-ad-cancel",
+				"promoter-add-new-ad-title",
+				"promoter-delete-ad",
+				"promoter-delete-ad-title",
+				"promoter-delete-ad-confirm",
+				"promoter-delete-ad-cancel"
+			]
+		},
+		"ext.promoter.adminUi.adEditor": {
+			"dependencies": [
+				"ext.promoter.adminUi",
+				"jquery.ui",
+				"oojs-ui-windows"
+			],
+			"scripts": "ext.promoter.adminUi.adEditor/adeditor.js",
+			"styles": "ext.promoter.adminUi.adEditor/adeditor.css",
+			"messages": [
+				"promoter-clone",
+				"promoter-clone-campaign",
+				"promoter-clone-cancel",
+				"promoter-archive-ad",
+				"promoter-archive-ad-title",
+				"promoter-archive-ad-confirm",
+				"promoter-archive-ad-cancel",
+				"promoter-delete-ad",
+				"promoter-delete-ad-title",
+				"promoter-delete-ad-confirm",
+				"promoter-delete-ad-cancel"
+			]
+		},
+		"ext.promoter.adminUi.campaignManager": {
+			"dependencies": [
+				"ext.promoter.adminUi",
+				"jquery.ui"
+			],
+			"scripts": "ext.promoter.adminUi.campaignManager/campaignManager.js",
+			"styles": "ext.promoter.adminUi.campaignManager/campaignManager.css"
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "modules/",
+		"remoteExtPath": "WikiRights/Promoter/modules"
+	},
+	"AvailableRights": [
+		"promoter-admin"
+	],
+	"Hooks": {
+		"LoadExtensionSchemaUpdates": "MediaWiki\\Extension\\Promoter\\PRDatabasePatcher::applyUpdates",
+		"SkinTemplateNavigation::SpecialPage": "MediaWiki\\Extension\\Promoter\\Special\\SpecialPromoter::addNavigationTabs"
+	},
+	"SpecialPages": {
+		"Promoter": "MediaWiki\\Extension\\Promoter\\Special\\SpecialPromoter",
+		"PromoterAds": "MediaWiki\\Extension\\Promoter\\Special\\SpecialPromoterAds"
+	},
+	"GroupPermissions": {
+		"sysop": {
+			"promoter-admin": true
+		}
+	},
+	"MessagesDirs": {
+		"Promoter": [
+			"i18n"
+		]
+	},
+	"ExtensionMessagesFiles": {
+		"PromoterAliases": "Promoter.alias.php"
+	},
+	"config": {
+		"PromoterFallbackCampaign": {
+			"value": "general"
+		},
+		"PromoterTabifyPages": {
+			"value": {
+				"Promoter": {
+					"type": "views",
+					"message": "promoter-campaigns"
+				},
+				"PromoterAds": {
+					"type": "views",
+					"message": "promoter-ads"
+				}
+			},
+			"path": true
+		}
+	},
+	"manifest_version": 2
+}

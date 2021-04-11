@@ -1,30 +1,44 @@
 <?php
 
+namespace MediaWiki\Extension\Promoter;
+
+use ReverseChronologicalPager;
+use stdClass;
+use Xml;
+
 /**
  * Provides pagination functionality for viewing ad lists in the Promoter admin interface.
- *
- * @deprecated 2.3 -- We're moving to an HTML form model and this is no longer used directly.
- * We still need to move the Campaign manager to HTMLForm though and so this still exists for
- * that part of CN.
  */
 class AdPager extends ReverseChronologicalPager {
-	protected $onRemoveChange, $viewPage, $special;
+	/** @var string */
+	protected $onRemoveChange;
+	/** @var string */
+	protected $viewPage;
+	/** @var \SpecialPage */
+	protected $special;
+	/** @var bool */
 	protected $editable;
+	/** @var string */
 	protected $filter;
 
-	function __construct( $special, $filter = '' ) {
+	/**
+	 * AdPager constructor.
+	 *
+	 * @param \SpecialPage $special
+	 * @param string $filter
+	 */
+	public function __construct( $special, $filter = '' ) {
 		$this->special = $special;
 		$this->editable = $special->editable;
 		$this->filter = $filter;
 		parent::__construct();
 
 		// Override paging defaults
-		list( $this->mLimit, /* $offset */ ) = $this->mRequest->getLimitOffset( 20, '' );
+		list( $this->mLimit ) = $this->mRequest->getLimitOffsetForUser( $this->getUser(), 20, '' );
 		$this->mLimitsShown = [ 20, 50, 100 ];
 
 		$msg = Xml::encodeJsVar( $this->msg( 'promoter-confirm-delete' )->text() );
 		$this->onRemoveChange = "if( this.checked ) { this.checked = confirm( $msg ) }";
-		$this->viewPage = SpecialPage::getTitleFor( 'CampaignAd', 'view' );
 	}
 
 	/**
@@ -32,7 +46,7 @@ class AdPager extends ReverseChronologicalPager {
 	 *
 	 * @return array of query settings
 	 */
-	function getQueryInfo() {
+	public function getQueryInfo() {
 		$dbr = PRDatabase::getDb();
 
 		// When the filter comes in it is space delimited, so break that...
@@ -63,19 +77,19 @@ class AdPager extends ReverseChronologicalPager {
 	 *
 	 * @return string
 	 */
-	function getIndexField() {
+	public function getIndexField() {
 		return 'ads.ad_id';
 	}
 
 	/**
 	 * Generate the content of each table row (1 row = 1 ad)
 	 *
-	 * @param $row object: database row
+	 * @param array|stdClass $row Database row
 	 *
 	 * @return string HTML
 	 * @throws AdDataException
 	 */
-	function formatRow( $row ) {
+	public function formatRow( $row ) {
 		// Begin ad row
 		$htmlOut = Xml::openElement( 'tr' );
 
@@ -109,7 +123,7 @@ class AdPager extends ReverseChronologicalPager {
 	 *
 	 * @return string HTML
 	 */
-	function getStartBody() {
+	protected function getStartBody() {
 		$htmlOut = '';
 		$htmlOut .= Xml::openElement( 'table', [ 'cellpadding' => 9 ] );
 		$htmlOut .= Xml::openElement( 'tr' );
@@ -130,11 +144,11 @@ class AdPager extends ReverseChronologicalPager {
 	 *
 	 * @return string HTML
 	 */
-	function getEndBody() {
+	protected function getEndBody() {
 		$htmlOut = '';
 		$htmlOut .= Xml::closeElement( 'table' );
 		if ( $this->editable ) {
-			$htmlOut .= Html::hidden( 'authtoken', $this->getUser()->getEditToken() );
+			$htmlOut .= \Html::hidden( 'authtoken', $this->getUser()->getEditToken() );
 			$htmlOut .= Xml::tags( 'div',
 				[ 'class' => 'pr-buttons' ],
 				Xml::submitButton( $this->msg( 'promoter-modify' )->text() )

@@ -22,6 +22,14 @@
  * @file
  */
 
+namespace MediaWiki\Extension\Promoter;
+
+use Html;
+use HTMLInfoField;
+use MWException;
+use Sanitizer;
+use Xml;
+
 /**
  * Produces a ad preview DIV that can be embedded in an HTMLForm.
  *
@@ -31,12 +39,25 @@
  * - 'withlabel' - Presence of this attribute causes a label to be shown
  */
 class HTMLPromoterAd extends HTMLInfoField {
-	/** Empty - no validation can be done on a ad */
-	function validate( $value, $alldata ) {
+	/**
+	 * Empty - no validation can be done on a ad
+	 *
+	 * @param array|string $value
+	 * @param array $alldata
+	 *
+	 * @return true
+	 */
+	public function validate( $value, $alldata ) {
 		return true;
 	}
 
-	/** Get a preview of the ad */
+	/**
+	 * Get a preview of the ad
+	 *
+	 * @param mixed $value
+	 *
+	 * @return mixed|string
+	 */
 	public function getInputHTML( $value ) {
 		global $wgOut,
 			$wgPromoterAdPreview;
@@ -67,14 +88,34 @@ class HTMLPromoterAd extends HTMLInfoField {
 		);
 	}
 
+	/**
+	 * @param string $value
+	 *
+	 * @return string|void
+	 * @throws MWException
+	 */
 	public function getTableRow( $value ) {
 		throw new MWException( "getTableRow() is not implemented for HTMLPromoterAd" );
 	}
 
+	/**
+	 * @param string $value
+	 *
+	 * @return string|void
+	 * @throws MWException
+	 */
 	public function getRaw( $value ) {
 		throw new MWException( "getRaw() is not implemented for HTMLPromoterAd" );
 	}
 
+	/**
+	 * Get the complete div for the input, including help text,
+	 * labels, and whatever.
+	 *
+	 * @param string $value The value to set the input to.
+	 *
+	 * @return string Complete HTML table row.
+	 */
 	public function getDiv( $value ) {
 		global $wgOut,
 			$wgPromoterAdPreview;
@@ -97,13 +138,13 @@ class HTMLPromoterAd extends HTMLInfoField {
 		if ( array_key_exists( 'withlabel', $this->mParams ) ) {
 			$adName = $this->mParams['ad'];
 			$html .= Xml::openElement( 'div', [ 'class' => 'pr-ad-list-element-label' ] );
-			$html .= Linker::link(
-				SpecialPage::getTitleFor( 'PromoterAds', "edit/$adName" ),
+			$html .= \Linker::link(
+				\SpecialPage::getTitleFor( 'PromoterAds', "edit/$adName" ),
 				htmlspecialchars( $adName ),
 				[ 'class' => 'pr-ad-list-element-label-text' ]
 			);
-			$html .= ' (' . Linker::link(
-				SpecialPage::getTitleFor( 'Randompage' ),
+			$html .= ' (' . \Linker::link(
+				\SpecialPage::getTitleFor( 'Randompage' ),
 				$this->msg( 'promoter-live-preview' ),
 				[ 'class' => 'pr-ad-list-element-label-text' ],
 				[

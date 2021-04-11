@@ -1,12 +1,15 @@
 <?php
 
+namespace MediaWiki\Extension\Promoter;
+
+use User;
+
 class AdCampaign {
 
+	/** @var int */
 	protected $id = null;
+	/** @var string */
 	protected $name = null;
-
-	/** @var int the page / category the campaign is linked to */
-	// protected $catPageId = null;
 
 	/** @var bool True if the campaign is enabled for showing */
 	protected $enabled = null;
@@ -143,11 +146,11 @@ class AdCampaign {
 	/**
 	 * See if a given campaign exists in the database
 	 *
-	 * @param $campaignName string
+	 * @param string $campaignName
 	 *
 	 * @return bool
 	 */
-	static function campaignExists( $campaignName ) {
+	public static function campaignExists( $campaignName ) {
 		$dbr = PRDatabase::getDb();
 		return (bool)$dbr->selectRow( 'pr_campaigns', 'cmp_name', [ 'cmp_name' => $campaignName ] );
 	}
@@ -157,7 +160,7 @@ class AdCampaign {
 	 *
 	 * @return array a 2D array of ads with associated weights and settings
 	 */
-	function getAds() {
+	public function getAds() {
 		$dbr = PRDatabase::getDb();
 
 		$ads = [];
@@ -186,10 +189,10 @@ class AdCampaign {
 
 		foreach ( $res as $row ) {
 			$ads[] = [
-				'name'             => $row->ad_name, // name of the ad
-				'weight'           => intval( $row->adl_weight ), // weight assigned to the ad
-				'display_anon'     => intval( $row->ad_display_anon ), // display to anonymous users?
-				'display_user'     => intval( $row->ad_display_user ), // display to logged in users?
+				'name'             => $row->ad_name,
+				'weight'           => intval( $row->adl_weight ),
+				'display_anon'     => intval( $row->ad_display_anon ),
+				'display_user'     => intval( $row->ad_display_user )
 			];
 		}
 
@@ -199,11 +202,11 @@ class AdCampaign {
 	/**
 	 * Return settings for a campaign
 	 *
-	 * @param $campaignName string: The name of the campaign
+	 * @param string $campaignName The name of the campaign
 	 *
 	 * @return array|bool an array of settings or false if the campaign does not exist
 	 */
-	static function getCampaignSettings( $campaignName ) {
+	public static function getCampaignSettings( $campaignName ) {
 		$dbr = PRDatabase::getDb();
 
 		// Get campaign info from database
@@ -235,7 +238,7 @@ class AdCampaign {
 			$adsOut[ $outKey ]['weight'] = $adsIn[ $key ][ 'weight' ];
 		}
 		// Encode into a JSON string for storage
-		$campaign[ 'ads' ] = FormatJson::encode( $adsOut );
+		$campaign[ 'ads' ] = \FormatJson::encode( $adsOut );
 
 		return $campaign;
 	}
@@ -246,7 +249,7 @@ class AdCampaign {
 	 *
 	 * @return array an array of campaign names
 	 */
-	static function getAllCampaignNames() {
+	public static function getAllCampaignNames() {
 		return self::getCampaignNames( false, true );
 	}
 
@@ -258,7 +261,7 @@ class AdCampaign {
 	 *
 	 * @return array an array of campaign names
 	 */
-	static function getCampaignNames( $enabled = true, $archived = false ) {
+	public static function getCampaignNames( $enabled = true, $archived = false ) {
 		$dbr = PRDatabase::getDb();
 		$conds = [];
 		if ( $enabled === true ) {
@@ -331,16 +334,14 @@ class AdCampaign {
 	/**
 	 * Add a new campaign to the database
 	 *
-	 * @param $campaignName        string: Name of the campaign
-	 * @param $enabled           int: Boolean setting, 0 or 1
-	 * @param $user              User adding the campaign
+	 * @param string $campaignName Name of the campaign
+	 * @param int $enabled Boolean setting, 0 or 1
+	 * @param User $user adding the campaign
 	 *
-	 * @throws MWException
-	 * @internal param int $catPageId : Page / Category the campaign is linked to
+	 * @throws \MWException
 	 * @return int|string campaignId on success, or message key for error
 	 */
-	// static function addCampaign( $campaignName, $catPageId = 0, $enabled, $user ) {
-	static function addCampaign( $campaignName, $enabled, $user ) {
+	public static function addCampaign( $campaignName, $enabled, $user ) {
 		$campaignName = trim( $campaignName );
 		if ( self::campaignExists( $campaignName ) ) {
 			return 'promoter-campaign-exists';
@@ -376,18 +377,18 @@ class AdCampaign {
 			return $cmp_id;
 		}
 
-		throw new MWException( 'insertId() did not return a value.' );
+		throw new \MWException( 'insertId() did not return a value.' );
 	}
 
 	/**
 	 * Remove a campaign from the database
 	 *
-	 * @param $campaignName string: Name of the campaign
-	 * @param $user User removing the campaign
+	 * @param string $campaignName Name of the campaign
+	 * @param User $user removing the campaign
 	 *
 	 * @return bool|string True on success, string with message key for error
 	 */
-	static function removeCampaign( $campaignName, $user ) {
+	public static function removeCampaign( $campaignName, $user ) {
 		$dbr = PRDatabase::getDb();
 
 		$res = $dbr->select( 'pr_campaigns', 'cmp_name',
@@ -402,6 +403,10 @@ class AdCampaign {
 		return true;
 	}
 
+	/**
+	 * @param string $campaignName
+	 * @param User $user
+	 */
 	private static function removeCampaignByName( $campaignName, $user ) {
 		// Log the removal of the campaign
 		$campaignId = self::getCampaignId( $campaignName );
@@ -416,12 +421,12 @@ class AdCampaign {
 
 	/**
 	 * Assign an ad to a campaign at a certain weight
-	 * @param $campaignName string
-	 * @param $adName string
-	 * @param $weight
+	 * @param string $campaignName
+	 * @param string $adName
+	 * @param int $weight
 	 * @return bool|string True on success, string with message key for error
 	 */
-	static function addAdTo( $campaignName, $adName, $weight ) {
+	public static function addAdTo( $campaignName, $adName, $weight ) {
 		$dbw = PRDatabase::getDb();
 		$campaignId = self::getCampaignId( $campaignName );
 		$adId = Ad::fromName( $adName )->getId();
@@ -452,8 +457,13 @@ class AdCampaign {
 
 	/**
 	 * Remove an ad assignment from a campaign
+	 *
+	 * @param string $campaignName
+	 * @param string $adName
+	 *
+	 * @throws AdDataException
 	 */
-	static function removeAdFor( $campaignName, $adName ) {
+	public static function removeAdFor( $campaignName, $adName ) {
 		$dbw = PRDatabase::getDb();
 		$dbw->begin();
 		$campaignId = self::getCampaignId( $campaignName );
@@ -519,8 +529,12 @@ class AdCampaign {
 
 	/**
 	 * Lookup the ID for a campaign based on the campaign name
+	 *
+	 * @param string $campaignName
+	 *
+	 * @return null|string
 	 */
-	static function getCampaignId( $campaignName ) {
+	public static function getCampaignId( $campaignName ) {
 		$dbr = PRDatabase::getDb();
 		$row = $dbr->selectRow( 'pr_campaigns', 'cmp_id', [ 'cmp_name' => $campaignName ] );
 		if ( $row ) {
@@ -532,8 +546,12 @@ class AdCampaign {
 
 	/**
 	 * Lookup the name of a campaign based on the campaign ID
+	 *
+	 * @param int $campaignId
+	 *
+	 * @return string|null
 	 */
-	static function getCampaignName( $campaignId ) {
+	public static function getCampaignName( $campaignId ) {
 		$dbr = PRDatabase::getDb();
 		if ( is_numeric( $campaignId ) ) {
 			$row = $dbr->selectRow( 'pr_campaigns', 'cmp_name', [ 'cmp_id' => $campaignId ] );
@@ -547,11 +565,11 @@ class AdCampaign {
 	/**
 	 * Update a boolean setting on a campaign
 	 *
-	 * @param $campaignName string: Name of the campaign
-	 * @param $settingName string: Name of a boolean setting (enabled, locked, or geo)
-	 * @param $settingValue int: Value to use for the setting, 0 or 1
+	 * @param string $campaignName Name of the campaign
+	 * @param string $settingName Name of a boolean setting (enabled, locked, or geo)
+	 * @param int $settingValue Value to use for the setting, 0 or 1
 	 */
-	static function setBooleanCampaignSetting( $campaignName, $settingName, $settingValue ) {
+	public static function setBooleanCampaignSetting( $campaignName, $settingName, $settingValue ) {
 		if ( !self::campaignExists( $campaignName ) ) {
 			// Exit quietly since campaign may have been deleted at the same time.
 			return;
@@ -573,17 +591,17 @@ class AdCampaign {
 	 * @param int $settingValue Value to use
 	 * @param int $max The max that the value can take, default 1
 	 * @param int $min The min that the value can take, default 0
-	 * @throws MWException|RangeException
+	 * @throws \MWException|\RangeException
 	 */
-	static function setNumericCampaignSetting(
+	public static function setNumericCampaignSetting(
 		$campaignName, $settingName, $settingValue, $max = 1, $min = 0
 	) {
 		if ( $max <= $min ) {
-			throw new RangeException( 'Max must be greater than min.' );
+			throw new \RangeException( 'Max must be greater than min.' );
 		}
 
 		if ( !is_numeric( $settingValue ) ) {
-			throw new MWException( 'Setting value must be numeric.' );
+			throw new \MWException( 'Setting value must be numeric.' );
 		}
 
 		if ( $settingValue > $max ) {
@@ -610,11 +628,11 @@ class AdCampaign {
 	/**
 	 * Updates the weight of a ad in a campaign.
 	 *
-	 * @param $campaignName String Name of the campaign to update
-	 * @param $adId   		Int ID of the ad in the campaign
-	 * @param $weight       Int New ad weight
+	 * @param string $campaignName Name of the campaign to update
+	 * @param int $adId ID of the ad in the campaign
+	 * @param int $weight New ad weight
 	 */
-	static function updateWeight( $campaignName, $adId, $weight ) {
+	public static function updateWeight( $campaignName, $adId, $weight ) {
 		$dbw = PRDatabase::getDb();
 		$campaignId = self::getCampaignId( $campaignName );
 		$dbw->update( 'pr_adlinks',
@@ -626,7 +644,4 @@ class AdCampaign {
 		);
 	}
 
-}
-
-class AdCampaignExistenceException extends MWException {
 }

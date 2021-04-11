@@ -1,5 +1,7 @@
 <?php
 
+namespace MediaWiki\Extension\Promoter;
+
 /**
  * Utility functions for Promoter that don't belong elsewhere
  */
@@ -11,7 +13,7 @@ class PRDatabase {
 	 *                             Set to DB_MASTER or DB_SLAVE to force that type.
 	 * @param string|bool $wiki Wiki database to connect to, if false will be the Infrastructure DB
 	 *
-	 * @return DatabaseBase
+	 * @return \DatabaseBase
 	 */
 	public static function getDb( $force = false, $wiki = false ) {
 		global $wgUser;

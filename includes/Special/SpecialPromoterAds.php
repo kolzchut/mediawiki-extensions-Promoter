@@ -1,9 +1,24 @@
 <?php
 
+namespace MediaWiki\Extension\Promoter\Special;
+
+use DateTime;
+use ErrorPageError;
+use Exception;
+use MediaWiki\Extension\Promoter\Ad;
+use MediaWiki\Extension\Promoter\AdCampaign;
+use MediaWiki\Extension\Promoter\AdDataException;
+use MediaWiki\Extension\Promoter\AdExistenceException;
+use MediaWiki\Extension\Promoter\PRAdPager;
+use MediaWiki\Extension\Promoter\PromoterHtmlForm;
+use MWException;
+use MWTimestamp;
+use SpecialPage;
+
 /**
  * Special page for management of Promoter ads
  */
-class SpecialPromoterAds extends Promoter {
+class SpecialPromoterAds extends SpecialPromoter {
 	/** @var string Name of the ad we're currently editing */
 	protected $adName = '';
 
@@ -16,10 +31,16 @@ class SpecialPromoterAds extends Promoter {
 	/** @var bool If true, form execution must stop and the page will be redirected */
 	protected $adFormRedirectRequired = false;
 
+	/** @var array */
 	protected $allCampaigns = [];
 
-	function __construct() {
-		SpecialPage::__construct( 'PromoterAds' );
+	/**
+	 * SpecialPromoterAds constructor.
+	 *
+	 * @param string $name
+	 */
+	public function __construct( $name = 'PromoterAds' ) {
+		parent::__construct( $name );
 
 		// Make sure we have a session
 		$this->getRequest()->getSession()->persist();
@@ -29,7 +50,7 @@ class SpecialPromoterAds extends Promoter {
 
 	/**
 	 * Whether this special page is listed in Special:SpecialPages
-	 * @return Bool
+	 * @return bool
 	 */
 	public function isListed() {
 		return false;
@@ -42,7 +63,7 @@ class SpecialPromoterAds extends Promoter {
 	 *    Null      - Display a list of ads
 	 *    Edit      - Edits an existing ad
 	 *
-	 * @param $page
+	 * @param string $page
 	 *
 	 * @throws ErrorPageError
 	 */
@@ -84,7 +105,6 @@ class SpecialPromoterAds extends Promoter {
 			default:
 				// Something went wrong; display error page
 				throw new ErrorPageError( 'campaignad', 'promoter-generic-error' );
-				break;
 		}
 	}
 
@@ -190,7 +210,6 @@ class SpecialPromoterAds extends Promoter {
 
 		// --- Add all the ads via the fancy pager object ---
 		$pager = new PRAdPager(
-			$this->getPageTitle(),
 			'ad-list',
 			[
 				 'applyTo' => [
@@ -214,7 +233,7 @@ class SpecialPromoterAds extends Promoter {
 	 * Callback function from the showAdList() form that actually processes the
 	 * response data.
 	 *
-	 * @param $formData
+	 * @param array $formData
 	 *
 	 * @return null|string|array
 	 * @throws AdDataException
@@ -260,7 +279,6 @@ class SpecialPromoterAds extends Promoter {
 
 				case 'archive':
 					return ( 'Archiving not yet implemented!' );
-					break;
 
 				case 'remove':
 					$failed = [];
@@ -444,7 +462,8 @@ class SpecialPromoterAds extends Promoter {
 			'section' => 'edit-ad',
 			'type' => 'textarea',
 			'rows' => 5,
-			'cols' => 45, // Same as the regular inputs
+			// Cols is 45, same as the regular inputs
+			'cols' => 45,
 			'required' => true,
 			'label-message' => 'promoter-ad-body',
 			'placeholder' => '<!-- blank ad -->',
@@ -574,6 +593,15 @@ class SpecialPromoterAds extends Promoter {
 		}
 	}
 
+	/**
+	 * @param array $formData
+	 *
+	 * @return string|null
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws ErrorPageError
+	 * @throws MWException
+	 */
 	public function processEditAd( $formData ) {
 		// First things first! Figure out what the heck we're actually doing!
 		switch ( $formData[ 'action' ] ) {
@@ -595,7 +623,6 @@ class SpecialPromoterAds extends Promoter {
 					return null;
 				}
 				return 'Archiving currently does not work';
-				break;
 
 			case 'clone':
 				if ( !$this->editable ) {
@@ -632,7 +659,6 @@ class SpecialPromoterAds extends Promoter {
 					return null;
 				}
 				return $this->processSaveAdAction( $formData );
-				break;
 
 			default:
 				// Nothing was requested, so do nothing
@@ -642,6 +668,13 @@ class SpecialPromoterAds extends Promoter {
 		return null;
 	}
 
+	/**
+	 * @param array $formData
+	 *
+	 * @return null
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 */
 	protected function processSaveAdAction( $formData ) {
 		$startDate = null;
 		$endDate = null;
@@ -704,17 +737,4 @@ class SpecialPromoterAds extends Promoter {
 		return null;
 	}
 
-}
-
-/**
- * Class PromoterHtmlForm
- */
-class PromoterHtmlForm extends HTMLForm {
-	/**
-	 * Get the whole body of the form.
-	 * @return string
-	 */
-	function getBody() {
-		return $this->displaySection( $this->mFieldTree, '', 'pr-formsection-' );
-	}
 }
