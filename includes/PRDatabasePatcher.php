@@ -4,6 +4,10 @@
  * @license GPL-2.0-or-later
  */
 
+namespace MediaWiki\Extension\Promoter;
+
+use DatabaseUpdater;
+
 /**
  * Maintenance helper class that updates the database schema when required.
  *
@@ -18,7 +22,7 @@ class PRDatabasePatcher {
 	 * @return bool
 	 */
 	public static function applyUpdates( $updater = null ) {
-		$base = __DIR__;
+		$base = __DIR__ . '../patches';
 
 		if ( $updater->getDB()->getType() == 'mysql' ) {
 			$updater->addExtensionUpdate(
