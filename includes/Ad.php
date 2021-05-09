@@ -726,17 +726,20 @@ class Ad {
 		if ( $user === null ) {
 			$user = $wgUser;
 		}
-		self::removeAd( $this->getName(), $user );
+		self::removeAd( $this->getId(), $user );
 	}
 
 	/**
-	 * @param string $name
+	 * Remove an ad either by ID or name.
+	 * @fixme this should really have some permission checks
+	 *
+	 * @param int|string $identifier
 	 * @param User $user
 	 *
 	 * @throws AdDataException|MWException|\FatalError
 	 */
-	public static function removeAd( $name, $user ) {
-		$adObj = self::fromName( $name );
+	public static function removeAd( $identifier, $user ) {
+		$adObj = is_int( $identifier ) ? self::fromId( $identifier ) : self::fromName( $identifier );
 		$id = $adObj->getId();
 		$dbr = PRDatabase::getDb();
 		$res = $dbr->select( 'pr_adlinks', 'adl_id', [ 'ad_id' => $id ], __METHOD__ );
@@ -757,7 +760,7 @@ class Ad {
 
 			// Delete the MediaWiki page that contains the ad source
 			$article = new \Article(
-				Title::newFromText( "promoter-ad-{$name}", NS_MEDIAWIKI )
+				Title::newFromText( "promoter-ad-{$adObj->getName()}", NS_MEDIAWIKI )
 			);
 			$article->doDeleteArticle( 'Promoter automated removal' );
 		}
