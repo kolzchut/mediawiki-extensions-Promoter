@@ -59,9 +59,6 @@
 				formobj.wpaction.value = 'create';
 				formobj.wpnewAdName.value = $( this )[ 0 ].wpnewAdName.value;
 
-				formobj.wpnewAdEditSummary.value =
-					$( this )[ 0 ].wpnewAdEditSummary.value;
-
 				formobj.submit();
 			};
 
@@ -95,9 +92,6 @@
 			buttons[ deleteText ] = function () {
 				var formobj = $( '#pr-ad-manager' )[ 0 ];
 				formobj.wpaction.value = 'remove';
-
-				formobj.wpremoveAdEditSummary.value =
-					$( this )[ 0 ].wpremoveAdEditSummary.value;
 
 				formobj.submit();
 			};
