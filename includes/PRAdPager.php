@@ -59,7 +59,7 @@ class PRAdPager extends ReverseChronologicalPager {
 		parent::getNavigationBar();
 
 		$this->mNavigationBar = [
-			'class' => 'HTMLAdPagerNavigation',
+			'class' => 'MediaWiki\\Extension\\Promoter\\HTMLAdPagerNavigation',
 			'value' => $this->mNavigationBar
 		];
 
@@ -131,7 +131,7 @@ class PRAdPager extends ReverseChronologicalPager {
 
 		// Now do the ad
 		$retval["pr-ad-list-element-$adId"] = [
-			'class' => 'HTMLPromoterAd',
+			'class' => 'MediaWiki\\Extension\\Promoter\\HTMLPromoterAd',
 			'ad' => $adName,
 			'withlabel' => true,
 		];
