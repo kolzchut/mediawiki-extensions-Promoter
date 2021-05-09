@@ -37,9 +37,7 @@ request ads, which is used in turn by Extension:Discovery, which offers its own 
 
 
 ## Changelog
-- 1.0.1, 2021-04-17
-  - Fix bug with the database updater, following the previous rewrite
-- 1.0.0, 2021-04-12
+- 1.0.0, 2021-05-10
   - A major milestone on the road to merging this extension with extension:Discovery:
 	- Remove all logic from this extension, as it no longer handles choosing and displaying ads
     - This includes the gallery widget and the entire adcontroller, and generally most code
