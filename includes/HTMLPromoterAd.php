@@ -143,16 +143,6 @@ class HTMLPromoterAd extends HTMLInfoField {
 				htmlspecialchars( $adName ),
 				[ 'class' => 'pr-ad-list-element-label-text' ]
 			);
-			$html .= ' (' . \Linker::link(
-				\SpecialPage::getTitleFor( 'Randompage' ),
-				$this->msg( 'promoter-live-preview' ),
-				[ 'class' => 'pr-ad-list-element-label-text' ],
-				[
-					 'ad' => $adName,
-					 'uselang' => $language,
-					 'force' => '1'
-				]
-			) . ')';
 			// TODO: Output status icons
 			$html .= Xml::tags( 'div', [ 'class' => 'pr-ad-list-element-label-icons' ], '' );
 			$html .= Xml::closeElement( 'div' );
