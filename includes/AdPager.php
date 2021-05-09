@@ -29,7 +29,7 @@ class AdPager extends ReverseChronologicalPager {
 	 */
 	public function __construct( $special, $filter = '' ) {
 		$this->special = $special;
-		$this->editable = $special->editable;
+		$this->editable = $special->isEditable();
 		$this->filter = $filter;
 		parent::__construct();
 

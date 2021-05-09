@@ -32,6 +32,13 @@ class SpecialPromoter extends SpecialPage {
 	}
 
 	/**
+	 * @return bool
+	 */
+	public function isEditable() {
+		return $this->editable;
+	}
+
+	/**
 	 * Handle different types of page requests
 	 *
 	 * @param string $sub
