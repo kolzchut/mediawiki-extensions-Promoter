@@ -750,12 +750,10 @@ class Ad {
 
 			// Delete ad record from the Promoter pr_ads table
 			$dbw = PRDatabase::getDb();
-			$dbw->begin();
 			$dbw->delete( 'pr_ads',
 				[ 'ad_id' => $id ],
 				__METHOD__
 			);
-			$dbw->commit();
 
 			// Delete the MediaWiki page that contains the ad source
 			$article = new \Article(

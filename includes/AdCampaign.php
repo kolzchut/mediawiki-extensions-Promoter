@@ -348,8 +348,6 @@ class AdCampaign {
 		}
 
 		$dbw = PRDatabase::getDb();
-		$dbw->begin();
-
 		$dbw->insert(
 			'pr_campaigns',
 			[
@@ -359,25 +357,11 @@ class AdCampaign {
 		);
 		$cmp_id = $dbw->insertId();
 
-		if ( $cmp_id ) {
-
-			$dbw->commit();
-
-			// Log the creation of the campaign
-			/*
-			$beginSettings = [];
-			$endSettings = array(
-				//'start'     => $dbw->timestamp( $startTs ),
-				//'end'       => $dbw->timestamp( $endTs ),
-				'enabled'   => $enabled,
-			);
-			Campaign::logCampaignChange( 'created', $cmp_id, $user,
-				$beginSettings, $endSettings );
-			*/
-			return $cmp_id;
+		if ( !$cmp_id ) {
+			throw new \MWException( 'insertId() did not return a value.' );
 		}
 
-		throw new \MWException( 'insertId() did not return a value.' );
+		return $cmp_id;
 	}
 
 	/**
@@ -413,10 +397,8 @@ class AdCampaign {
 		// Campaign::logCampaignChange( 'removed', $campaignId, $user );
 
 		$dbw = PRDatabase::getDb();
-		$dbw->begin();
 		$dbw->delete( 'pr_adlinks', [ 'cmp_id' => $campaignId ] );
 		$dbw->delete( 'pr_campaigns', [ 'cmp_name' => $campaignName ] );
-		$dbw->commit();
 	}
 
 	/**
@@ -441,7 +423,6 @@ class AdCampaign {
 			return 'promoter-ad-already-linked';
 		}
 
-		$dbw->begin();
 		$campaignId = self::getCampaignId( $campaignName );
 		$dbw->insert( 'pr_adlinks',
 			[
@@ -450,7 +431,6 @@ class AdCampaign {
 				'cmp_id'     => $campaignId
 			]
 		);
-		$dbw->commit();
 
 		return true;
 	}
@@ -465,11 +445,9 @@ class AdCampaign {
 	 */
 	public static function removeAdFor( $campaignName, $adName ) {
 		$dbw = PRDatabase::getDb();
-		$dbw->begin();
 		$campaignId = self::getCampaignId( $campaignName );
 		$adId = Ad::fromName( $adName )->getId();
 		$dbw->delete( 'pr_adlinks', [ 'ad_id' => $adId, 'cmp_id' => $campaignId ] );
-		$dbw->commit();
 	}
 
 	/**
@@ -496,9 +474,7 @@ class AdCampaign {
 			];
 		}
 
-		$dbw->begin();
 		$dbw->insert( 'pr_adlinks', $rows );
-		$dbw->commit();
 
 		return true;
 	}
@@ -517,12 +493,10 @@ class AdCampaign {
 
 		$dbw = PRDatabase::getDb();
 
-		$dbw->begin();
 		$dbw->delete( 'pr_adlinks', [
 			'ad_id'  => $adId,
 			'cmp_id' => $campaignIds
 		] );
-		$dbw->commit();
 
 		return true;
 	}
