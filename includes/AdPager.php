@@ -98,7 +98,7 @@ class AdPager extends ReverseChronologicalPager {
 			$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top' ],
 				Xml::check( 'removeAds[]', false,
 					[
-						'value'    => $row->ad_name,
+						'value'    => $row->ad_id,
 						'onchange' => $this->onRemoveChange
 					]
 				)

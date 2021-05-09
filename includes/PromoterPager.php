@@ -83,7 +83,7 @@ class PromoterPager extends AdPager {
 		if ( $this->editable ) {
 			// Add box
 			$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top' ],
-				Xml::check( 'addAds[]', '', [ 'value' => $row->ad_name ] )
+				Xml::check( 'addAds[]', '', [ 'value' => $row->ad_id ] )
 			);
 			// Weight select
 			$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top', 'class' => 'pr-weight' ],
@@ -99,7 +99,7 @@ class PromoterPager extends AdPager {
 		}
 
 		// Link and Preview
-		$ad = Ad::fromName( $row->ad_name );
+		$ad = Ad::fromId( $row->ad_id );
 
 		$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top' ],
 			$ad->linkToPreview()

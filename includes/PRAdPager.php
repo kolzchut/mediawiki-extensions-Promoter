@@ -123,10 +123,7 @@ class PRAdPager extends ReverseChronologicalPager {
 
 		// Add the prepend prototypes
 		foreach ( $this->prependPrototypes as $prototypeName => $prototypeValues ) {
-			$retval[ "{$prototypeName}-{$adName}" ] = $prototypeValues;
-			if ( array_key_exists( 'id', $prototypeValues ) ) {
-				$retval[ "{$prototypeName}-{$adId}" ][ 'id' ] .= "-$adName";
-			}
+			$retval[ "{$prototypeName}-{$adId}" ] = $prototypeValues;
 		}
 
 		// Now do the ad

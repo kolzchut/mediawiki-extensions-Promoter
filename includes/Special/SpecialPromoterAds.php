@@ -286,7 +286,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 						$parts = explode( '-', $element, 2 );
 						if ( ( $parts[0] === 'applyTo' ) && ( $value === true ) ) {
 							try {
-								Ad::removeAd( $parts[1], $this->getUser() );
+								Ad::removeAd( (int)$parts[1], $this->getUser() );
 							} catch ( Exception $ex ) {
 								$failed[] = $parts[1];
 							}
