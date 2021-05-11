@@ -946,7 +946,11 @@ class Ad {
 		 return $adHtml;
 	}
 
-	public function linkToPreview() {
+	/**
+	 * @return string
+	 * @throws MWException
+	 */
+	public function linkToEdit() {
 		return \Linker::link(
 			\SpecialPage::getTitleFor( 'PromoterAds', "edit/{$this->getName()}" ),
 			htmlspecialchars( $this->getName() ),

@@ -7,6 +7,11 @@
 	text-align: center;
 }
 
+/* Make checkbox labels take the entire row, so they're easier to click */
+table .checkbox-label {
+	width: 100%;
+}
+
 #pr-formsection-preview {
 	border: none;
 	margin: 0;

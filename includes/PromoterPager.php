@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\Promoter;
 
+use Html;
 use MediaWiki\Extension\Promoter\Special\SpecialPromoter;
 use Xml;
 
@@ -82,27 +83,18 @@ class PromoterPager extends AdPager {
 
 		if ( $this->editable ) {
 			// Add box
-			$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top' ],
-				Xml::check( 'addAds[]', '', [ 'value' => $row->ad_id ] )
-			);
-			// Weight select
-			$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top', 'class' => 'pr-weight' ],
-				Xml::listDropDown( "weight[$row->ad_id]",
-					SpecialPromoter::dropDownList(
-						$this->msg( 'promoter-weight' )->text(), range( 0, 100, 5 )
-					),
-					'',
-					'25',
-					'',
-					'' )
-			);
+			$htmlOut .= Xml::openElement( 'td', [ 'valign' => 'top' ] );
+			$htmlOut .= Html::openElement( 'label', [ 'class' => 'checkbox-label' ] );
+			$htmlOut .= Xml::check( 'addAds[]', '', [ 'value' => $row->ad_id ] );
+			$htmlOut .= Html::closeElement( 'label' );
+			$htmlOut .= Html::closeElement( 'td' );
 		}
 
 		// Link and Preview
 		$ad = Ad::fromId( $row->ad_id );
 
 		$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top' ],
-			$ad->linkToPreview()
+			$ad->linkToEdit()
 		);
 
 		// End ad row
@@ -120,14 +112,11 @@ class PromoterPager extends AdPager {
 		$htmlOut = Xml::openElement( 'table', [ 'cellpadding' => 9 ] );
 		$htmlOut .= Xml::openElement( 'tr' );
 		if ( $this->editable ) {
-			$htmlOut .= Xml::element( 'th', [ 'align' => 'left', 'width' => '5%' ],
+			$htmlOut .= Xml::element( 'th', [ 'width' => '5%' ],
 				$this->msg( 'promoter-add' )->text()
 			);
-			$htmlOut .= Xml::element( 'th', [ 'align' => 'left', 'width' => '5%', 'class' => 'pr-weight' ],
-				$this->msg( 'promoter-weight' )->text()
-			);
 		}
-		$htmlOut .= Xml::element( 'th', [ 'align' => 'left' ],
+		$htmlOut .= Xml::element( 'th', null,
 			$this->msg( 'promoter-ads' )->text()
 		);
 		$htmlOut .= Xml::closeElement( 'tr' );

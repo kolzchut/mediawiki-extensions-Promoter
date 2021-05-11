@@ -22,7 +22,7 @@ class PRDatabasePatcher {
 	 * @return bool
 	 */
 	public static function applyUpdates( $updater = null ) {
-		$base = __DIR__ . '../patches';
+		$base = __DIR__ . '/../patches';
 
 		if ( $updater->getDB()->getType() == 'mysql' ) {
 			$updater->addExtensionUpdate(
@@ -78,6 +78,10 @@ class PRDatabasePatcher {
 					'addField', 'pr_ad_log', 'adlog_end_active',
 					$base . '/pr_ad_log.patch.adlog_end_active.sql', true
 				]
+			);
+			$updater->dropExtensionField(
+				'pr_adlinks', 'adl_weight',
+				$base . '/pr_ads.patch.pr_adlinks_drop_adl_weight.sql'
 			);
 		}
 		return true;

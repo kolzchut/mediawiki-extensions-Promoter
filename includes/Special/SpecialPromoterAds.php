@@ -714,7 +714,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 		}, $campaignsToRemoveFrom );
 
 		// Add/remove ad from said campaigns
-		AdCampaign::addAdToCampaigns( $campaignsToAddTo, $ad->getId(), 25 );
+		AdCampaign::addAdToCampaigns( $campaignsToAddTo, $ad->getId() );
 		AdCampaign::removeAdForCampaigns( $campaignsToRemoveFrom, $ad->getId() );
 
 		/* --- Ad settings --- */

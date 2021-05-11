@@ -416,7 +416,6 @@ class SpecialPromoter extends SpecialPage {
 			);
 			$htmlOut .= Xml::closeElement( 'div' );
 
-			$htmlOut .= Html::hidden( 'change', 'weight' );
 			$htmlOut .= Html::hidden( 'authtoken', $this->getUser()->getEditToken() );
 
 			// Submit button
@@ -480,11 +479,9 @@ class SpecialPromoter extends SpecialPage {
 					// Handle adding of ads to the campaign
 					$adsToAdd = $request->getArray( 'addAds' );
 					if ( $adsToAdd ) {
-						$weight = $request->getArray( 'weight' );
-						foreach ( $adsToAdd as $adName ) {
-							$adId = Ad::fromName( $adName )->getId();
+						foreach ( $adsToAdd as $adId ) {
 							$result = AdCampaign::addAdTo(
-								$campaign, $adName, $weight[ $adId ]
+								$campaign, $adId
 							);
 							if ( $result !== true ) {
 								$this->showError( $result );
@@ -495,20 +492,8 @@ class SpecialPromoter extends SpecialPage {
 					// Handle removing of ads from the campaign
 					$adToRemove = $request->getArray( 'removeAds' );
 					if ( $adToRemove ) {
-						foreach ( $adToRemove as $ad ) {
-							AdCampaign::removeAdFor( $campaign, $ad );
-						}
-					}
-
-					// Handle weight changes
-					$updatedWeights = $request->getArray( 'weight' );
-					$balanced = $request->getCheck( 'balanced' );
-					if ( $updatedWeights ) {
-						foreach ( $updatedWeights as $adId => $weight ) {
-							if ( $balanced ) {
-								$weight = 25;
-							}
-							AdCampaign::updateWeight( $campaign, $adId, $weight );
+						foreach ( $adToRemove as $adId ) {
+							AdCampaign::removeAdFor( $campaign, $adId );
 						}
 					}
 
@@ -648,21 +633,6 @@ class SpecialPromoter extends SpecialPage {
 			);
 			$htmlOut .= Xml::closeElement( 'tr' );
 
-			/*
-			// Linked to Category / Page
-			$catTitle = Title::newFromID( $catPageId );
-			$catName = $catTitle ? $catTitle->getText() : $this->msg( 'promoter-no-assigned-cat' )->text();
-			$htmlOut .= Xml::openElement( 'tr' );
-			$htmlOut .= Xml::tags( 'td', [],
-				Xml::label( $this->msg( 'promoter-campaign-linked-to' )->text(), 'catPageId' ) );
-			$htmlOut .= Xml::tags( 'td', [],
-				Xml::input( 'catPageId', 30, $catName, array_replace( $readonly,
-						array( 'id' => 'catPageId' ) )
-				)
-			);
-			$htmlOut .= Xml::closeElement( 'tr' );
-			*/
-
 			// Enabled
 			$htmlOut .= Xml::openElement( 'tr' );
 			$htmlOut .= Xml::tags( 'td', [],
@@ -711,8 +681,7 @@ class SpecialPromoter extends SpecialPage {
 			],
 			[
 				'ads.ad_id',
-				'ads.ad_name',
-				'adlinks.adl_weight',
+				'ads.ad_name'
 			],
 			[
 				'campaigns.cmp_name' => $campaign,
@@ -734,30 +703,13 @@ class SpecialPromoter extends SpecialPage {
 			$readonly = [ 'disabled' => 'disabled' ];
 		}
 
-		$weights = [];
-
 		$ads = [];
 		foreach ( $res as $row ) {
 			$ads[] = $row;
-
-			$weights[] = $row->adl_weight;
 		}
-		$isBalanced = ( count( array_unique( $weights ) ) === 1 );
 
 		// Build Assigned ads HTML
-		$htmlOut = Html::hidden( 'change', 'weight' );
-		$htmlOut .= Xml::fieldset( $this->msg( 'promoter-assigned-ads' )->text() );
-
-		// Equal weight ads
-		$htmlOut .= Xml::openElement( 'tr' );
-		$htmlOut .= Xml::tags( 'td', [],
-			Xml::label( $this->msg( 'promoter-balanced' )->text(), 'balanced' ) );
-		$htmlOut .= Xml::tags( 'td', [],
-			Xml::check( 'balanced', $isBalanced,
-				array_replace( $readonly, [ 'value' => $campaign, 'id' => 'balanced' ] )
-			)
-		);
-		$htmlOut .= Xml::closeElement( 'tr' );
+		$htmlOut = Xml::fieldset( $this->msg( 'promoter-assigned-ads' )->text() );
 
 		$htmlOut .= Xml::openElement( 'table',
 			[
@@ -766,16 +718,10 @@ class SpecialPromoter extends SpecialPage {
 			]
 		);
 		if ( $this->editable ) {
-			$htmlOut .= Xml::element( 'th', [ 'align' => 'left', 'width' => '5%' ],
+			$htmlOut .= Xml::element( 'th', null,
 				$this->msg( "promoter-remove" )->text() );
 		}
-		$htmlOut .= Xml::element( 'th', [ 'align' => 'left', 'width' => '5%', 'class' => 'pr-weight' ],
-			$this->msg( 'promoter-weight' )->text() );
-		/*
-		$htmlOut .= Xml::element( 'th', [ 'align' => 'left', 'width' => '5%' ],
-			$this->msg( 'promoter-bucket' )->text() );
-		*/
-		$htmlOut .= Xml::element( 'th', [ 'align' => 'left', 'width' => '70%' ],
+		$htmlOut .= Xml::element( 'th', null,
 			$this->msg( 'promoter-ads' )->text() );
 
 		// Table rows
@@ -784,20 +730,17 @@ class SpecialPromoter extends SpecialPage {
 
 			if ( $this->editable ) {
 				// Remove
-				$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top' ],
-					Xml::check( 'removeAds[]', false, [ 'value' => $row->ad_name ] )
-				);
+				$htmlOut .= Xml::openElement( 'td', [ 'valign' => 'top' ] );
+				$htmlOut .= Html::openElement( 'label', [ 'class' => 'checkbox-label' ] );
+				$htmlOut .= Xml::check( 'removeAds[]', '', [ 'value' => $row->ad_id ] );
+				$htmlOut .= Html::closeElement( 'label' );
+				$htmlOut .= Html::closeElement( 'td' );
 			}
-
-			// Weight
-			$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top', 'class' => 'pr-weight' ],
-				$this->weightDropDown( "weight[$row->ad_id]", $row->adl_weight )
-			);
 
 			// Ad
 			$ad = Ad::fromName( $row->ad_name );
 			$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top' ],
-				$ad->linkToPreview()
+				$ad->linkToEdit()
 			);
 
 			$htmlOut .= Xml::closeElement( 'tr' );
@@ -805,27 +748,6 @@ class SpecialPromoter extends SpecialPage {
 		$htmlOut .= Xml::closeElement( 'table' );
 		$htmlOut .= Xml::closeElement( 'fieldset' );
 		return $htmlOut;
-	}
-
-	/**
-	 * @param string $name
-	 * @param string|int $selected
-	 *
-	 * @return string
-	 */
-	protected function weightDropDown( $name, $selected ) {
-		$selected = intval( $selected );
-
-		if ( $this->editable ) {
-			$html = Html::openElement( 'select', [ 'name' => $name ] );
-			foreach ( range( 5, 100, 5 ) as $value ) {
-				$html .= Xml::option( $value, $value, $value === $selected );
-			}
-			$html .= Html::closeElement( 'select' );
-			return $html;
-		} else {
-			return htmlspecialchars( $selected );
-		}
 	}
 
 	/**
@@ -879,20 +801,6 @@ class SpecialPromoter extends SpecialPage {
 		$htmlOut .= Xml::closeElement( 'fieldset' );
 
 		return $htmlOut;
-	}
-
-	/**
-	 * @param string $text
-	 * @param array $values
-	 *
-	 * @return string
-	 */
-	public static function dropDownList( $text, $values ) {
-		$dropDown = "*{$text}\n";
-		foreach ( $values as $value ) {
-			$dropDown .= "**{$value}\n";
-		}
-		return $dropDown;
 	}
 
 	/**

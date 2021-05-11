@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\Promoter;
 
+use Html;
 use ReverseChronologicalPager;
 use stdClass;
 use Xml;
@@ -95,21 +96,23 @@ class AdPager extends ReverseChronologicalPager {
 
 		if ( $this->editable ) {
 			// Remove box
-			$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top' ],
-				Xml::check( 'removeAds[]', false,
-					[
-						'value'    => $row->ad_id,
-						'onchange' => $this->onRemoveChange
-					]
-				)
+			$htmlOut .= Xml::openElement( 'td', [ 'valign' => 'top' ] );
+			$htmlOut .= Html::openElement( 'label', [ 'class' => 'checkbox-label' ] );
+			$htmlOut .= Xml::check( 'removeAds[]', false,
+				[
+					'value'    => $row->ad_id,
+					'onchange' => $this->onRemoveChange
+				]
 			);
+			$htmlOut .= Html::closeElement( 'label' );
+			$htmlOut .= Html::closeElement( 'td' );
 		}
 
 		// Preview
 		$ad = Ad::fromName( $row->ad_name );
 
 		$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top' ],
-			$ad->linkToPreview()
+			$ad->linkToEdit()
 		);
 
 		// End ad row
@@ -128,11 +131,11 @@ class AdPager extends ReverseChronologicalPager {
 		$htmlOut .= Xml::openElement( 'table', [ 'cellpadding' => 9 ] );
 		$htmlOut .= Xml::openElement( 'tr' );
 		if ( $this->editable ) {
-			$htmlOut .= Xml::element( 'th', [ 'align' => 'left', 'width' => '5%' ],
+			$htmlOut .= Xml::element( 'th', [ 'width' => '5%' ],
 				$this->msg( 'promoter-remove' )->text()
 			);
 		}
-		$htmlOut .= Xml::element( 'th', [ 'align' => 'left' ],
+		$htmlOut .= Xml::element( 'th', null,
 			$this->msg( 'promoter-ads' )->text()
 		);
 		$htmlOut .= Xml::closeElement( 'tr' );

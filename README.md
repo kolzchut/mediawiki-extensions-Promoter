@@ -41,6 +41,7 @@ request ads, which is used in turn by Extension:Discovery, which offers its own 
   - A major milestone on the road to merging this extension with extension:Discovery:
 	- Remove all logic from this extension, as it no longer handles choosing and displaying ads
     - This includes the gallery widget and the entire adcontroller, and generally most code
+    - Remove the unused ad weights in campaigns
   - Convert to extension registration
   - Make the extension compatible with MediaWiki 1.35
   -	Finally, give it a proper version number

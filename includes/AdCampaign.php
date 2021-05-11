@@ -158,7 +158,7 @@ class AdCampaign {
 	/**
 	 * Return all ads bound to the campaign
 	 *
-	 * @return array a 2D array of ads with associated weights and settings
+	 * @return array a 2D array of ads with settings
 	 */
 	public function getAds() {
 		$dbr = PRDatabase::getDb();
@@ -173,7 +173,6 @@ class AdCampaign {
 			],
 			[
 				'ad_name',
-				'adl_weight',
 				'ad_display_anon',
 				'ad_display_user',
 			],
@@ -190,7 +189,6 @@ class AdCampaign {
 		foreach ( $res as $row ) {
 			$ads[] = [
 				'name'             => $row->ad_name,
-				'weight'           => intval( $row->adl_weight ),
 				'display_anon'     => intval( $row->ad_display_anon ),
 				'display_user'     => intval( $row->ad_display_user )
 			];
@@ -232,7 +230,7 @@ class AdCampaign {
 		$campaignObj = new AdCampaign( $campaignName );
 		$adsIn = $campaignObj->getAds();
 		$adsOut = [];
-		// All we want are the ad names and weights
+		// All we want are the ad names
 		foreach ( $adsIn as $key => $row ) {
 			$outKey = $adsIn[ $key ][ 'name' ];
 			$adsOut[ $outKey ]['weight'] = $adsIn[ $key ][ 'weight' ];
@@ -402,16 +400,16 @@ class AdCampaign {
 	}
 
 	/**
-	 * Assign an ad to a campaign at a certain weight
+	 * Assign an ad to a campaign
 	 * @param string $campaignName
-	 * @param string $adName
-	 * @param int $weight
+	 * @param int $adId
 	 * @return bool|string True on success, string with message key for error
+	 *
+	 * @todo we should probably validate the ad's ID
 	 */
-	public static function addAdTo( $campaignName, $adName, $weight ) {
+	public static function addAdTo( $campaignName, $adId ) {
 		$dbw = PRDatabase::getDb();
 		$campaignId = self::getCampaignId( $campaignName );
-		$adId = Ad::fromName( $adName )->getId();
 		$res = $dbw->select( 'pr_adlinks', 'adl_id',
 			[
 				'ad_id' => $adId,
@@ -427,7 +425,6 @@ class AdCampaign {
 		$dbw->insert( 'pr_adlinks',
 			[
 				'ad_id'     => $adId,
-				'adl_weight' => $weight,
 				'cmp_id'     => $campaignId
 			]
 		);
@@ -439,14 +436,13 @@ class AdCampaign {
 	 * Remove an ad assignment from a campaign
 	 *
 	 * @param string $campaignName
-	 * @param string $adName
+	 * @param int $adId
 	 *
-	 * @throws AdDataException
+	 * @todo we should probably validate the ad's ID
 	 */
-	public static function removeAdFor( $campaignName, $adName ) {
+	public static function removeAdFor( $campaignName, $adId ) {
 		$dbw = PRDatabase::getDb();
 		$campaignId = self::getCampaignId( $campaignName );
-		$adId = Ad::fromName( $adName )->getId();
 		$dbw->delete( 'pr_adlinks', [ 'ad_id' => $adId, 'cmp_id' => $campaignId ] );
 	}
 
@@ -455,10 +451,9 @@ class AdCampaign {
 	 *
 	 * @param array $campaignIds Array of IDs of target campaigns
 	 * @param int $adId Ad ID
-	 * @param int $weight Ad weight
 	 * @return bool
 	 */
-	public static function addAdToCampaigns( $campaignIds, $adId, $weight ) {
+	public static function addAdToCampaigns( $campaignIds, $adId ) {
 		if ( empty( $campaignIds ) ) {
 			return false;
 		}
@@ -469,8 +464,7 @@ class AdCampaign {
 		foreach ( $campaignIds as $key => $id ) {
 			$rows[] = [
 				'cmp_id'     => $id,
-				'ad_id'      => $adId,
-				'adl_weight' => $weight
+				'ad_id'      => $adId
 			];
 		}
 
@@ -597,25 +591,6 @@ class AdCampaign {
 				[ 'cmp_name' => $campaignName ]
 			);
 		}
-	}
-
-	/**
-	 * Updates the weight of a ad in a campaign.
-	 *
-	 * @param string $campaignName Name of the campaign to update
-	 * @param int $adId ID of the ad in the campaign
-	 * @param int $weight New ad weight
-	 */
-	public static function updateWeight( $campaignName, $adId, $weight ) {
-		$dbw = PRDatabase::getDb();
-		$campaignId = self::getCampaignId( $campaignName );
-		$dbw->update( 'pr_adlinks',
-			[ 'adl_weight' => $weight ],
-			[
-				'ad_id' => $adId,
-				'cmp_id' => $campaignId
-			]
-		);
 	}
 
 }
