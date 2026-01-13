@@ -7,10 +7,10 @@ namespace MediaWiki\Extension\Promoter;
  */
 class PRDatabase {
 	/**
-	 * Gets a database object. Will be the master if the user is logged in.
+	 * Gets a database object. Will be the primary if the user is logged in.
 	 *
-	 * @param int|bool $force If false will return a DB master/slave based on users permissions.
-	 *                             Set to DB_MASTER or DB_SLAVE to force that type.
+	 * @param int|bool $force If false will return a DB primary/replica based on users permissions.
+	 *                             Set to DB_PRIMARY or DB_REPLICA to force that type.
 	 * @param string|bool $wiki Wiki database to connect to, if false will be the Infrastructure DB
 	 *
 	 * @return \DatabaseBase
@@ -19,7 +19,7 @@ class PRDatabase {
 		global $wgUser;
 
 		if ( $wgUser->isAllowed( 'promoter-admin' ) ) {
-			$dbmode = DB_MASTER;
+			$dbmode = DB_PRIMARY;
 		} elseif ( $force === false ) {
 			$dbmode = DB_REPLICA;
 		} else {
