@@ -565,11 +565,12 @@ class Ad {
 		}
 
 		$bodyPage = $this->getTitle();
-		$curRev = Revision::newFromTitle( $bodyPage );
+		$revisionStore = \MediaWiki\MediaWikiServices::getInstance()->getRevisionStore();
+		$curRev = $revisionStore->getRevisionByTitle( $bodyPage );
 		if ( !$curRev ) {
 			throw new MWException( "No content for ad: {$this->name}" );
 		}
-		$this->bodyContent = ContentHandler::getContentText( $curRev->getContent() );
+		$this->bodyContent = ContentHandler::getContentText( $curRev->getContent( \MediaWiki\Revision\SlotRecord::MAIN ) );
 
 		$this->markBodyContentDirty( false );
 	}
