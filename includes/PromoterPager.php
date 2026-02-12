@@ -3,7 +3,6 @@
 namespace MediaWiki\Extension\Promoter;
 
 use Html;
-use MediaWiki\Extension\Promoter\Special\SpecialPromoter;
 use Xml;
 
 class PromoterPager extends AdPager {
@@ -13,17 +12,15 @@ class PromoterPager extends AdPager {
 	 * @return array
 	 */
 	public function getQueryInfo() {
-		$dbr = PRDatabase::getDb();
-
 		// First we must construct the filter before we pull ads
 		// When the filter comes in it is space delimited, so break that...
 		$likeArray = preg_split( '/\s/', $this->filter );
 
 		// ...and then insert all the wildcards betwean search terms
 		if ( empty( $likeArray ) ) {
-			$likeArray = $dbr->anyString();
+			$likeArray = $this->mDb->anyString();
 		} else {
-			$anyStringToken = $dbr->anyString();
+			$anyStringToken = $this->mDb->anyString();
 			$tempArray = [ $anyStringToken ];
 			foreach ( $likeArray as $likePart ) {
 				$tempArray[ ] = $likePart;
@@ -48,7 +45,7 @@ class PromoterPager extends AdPager {
 
 				'conds' => [
 					'adlinks.ad_id IS NULL',
-					'ad_name' . $dbr->buildLike( $likeArray )
+					'ad_name' . $this->mDb->buildLike( $likeArray )
 				],
 
 				'join_conds' => [
@@ -64,7 +61,7 @@ class PromoterPager extends AdPager {
 			return [
 				'tables' => [ 'ads' => 'pr_ads' ],
 				'fields' => [ 'ads.ad_name', 'ads.ad_id' ],
-				'conds'  => [ 'ads.ad_name' . $dbr->buildLike( $likeArray ) ],
+				'conds'  => [ 'ads.ad_name' . $this->mDb->buildLike( $likeArray ) ],
 			];
 		}
 	}
@@ -108,7 +105,7 @@ class PromoterPager extends AdPager {
 	 *
 	 * @return string
 	 */
-	protected function getStartBody() {
+	protected function getStartBody(): string {
 		$htmlOut = Xml::openElement( 'table', [ 'cellpadding' => 9 ] );
 		$htmlOut .= Xml::openElement( 'tr' );
 		if ( $this->editable ) {
@@ -128,7 +125,7 @@ class PromoterPager extends AdPager {
 	 *
 	 * @return string
 	 */
-	protected function getEndBody() {
+	protected function getEndBody(): string {
 		return Xml::closeElement( 'table' );
 	}
 }

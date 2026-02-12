@@ -35,7 +35,7 @@ class AdPager extends ReverseChronologicalPager {
 		parent::__construct();
 
 		// Override paging defaults
-		list( $this->mLimit ) = $this->mRequest->getLimitOffsetForUser( $this->getUser(), 20, '' );
+		[ $this->mLimit ] = $this->mRequest->getLimitOffsetForUser( $this->getUser(), 20, '' );
 		$this->mLimitsShown = [ 20, 50, 100 ];
 
 		$msg = Xml::encodeJsVar( $this->msg( 'promoter-confirm-delete' )->text() );
@@ -48,16 +48,14 @@ class AdPager extends ReverseChronologicalPager {
 	 * @return array of query settings
 	 */
 	public function getQueryInfo() {
-		$dbr = PRDatabase::getDb();
-
 		// When the filter comes in it is space delimited, so break that...
 		$likeArray = preg_split( '/\s/', $this->filter );
 
 		// ...and then insert all the wildcards betwean search terms
 		if ( empty( $likeArray ) ) {
-			$likeArray = $dbr->anyString();
+			$likeArray = $this->mDb->anyString();
 		} else {
-			$anyStringToken = $dbr->anyString();
+			$anyStringToken = $this->mDb->anyString();
 			$tempArray = [ $anyStringToken ];
 			foreach ( $likeArray as $likePart ) {
 				$tempArray[ ] = $likePart;
@@ -69,7 +67,7 @@ class AdPager extends ReverseChronologicalPager {
 		return [
 			'tables' => [ 'ads' => 'pr_ads' ],
 			'fields' => [ 'ads.ad_name', 'ads.ad_id' ],
-			'conds'  => [ 'ads.ad_name' . $dbr->buildLike( $likeArray ) ],
+			'conds'  => [ 'ads.ad_name' . $this->mDb->buildLike( $likeArray ) ],
 		];
 	}
 

@@ -8,10 +8,10 @@ use MediaWiki\Extension\Promoter\Ad;
 use MediaWiki\Extension\Promoter\AdCampaign;
 use MediaWiki\Extension\Promoter\AdCampaignExistenceException;
 use MediaWiki\Extension\Promoter\AdDataException;
-use MediaWiki\Extension\Promoter\PRDatabase;
 use MediaWiki\Extension\Promoter\PromoterPager;
 use MediaWiki\MediaWikiServices;
 use SpecialPage;
+use Wikimedia\Rdbms\IConnectionProvider;
 use Xml;
 
 class SpecialPromoter extends SpecialPage {
@@ -22,6 +22,9 @@ class SpecialPromoter extends SpecialPage {
 	/** @var bool */
 	private $promoterError;
 
+	/** @var IConnectionProvider */
+	private IConnectionProvider $dbProvider;
+
 	/**
 	 * SpecialPromoter constructor.
 	 *
@@ -29,6 +32,7 @@ class SpecialPromoter extends SpecialPage {
 	 */
 	public function __construct( $name = 'Promoter' ) {
 		parent::__construct( $name );
+		$this->dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
 	}
 
 	/**
@@ -41,12 +45,12 @@ class SpecialPromoter extends SpecialPage {
 	/**
 	 * Handle different types of page requests
 	 *
-	 * @param string $sub
+	 * @param string $subPage
 	 *
 	 * @throws \ErrorPageError
 	 * @throws \MWException
 	 */
-	public function execute( $sub ) {
+	public function execute( $subPage ) {
 		// Begin output
 		$this->setHeaders();
 		$this->outputHeader();
@@ -243,7 +247,7 @@ class SpecialPromoter extends SpecialPage {
 
 		// TODO: refactor to use AdCampaign::getCampaigns
 		// Get all campaigns from the database
-		$dbr = PRDatabase::getDb();
+		$dbr = $this->dbProvider->getReplicaDatabase();
 		$res = $dbr->select( 'pr_campaigns',
 			[
 				'cmp_name',
@@ -404,24 +408,26 @@ class SpecialPromoter extends SpecialPage {
 
 			// Name
 			$htmlOut .= Xml::openElement( 'div', [ 'class' => 'form-group' ] );
-			$htmlOut .= Xml::label( $this->msg( 'promoter-campaign-name' )->escaped(), 'campaignName', [
+			$htmlOut .= Html::label( $this->msg( 'promoter-campaign-name' )->escaped(), 'campaignName', [
 					'class' => 'sr-only'
 				]
 			);
-			$htmlOut .= Xml::input( 'campaignName', 25, $request->getVal( 'campaignName' ), [
+			$htmlOut .= Html::input( 'campaignName', 25, $request->getVal( 'campaignName' ), [
 					'id' => 'campaignName',
 					'placeholder' => $this->msg( 'promoter-campaign-name' )->escaped(),
 					'class' => 'form-control'
 				]
 			);
-			$htmlOut .= Xml::closeElement( 'div' );
+			$htmlOut .= Html::closeElement( 'div' );
 
-			$htmlOut .= Html::hidden( 'authtoken', $this->getUser()->getEditToken() );
+			// @todo this is probably the wrong way to do this
+			$editToken =  $this->getContext()->getCsrfTokenSet()->getToken();
+			$htmlOut .= Html::hidden( 'authtoken', $editToken );
 
 			// Submit button
-			$htmlOut .= Xml::submitButton( $this->msg( 'promoter-modify' )->text(), [ 'class' => 'btn' ] );
+			$htmlOut .= Html::submitButton( $this->msg( 'promoter-modify' )->text(), [ 'class' => 'btn' ] );
 			// End Add a campaign form
-			$htmlOut .= Xml::closeElement( 'form' );
+			$htmlOut .= Html::closeElement( 'form' );
 		}
 
 		// Output HTML
@@ -671,7 +677,7 @@ class SpecialPromoter extends SpecialPage {
 	 * @throws AdDataException
 	 */
 	private function assignedAdsForm( $campaign ) {
-		$dbr = PRDatabase::getDb();
+		$dbr = $this->dbProvider->getReplicaDatabase();
 		$res = $dbr->select(
 			// Aliases are needed to avoid problems with table prefixes
 			[
@@ -693,7 +699,7 @@ class SpecialPromoter extends SpecialPage {
 		);
 
 		// No ads found
-		if ( $dbr->numRows( $res ) < 1 ) {
+		if ( $res->numRows() < 1 ) {
 			return '';
 		}
 
@@ -848,7 +854,7 @@ class SpecialPromoter extends SpecialPage {
 
 		$title = $skin->getTitle();
 		$specialPageFactory = MediaWikiServices::getInstance()->getSpecialPageFactory();
-		list( $alias, $sub ) = $specialPageFactory->resolveAlias( $title->getText() );
+		[ $alias, $subPage ] = $specialPageFactory->resolveAlias( $title->getText() );
 
 		if ( !array_key_exists( $alias, $wgPromoterTabifyPages ) ) {
 			return true;

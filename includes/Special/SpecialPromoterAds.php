@@ -14,6 +14,7 @@ use MediaWiki\Extension\Promoter\PromoterHtmlForm;
 use MWException;
 use MWTimestamp;
 use SpecialPage;
+use Wikimedia\Timestamp\TimestampException;
 
 /**
  * Special page for management of Promoter ads
@@ -63,11 +64,11 @@ class SpecialPromoterAds extends SpecialPromoter {
 	 *    Null      - Display a list of ads
 	 *    Edit      - Edits an existing ad
 	 *
-	 * @param string $page
+	 * @param string $subPage
 	 *
 	 * @throws ErrorPageError
 	 */
-	public function execute( $page ) {
+	public function execute( $subPage ) {
 		// Do all the common setup
 		$this->setHeaders();
 		$this->editable = $this->getUser()->isAllowed( 'promoter-admin' );
@@ -78,7 +79,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 		$this->getOutput()->addModules( 'ext.discovery' );
 
 		// Now figure out wth to display
-		$parts = explode( '/', $page );
+		$parts = explode( '/', $subPage );
 		$action = ( isset( $parts[0] ) && $parts[0] ) ? $parts[0] : 'list';
 
 		switch ( strtolower( $action ) ) {
@@ -146,7 +147,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 	 *
 	 * @return array of HTMLForm entities
 	 */
-	protected function generateAdListForm( $filter = '' ) {
+	protected function generateAdListForm( $filter = '' ): array {
 		// --- Create the ad search form --- //
 		$formDescriptor = [
 			'adNameFilter' => [
@@ -345,7 +346,15 @@ class SpecialPromoterAds extends SpecialPromoter {
 			displayForm( $formResult );
 	}
 
-	protected function generateAdEditForm() {
+	/**
+	 * @return array
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws ErrorPageError
+	 * @throws MWException
+	 * @throws TimestampException
+	 */
+	protected function generateAdEditForm(): array {
 		$ad = Ad::fromName( $this->adName );
 		try {
 			$adSettings = $ad->getAdSettings();
@@ -705,11 +714,11 @@ class SpecialPromoterAds extends SpecialPromoter {
 		$campaignsToAddTo = array_diff( $campaignsToAddTo, $linkedCampaigns );
 
 		// Get campaign IDs
-		$campaignsToAddTo = array_map( function ( $campaign ) {
+		$campaignsToAddTo = array_map( static function ( $campaign ) {
 			return AdCampaign::getCampaignId( $campaign );
 		}, $campaignsToAddTo );
 
-		$campaignsToRemoveFrom = array_map( function ( $campaign ) {
+		$campaignsToRemoveFrom = array_map( static function ( $campaign ) {
 			return AdCampaign::getCampaignId( $campaign );
 		}, $campaignsToRemoveFrom );
 

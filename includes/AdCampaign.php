@@ -2,27 +2,31 @@
 
 namespace MediaWiki\Extension\Promoter;
 
+use FormatJson;
+use MediaWiki\Context\RequestContext;
+use MediaWiki\MediaWikiServices;
+use PermissionsError;
 use User;
 
 class AdCampaign {
 
-	/** @var int */
-	protected $id = null;
-	/** @var string */
-	protected $name = null;
+	/** @var int|null */
+	protected ?int $id = null;
+	/** @var string|null */
+	protected ?string $name = null;
 
 	/** @var bool True if the campaign is enabled for showing */
-	protected $enabled = null;
+	protected ?bool $enabled = null;
 
 	/** @var bool True if the campaign has been moved to the archive */
-	protected $archived = null;
+	protected ?bool $archived = null;
 
 	/**
 	 * Construct a lazily loaded Promoter campaign object
 	 *
-	 * @param string|int $campaignIdentifier Either an ID or name for the campaign
+	 * @param int|string $campaignIdentifier Either an ID or name for the campaign
 	 */
-	public function __construct( $campaignIdentifier ) {
+	public function __construct( int|string $campaignIdentifier ) {
 		if ( is_int( $campaignIdentifier ) ) {
 			$this->id = $campaignIdentifier;
 		} else {
@@ -34,9 +38,9 @@ class AdCampaign {
 	 * Get the unique numerical ID for this campaign
 	 *
 	 * @throws AdCampaignExistenceException If lazy loading failed.
-	 * @return int
+	 * @return int|null
 	 */
-	public function getId() {
+	public function getId(): ?int {
 		if ( $this->id === null ) {
 			$this->loadBasicSettings();
 		}
@@ -48,9 +52,9 @@ class AdCampaign {
 	 * Get the unique name for this campaign
 	 *
 	 * @throws AdCampaignExistenceException If lazy loading failed.
-	 * @return string
+	 * @return string|null
 	 */
-	public function getName() {
+	public function getName(): ?string {
 		if ( $this->name === null ) {
 			$this->loadBasicSettings();
 		}
@@ -63,10 +67,10 @@ class AdCampaign {
 	 *
 	 * If a campaign is enabled it is eligible to be shown to users.
 	 *
+	 * @return bool|null
 	 * @throws AdCampaignExistenceException If lazy loading failed.
-	 * @return bool
 	 */
-	public function isEnabled() {
+	public function isEnabled(): ?bool {
 		if ( $this->enabled === null ) {
 			$this->loadBasicSettings();
 		}
@@ -78,10 +82,10 @@ class AdCampaign {
 	 * Returns the archival status of the campaign. An archived campaign is not allowed to be
 	 * edited.
 	 *
+	 * @return bool|null
 	 * @throws AdCampaignExistenceException If lazy loading failed.
-	 * @return bool
 	 */
-	public function isArchived() {
+	public function isArchived(): ?bool {
 		if ( $this->archived === null ) {
 			$this->loadBasicSettings();
 		}
@@ -94,8 +98,9 @@ class AdCampaign {
 	 *
 	 * @throws AdCampaignExistenceException If the campaign doesn't exist
 	 */
-	protected function loadBasicSettings() {
-		$db = PRDatabase::getDb();
+	protected function loadBasicSettings(): void {
+		$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		$db = $dbProvider->getReplicaDatabase();
 
 		// What selector are we using?
 		if ( $this->id !== null ) {
@@ -150,8 +155,9 @@ class AdCampaign {
 	 *
 	 * @return bool
 	 */
-	public static function campaignExists( $campaignName ) {
-		$dbr = PRDatabase::getDb();
+	public static function campaignExists( string $campaignName ): bool {
+		$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		$dbr = $dbProvider->getReplicaDatabase();
 		return (bool)$dbr->selectRow( 'pr_campaigns', 'cmp_name', [ 'cmp_name' => $campaignName ] );
 	}
 
@@ -159,9 +165,11 @@ class AdCampaign {
 	 * Return all ads bound to the campaign
 	 *
 	 * @return array a 2D array of ads with settings
+	 * @throws AdCampaignExistenceException
 	 */
-	public function getAds() {
-		$dbr = PRDatabase::getDb();
+	public function getAds(): array {
+		$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		$dbr = $dbProvider->getReplicaDatabase();
 
 		$ads = [];
 
@@ -204,8 +212,9 @@ class AdCampaign {
 	 *
 	 * @return array|bool an array of settings or false if the campaign does not exist
 	 */
-	public static function getCampaignSettings( $campaignName ) {
-		$dbr = PRDatabase::getDb();
+	public static function getCampaignSettings( string $campaignName ): bool|array {
+		$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		$dbr = $dbProvider->getReplicaDatabase();
 
 		// Get campaign info from database
 		$row = $dbr->selectRow(
@@ -236,7 +245,7 @@ class AdCampaign {
 			$adsOut[ $outKey ]['weight'] = $adsIn[ $key ][ 'weight' ];
 		}
 		// Encode into a JSON string for storage
-		$campaign[ 'ads' ] = \FormatJson::encode( $adsOut );
+		$campaign[ 'ads' ] = FormatJson::encode( $adsOut );
 
 		return $campaign;
 	}
@@ -247,7 +256,7 @@ class AdCampaign {
 	 *
 	 * @return array an array of campaign names
 	 */
-	public static function getAllCampaignNames() {
+	public static function getAllCampaignNames(): array {
 		return self::getCampaignNames( false, true );
 	}
 
@@ -259,8 +268,9 @@ class AdCampaign {
 	 *
 	 * @return array an array of campaign names
 	 */
-	public static function getCampaignNames( $enabled = true, $archived = false ) {
-		$dbr = PRDatabase::getDb();
+	public static function getCampaignNames( bool $enabled = true, bool $archived = false ): array {
+		$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		$dbr = $dbProvider->getReplicaDatabase();
 		$conds = [];
 		if ( $enabled === true ) {
 			$conds[ 'cmp_enabled'] = 1;
@@ -286,13 +296,14 @@ class AdCampaign {
 	 * @param int $limit Number of max ads to fetch
 	 * @return array Array of resulting ads
 	 */
-	public static function getCampaignAds( array $campaigns = [], array $urls = [], int $limit = 2 ) {
+	public static function getCampaignAds( array $campaigns = [], array $urls = [], int $limit = 2 ): array {
 		if ( empty( $campaigns ) ) {
 			return [];
 		}
 		$ads       = [];
 		$campaigns = str_replace( ' ', '_', $campaigns );
-		$dbr       = wfGetDB( DB_REPLICA );
+		$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		$dbr       = $dbProvider->getReplicaDatabase();
 
 		$now = $dbr->timestamp();
 
@@ -337,15 +348,22 @@ class AdCampaign {
 	 * @param User $user adding the campaign
 	 *
 	 * @throws \MWException
+	 * @throws PermissionsError If user lacks promoter-admin permission
 	 * @return int|string campaignId on success, or message key for error
 	 */
-	public static function addCampaign( $campaignName, $enabled, $user ) {
+	public static function addCampaign( $campaignName, $enabled, $user ): int|string {
+		// Verify user has permission to create campaigns (defense-in-depth)
+		if ( !$user->isAllowed( 'promoter-admin' ) ) {
+			throw new PermissionsError( 'promoter-admin' );
+		}
+
 		$campaignName = trim( $campaignName );
 		if ( self::campaignExists( $campaignName ) ) {
 			return 'promoter-campaign-exists';
 		}
 
-		$dbw = PRDatabase::getDb();
+		$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		$dbw = $dbProvider->getPrimaryDatabase();
 		$dbw->insert(
 			'pr_campaigns',
 			[
@@ -368,15 +386,22 @@ class AdCampaign {
 	 * @param string $campaignName Name of the campaign
 	 * @param User $user removing the campaign
 	 *
+	 * @throws PermissionsError If user lacks promoter-admin permission
 	 * @return bool|string True on success, string with message key for error
 	 */
-	public static function removeCampaign( $campaignName, $user ) {
-		$dbr = PRDatabase::getDb();
+	public static function removeCampaign( string $campaignName, User $user ): bool|string {
+		// Verify user has permission to delete campaigns (defense-in-depth)
+		if ( !$user->isAllowed( 'promoter-admin' ) ) {
+			throw new PermissionsError( 'promoter-admin' );
+		}
+
+		$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		$dbr = $dbProvider->getReplicaDatabase();
 
 		$res = $dbr->select( 'pr_campaigns', 'cmp_name',
 			[ 'cmp_name' => $campaignName ]
 		);
-		if ( $dbr->numRows( $res ) < 1 ) {
+		if ( $res->numRows() < 1 ) {
 			return 'promoter-remove-campaign-doesnt-exist';
 		}
 
@@ -389,12 +414,13 @@ class AdCampaign {
 	 * @param string $campaignName
 	 * @param User $user
 	 */
-	private static function removeCampaignByName( $campaignName, $user ) {
+	private static function removeCampaignByName( string $campaignName, User $user ): void {
 		// Log the removal of the campaign
 		$campaignId = self::getCampaignId( $campaignName );
 		// Campaign::logCampaignChange( 'removed', $campaignId, $user );
 
-		$dbw = PRDatabase::getDb();
+		$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		$dbw = $dbProvider->getPrimaryDatabase();
 		$dbw->delete( 'pr_adlinks', [ 'cmp_id' => $campaignId ] );
 		$dbw->delete( 'pr_campaigns', [ 'cmp_name' => $campaignName ] );
 	}
@@ -404,11 +430,19 @@ class AdCampaign {
 	 * @param string $campaignName
 	 * @param int $adId
 	 * @return bool|string True on success, string with message key for error
+	 * @throws PermissionsError If user lacks promoter-admin permission
 	 *
 	 * @todo we should probably validate the ad's ID
 	 */
-	public static function addAdTo( $campaignName, $adId ) {
-		$dbw = PRDatabase::getDb();
+	public static function addAdTo( string $campaignName, int $adId ): bool|string {
+		// Verify user has permission to modify campaign ads (defense-in-depth)
+		$user = RequestContext::getMain()->getUser();
+		if ( !$user->isAllowed( 'promoter-admin' ) ) {
+			throw new PermissionsError( 'promoter-admin' );
+		}
+
+		$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		$dbw = $dbProvider->getPrimaryDatabase();
 		$campaignId = self::getCampaignId( $campaignName );
 		$res = $dbw->select( 'pr_adlinks', 'adl_id',
 			[
@@ -417,7 +451,7 @@ class AdCampaign {
 			]
 		);
 
-		if ( $dbw->numRows( $res ) > 0 ) {
+		if ( $res->numRows() > 0 ) {
 			return 'promoter-ad-already-linked';
 		}
 
@@ -437,11 +471,19 @@ class AdCampaign {
 	 *
 	 * @param string $campaignName
 	 * @param int $adId
+	 * @throws PermissionsError If user lacks promoter-admin permission
 	 *
 	 * @todo we should probably validate the ad's ID
 	 */
-	public static function removeAdFor( $campaignName, $adId ) {
-		$dbw = PRDatabase::getDb();
+	public static function removeAdFor( string $campaignName, int $adId ): void {
+		// Verify user has permission to modify campaign ads (defense-in-depth)
+		$user = RequestContext::getMain()->getUser();
+		if ( !$user->isAllowed( 'promoter-admin' ) ) {
+			throw new PermissionsError( 'promoter-admin' );
+		}
+
+		$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		$dbw = $dbProvider->getPrimaryDatabase();
 		$campaignId = self::getCampaignId( $campaignName );
 		$dbw->delete( 'pr_adlinks', [ 'ad_id' => $adId, 'cmp_id' => $campaignId ] );
 	}
@@ -452,13 +494,21 @@ class AdCampaign {
 	 * @param array $campaignIds Array of IDs of target campaigns
 	 * @param int $adId Ad ID
 	 * @return bool
+	 * @throws PermissionsError If user lacks promoter-admin permission
 	 */
-	public static function addAdToCampaigns( $campaignIds, $adId ) {
+	public static function addAdToCampaigns( array $campaignIds, int $adId ): bool {
+		// Verify user has permission to modify campaign ads (defense-in-depth)
+		$user = RequestContext::getMain()->getUser();
+		if ( !$user->isAllowed( 'promoter-admin' ) ) {
+			throw new PermissionsError( 'promoter-admin' );
+		}
+
 		if ( empty( $campaignIds ) ) {
 			return false;
 		}
 
-		$dbw = PRDatabase::getDb();
+		$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		$dbw = $dbProvider->getPrimaryDatabase();
 
 		$rows = [];
 		foreach ( $campaignIds as $key => $id ) {
@@ -479,13 +529,21 @@ class AdCampaign {
 	 * @param array $campaignIds Array of IDs of target campaigns
 	 * @param int $adId Ad ID
 	 * @return bool
+	 * @throws PermissionsError If user lacks promoter-admin permission
 	 */
-	public static function removeAdForCampaigns( $campaignIds, $adId ) {
+	public static function removeAdForCampaigns( array $campaignIds, int $adId ): bool {
+		// Verify user has permission to modify campaign ads (defense-in-depth)
+		$user = RequestContext::getMain()->getUser();
+		if ( !$user->isAllowed( 'promoter-admin' ) ) {
+			throw new PermissionsError( 'promoter-admin' );
+		}
+
 		if ( empty( $campaignIds ) ) {
 			return false;
 		}
 
-		$dbw = PRDatabase::getDb();
+		$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		$dbw = $dbProvider->getPrimaryDatabase();
 
 		$dbw->delete( 'pr_adlinks', [
 			'ad_id'  => $adId,
@@ -502,8 +560,9 @@ class AdCampaign {
 	 *
 	 * @return null|string
 	 */
-	public static function getCampaignId( $campaignName ) {
-		$dbr = PRDatabase::getDb();
+	public static function getCampaignId( string $campaignName ): ?string {
+		$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		$dbr = $dbProvider->getReplicaDatabase();
 		$row = $dbr->selectRow( 'pr_campaigns', 'cmp_id', [ 'cmp_name' => $campaignName ] );
 		if ( $row ) {
 			return $row->cmp_id;
@@ -519,14 +578,14 @@ class AdCampaign {
 	 *
 	 * @return string|null
 	 */
-	public static function getCampaignName( $campaignId ) {
-		$dbr = PRDatabase::getDb();
-		if ( is_numeric( $campaignId ) ) {
-			$row = $dbr->selectRow( 'pr_campaigns', 'cmp_name', [ 'cmp_id' => $campaignId ] );
-			if ( $row ) {
-				return $row->cmp_name;
-			}
+	public static function getCampaignName( int $campaignId ): ?string {
+		$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		$dbr = $dbProvider->getReplicaDatabase();
+		$row = $dbr->selectRow( 'pr_campaigns', 'cmp_name', [ 'cmp_id' => $campaignId ] );
+		if ( $row ) {
+			return $row->cmp_name;
 		}
+
 		return null;
 	}
 
@@ -536,14 +595,24 @@ class AdCampaign {
 	 * @param string $campaignName Name of the campaign
 	 * @param string $settingName Name of a boolean setting (enabled, locked, or geo)
 	 * @param int $settingValue Value to use for the setting, 0 or 1
+	 * @throws PermissionsError If user lacks promoter-admin permission
 	 */
-	public static function setBooleanCampaignSetting( $campaignName, $settingName, $settingValue ) {
+	public static function setBooleanCampaignSetting(
+		string $campaignName, string $settingName, int $settingValue
+	): void {
+		// Verify user has permission to modify campaigns (defense-in-depth)
+		$user = RequestContext::getMain()->getUser();
+		if ( !$user->isAllowed( 'promoter-admin' ) ) {
+			throw new PermissionsError( 'promoter-admin' );
+		}
+
 		if ( !self::campaignExists( $campaignName ) ) {
 			// Exit quietly since campaign may have been deleted at the same time.
 			return;
 		} else {
 			$settingName = strtolower( $settingName );
-			$dbw = PRDatabase::getDb();
+			$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+			$dbw = $dbProvider->getPrimaryDatabase();
 			$dbw->update( 'pr_campaigns',
 				[ 'cmp_' . $settingName => $settingValue ],
 				[ 'cmp_name' => $campaignName ]
@@ -560,10 +629,17 @@ class AdCampaign {
 	 * @param int $max The max that the value can take, default 1
 	 * @param int $min The min that the value can take, default 0
 	 * @throws \MWException|\RangeException
+	 * @throws PermissionsError If user lacks promoter-admin permission
 	 */
 	public static function setNumericCampaignSetting(
-		$campaignName, $settingName, $settingValue, $max = 1, $min = 0
-	) {
+		string $campaignName, string $settingName, int $settingValue, int $max = 1, int $min = 0
+	): void {
+		// Verify user has permission to modify campaigns (defense-in-depth)
+		$user = RequestContext::getMain()->getUser();
+		if ( !$user->isAllowed( 'promoter-admin' ) ) {
+			throw new PermissionsError( 'promoter-admin' );
+		}
+
 		if ( $max <= $min ) {
 			throw new \RangeException( 'Max must be greater than min.' );
 		}
@@ -585,7 +661,8 @@ class AdCampaign {
 			return;
 		} else {
 			$settingName = strtolower( $settingName );
-			$dbw = PRDatabase::getDb();
+			$dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+			$dbw = $dbProvider->getPrimaryDatabase();
 			$dbw->update( 'pr_campaigns',
 				[ 'cmp_' . $settingName => $settingValue ],
 				[ 'cmp_name' => $campaignName ]

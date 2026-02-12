@@ -25,13 +25,22 @@
 namespace MediaWiki\Extension\Promoter;
 
 use ContentHandler;
-use DatabaseBase;
+use Exception;
+use FormatJSON;
 use Html;
+use MediaWiki\CommentStore\CommentStoreComment;
+use MediaWiki\Content\TextContent;
+use MediaWiki\Context\RequestContext;
+use MediaWiki\MediaWikiServices;
+use MediaWiki\Revision\SlotRecord;
 use MWException;
 use MWTimestamp;
-use Revision;
+use SpecialPage;
 use Title;
 use User;
+use Wikimedia\Rdbms\IConnectionProvider;
+use Wikimedia\Rdbms\IReadableDatabase;
+use Wikimedia\Timestamp\TimestampException;
 use WikiPage;
 
 /**
@@ -47,74 +56,73 @@ class Ad {
 	 * Most functions should only ever set the flag to true; flags will be
 	 * reset to false in save().
 	 *
-	 * @var null|bool[]
+	 * @var array<string bool|null>
 	 */
-	protected $dirtyFlags = [
+	protected array $dirtyFlags = [
 		'content' => null,
 		'messages' => null,
-		'basic' => null,
+		'basic' => null
 	];
+
+	/** @var IConnectionProvider|null */
+	protected ?IConnectionProvider $dbProvider = null;
 
 	// !!! NOTE !!! It is not recommended to use directly. It is almost always more
 	// correct to use the accessor/setter function.
 
-	/** @var int Unique database identifier key. */
-	protected $id = null;
+	/** @var int|null Unique database identifier key */
+	protected ?int $id = null;
 
-	/** @var string Unique human friendly name of ad. */
-	protected $name = null;
+	/** @var string|null Unique human friendly name of ad */
+	protected ?string $name = null;
 
 	/** @var bool True if the ad should be allocated to anonymous users. */
-	protected $allocateAnon = false;
+	protected bool $allocateAnon = false;
 
-	/** @var bool True if the ad should be allocated to logged in users. */
-	protected $allocateUser = false;
+	/** @var bool True if the ad should be allocated to logged-in users. */
+	protected bool $allocateUser = false;
 
-	/** @var bool True if the ad should be marked as 'new' */
-	protected $tags = [
+	/**
+	 * @var array<string bool> Tags associated with the ad
+	 */
+	protected array $tags = [
 		'new' => false
 	];
 
 	/** @var MWTimestamp|null */
-	protected $startDate;
+	protected ?MWTimestamp $startDate;
 
 	/** @var MWTimestamp|null */
-	protected $endDate;
+	protected ?MWTimestamp $endDate;
 
 	/** @var bool True if archived and hidden from default view. */
-	protected $archived = false;
+	protected bool $archived = false;
 
 	/** @var string Wikitext content of the ad */
-	protected $bodyContent = '';
+	protected string $bodyContent = '';
 
 	/** @var string Heading/caption of the ad */
-	protected $adCaption = '';
+	protected string $adCaption = '';
 
 	/** @var string Main link of the ad */
-	protected $adLink = '';
+	protected string $adLink = '';
 
 	/** @var bool Ad active status */
-	protected $active = false;
+	protected bool $active = false;
 
 	// </editor-fold>
-
-	/**
-	 * @var string Pattern for bool
-	 */
-	public const BOOLEAN_PARAM_FILTER = '/true|false/';
 
 	// <editor-fold desc="Constructors">
 
 	/**
 	 * Create an ad object from a known ID. Must already be
-	 * an object in the database. If a fully new ad is to be created
-	 * use @see newFromName().
-	 *
+	 * an object in the database.
 	 * @param int $id Unique database ID of the ad
 	 *
 	 * @return Ad
+	 * @see newFromName().
 	 */
-	public static function fromId( $id ) {
+	public static function fromId( int $id ): Ad {
 		$obj = new Ad();
 		$obj->id = $id;
 		return $obj;
@@ -122,15 +130,14 @@ class Ad {
 
 	/**
 	 * Create an ad object from a known ad name. Must already be
-	 * an object in the database. If a fully new ad is to be created
-	 * use @see newFromName().
-	 *
+	 * an object in the database.
 	 * @param string $name
 	 *
 	 * @return Ad
 	 * @throws AdDataException
+	 * @see newFromName().
 	 */
-	public static function fromName( $name ) {
+	public static function fromName( string $name ): Ad {
 		if ( !self::isValidAdName( $name ) ) {
 			throw new AdDataException( 'promoter-ad-name-error' );
 		}
@@ -141,14 +148,14 @@ class Ad {
 	}
 
 	/**
-	 * Create a brand new ad object.
+	 * Create a brand-new ad object.
 	 *
 	 * @param string $name
 	 *
 	 * @return Ad
 	 * @throws AdDataException
 	 */
-	public static function newFromName( $name ) {
+	public static function newFromName( string $name ): Ad {
 		if ( !self::isValidAdName( $name ) ) {
 			throw new AdDataException( 'promoter-ad-name-error' );
 		}
@@ -165,14 +172,34 @@ class Ad {
 
 	// </editor-fold>
 
+	// <editor-fold desc="Database access">
+
+	/**
+	 * Get the database connection provider, initializing if needed
+	 *
+	 * @return IConnectionProvider
+	 */
+	protected function getDbProvider(): IConnectionProvider {
+		if ( $this->dbProvider === null ) {
+			$this->dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		}
+		return $this->dbProvider;
+	}
+
+	// </editor-fold>
+
 	// <editor-fold desc="Basic metadata getters/setters">
 
 	/**
 	 * Get the unique ID for this ad.
 	 *
-	 * @return int
+	 * @return int|null
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 * @throws TimestampException
 	 */
-	public function getId() {
+	public function getId(): ?int {
 		$this->populateBasicData();
 		return $this->id;
 	}
@@ -183,8 +210,12 @@ class Ad {
 	 * This specifically does not include namespace or other prefixing.
 	 *
 	 * @return null|string
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 * @throws TimestampException
 	 */
-	public function getName() {
+	public function getName(): ?string {
 		$this->populateBasicData();
 		return $this->name;
 	}
@@ -193,18 +224,26 @@ class Ad {
 	 * Should we allocate this ad to anonymous users.
 	 *
 	 * @return bool
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 * @throws TimestampException
 	 */
-	public function allocateToAnon() {
+	public function allocateToAnon(): bool {
 		$this->populateBasicData();
 		return $this->allocateAnon;
 	}
 
 	/**
-	 * Should we allocate this ad to logged in users.
+	 * Should we allocate this ad to logged-in users.
 	 *
 	 * @return bool
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 * @throws TimestampException
 	 */
-	public function allocateToUser() {
+	public function allocateToUser(): bool {
 		$this->populateBasicData();
 		return $this->allocateUser;
 	}
@@ -213,8 +252,12 @@ class Ad {
 	 * Should the ad be marked as 'new'.
 	 *
 	 * @return bool
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 * @throws TimestampException
 	 */
-	public function isNew() {
+	public function isNew(): bool {
 		$this->populateBasicData();
 		return $this->tags['new'];
 	}
@@ -224,8 +267,12 @@ class Ad {
 	 *
 	 * @param bool $status Should the ad be active?
 	 * @return $this
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 * @throws TimestampException
 	 */
-	public function setActiveStatus( $status ) {
+	public function setActiveStatus( bool $status ): static {
 		$this->populateBasicData();
 		$this->setBasicDataDirty();
 
@@ -241,8 +288,12 @@ class Ad {
 	 * @param bool $loggedIn Should the ad be allocated to logged in users.
 	 *
 	 * @return $this
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 * @throws TimestampException
 	 */
-	public function setAllocation( $anon, $loggedIn ) {
+	public function setAllocation( bool $anon, bool $loggedIn ): static {
 		$this->populateBasicData();
 
 		if ( ( $this->allocateAnon !== $anon ) || ( $this->allocateUser !== $loggedIn ) ) {
@@ -259,12 +310,14 @@ class Ad {
 	 *
 	 * @return $this
 	 * @throws AdDataException|AdExistenceException
+	 * @throws MWException
+	 * @throws TimestampException
 	 */
-	public function setTags( $tags ) {
+	public function setTags( array $tags ): static {
 		$this->populateBasicData();
 		$this->setBasicDataDirty();
 
-		array_walk( $this->tags, function ( &$item, $key ) use ( &$tags ) {
+		array_walk( $this->tags, static function ( &$item, $key ) use ( &$tags ) {
 			$item = in_array( $key, $tags );
 		} );
 
@@ -272,34 +325,42 @@ class Ad {
 	}
 
 	/**
-	 * @param string $date
+	 * @param string|null $date
+	 * @throws TimestampException
 	 */
-	public function setStartDate( $date ) {
+	public function setStartDate( ?string $date ): void {
 		$this->startDate = empty( $date ) ? null : new MWTimestamp( $date );
 	}
 
 	/**
 	 * @return MWTimestamp|null
-	 * @throws AdDataException|AdExistenceException
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 * @throws TimestampException
 	 */
-	public function getStartDate() {
+	public function getStartDate(): ?MWTimestamp {
 		$this->populateBasicData();
 
 		return $this->startDate;
 	}
 
 	/**
-	 * @param string $date
+	 * @param string|null $date
+	 * @throws TimestampException
 	 */
-	public function setEndDate( $date ) {
+	public function setEndDate( ?string $date ): void {
 		$this->endDate = empty( $date ) ? null : new MWTimestamp( $date );
 	}
 
 	/**
 	 * @return MWTimestamp|null
-	 * @throws AdDataException|AdExistenceException
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 * @throws TimestampException
 	 */
-	public function getEndDate() {
+	public function getEndDate(): ?MWTimestamp {
 		$this->populateBasicData();
 
 		return $this->endDate;
@@ -307,9 +368,12 @@ class Ad {
 
 	/**
 	 * @return bool
-	 * @throws AdDataException|AdExistenceException
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 * @throws TimestampException
 	 */
-	public function isNotExpired() {
+	public function isNotExpired(): bool {
 		$this->populateBasicData();
 
 		if ( $this->endDate === null ) {
@@ -325,9 +389,12 @@ class Ad {
 
 	/**
 	 * @return string
-	 * @throws AdDataException|AdExistenceException
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 * @throws TimestampException
 	 */
-	public function getCaption() {
+	public function getCaption(): string {
 		$this->populateBasicData();
 		return $this->adCaption;
 	}
@@ -336,9 +403,12 @@ class Ad {
 	 * @param string $value
 	 *
 	 * @return $this
-	 * @throws AdDataException|AdExistenceException
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 * @throws TimestampException
 	 */
-	public function setCaption( $value ) {
+	public function setCaption( string $value ): static {
 		$this->populateBasicData();
 
 		if ( $this->adCaption !== $value ) {
@@ -351,9 +421,9 @@ class Ad {
 
 	/**
 	 * @return string
-	 * @throws AdDataException|AdExistenceException
+	 * @throws AdDataException|AdExistenceException|MWException
 	 */
-	public function getMainLink() {
+	public function getMainLink(): string {
 		$this->populateBasicData();
 		return $this->adLink;
 	}
@@ -362,9 +432,12 @@ class Ad {
 	 * @param string $value
 	 *
 	 * @return $this
-	 * @throws AdDataException|AdExistenceException
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 * @throws TimestampException
 	 */
-	public function setMainLink( $value ) {
+	public function setMainLink( string $value ): static {
 		$this->populateBasicData();
 
 		if ( $this->adLink !== $value ) {
@@ -379,8 +452,11 @@ class Ad {
 	 * Should the ad be considered archived and hidden from default view
 	 *
 	 * @return bool
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
 	 */
-	public function isArchived() {
+	public function isArchived(): bool {
 		$this->populateBasicData();
 		return $this->archived;
 	}
@@ -389,14 +465,15 @@ class Ad {
 	 * Populates basic ad data by querying the pr_ads table
 	 *
 	 * @throws AdDataException If neither a name or ID can be used to query for data
-	 * @throws AdExistenceException If no ad data was received
+	 * @throws AdExistenceException|MWException If no ad data was received
+	 * @throws TimestampException
 	 */
-	protected function populateBasicData() {
+	protected function populateBasicData(): void {
 		if ( $this->dirtyFlags['basic'] !== null ) {
 			return;
 		}
 
-		$db = PRDatabase::getDb();
+		$db = $this->getDbProvider()->getReplicaDatabase();
 
 		// What are we using to select on?
 		if ( $this->name !== null ) {
@@ -428,7 +505,7 @@ class Ad {
 		);
 
 		// Extract the dataz!
-		$row = $db->fetchObject( $rowRes );
+		$row = $rowRes->fetchObject();
 		if ( $row ) {
 			$this->id = (int)$row->ad_id;
 			$this->name = $row->ad_name;
@@ -444,7 +521,7 @@ class Ad {
 		} else {
 			$keystr = [];
 			foreach ( $selector as $key => $value ) {
-				$keystr[] = "{$key} = {$value}";
+				$keystr[] = "$key = $value";
 			}
 			$keystr = implode( " AND ", $keystr );
 			throw new AdExistenceException( [ 'promoter-ad-doesnt-exists', $keystr ] );
@@ -461,25 +538,25 @@ class Ad {
 	 *
 	 * @return bool
 	 */
-	protected function setBasicDataDirty( $dirty = true ) {
+	protected function setBasicDataDirty( bool $dirty = true ): bool {
 		return (bool)wfSetVar( $this->dirtyFlags['basic'], $dirty, true );
 	}
 
 	/**
 	 * Helper function to initializeDbForNewAd()
 	 *
-	 * @param DatabaseBase $db
+	 * @param IReadableDatabase $db
 	 */
-	protected function initializeDbBasicData( $db ) {
+	protected function initializeDbBasicData( IReadableDatabase $db ): void {
 		$db->insert( 'pr_ads', [ 'ad_name' => $this->name ], __METHOD__ );
 		$this->id = $db->insertId();
 	}
 
 	/**
 	 * Helper function to saveAdInternal() for saving basic ad metadata
-	 * @param DatabaseBase $db
+	 * @param IReadableDatabase $db
 	 */
-	protected function saveBasicData( $db ) {
+	protected function saveBasicData( IReadableDatabase $db ): void {
 		if ( $this->dirtyFlags['basic'] ) {
 			$db->update( 'pr_ads',
 				[
@@ -508,16 +585,22 @@ class Ad {
 
 	/**
 	 * @return string
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
 	 */
-	public function getDbKey() {
+	public function getDbKey(): string {
 		$name = $this->getName();
-		return "Promoter-ad-{$name}";
+		return "Promoter-ad-$name";
 	}
 
 	/**
 	 * @return Title|null
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
 	 */
-	public function getTitle() {
+	public function getTitle(): ?Title {
 		return Title::newFromText( $this->getDbKey(), NS_MEDIAWIKI );
 	}
 
@@ -525,9 +608,12 @@ class Ad {
 	 * Returns an array of Title objects that have been included as templates
 	 * in this ad.
 	 *
-	 * @return array of Title
+	 * @return Title[]
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
 	 */
-	public function getIncludedTemplates() {
+	public function getIncludedTemplates(): array {
 		return $this->getTitle()->getTemplateLinksFrom();
 	}
 
@@ -535,8 +621,9 @@ class Ad {
 	 * Get the raw body HTML for the ad.
 	 *
 	 * @return string HTML
+	 * @throws MWException
 	 */
-	public function getBodyContent() {
+	public function getBodyContent(): string {
 		$this->populateBodyContent();
 		return $this->bodyContent;
 	}
@@ -546,9 +633,10 @@ class Ad {
 	 *
 	 * @param string $text HTML
 	 *
-	 * @return $this
+	 * @return Ad
+	 * @throws MWException
 	 */
-	public function setBodyContent( $text ) {
+	public function setBodyContent( string $text ): static {
 		$this->populateBodyContent();
 
 		if ( $this->bodyContent !== $text ) {
@@ -559,18 +647,24 @@ class Ad {
 		return $this;
 	}
 
-	protected function populateBodyContent() {
+	/**
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 */
+	protected function populateBodyContent(): void {
 		if ( $this->dirtyFlags['content'] !== null ) {
 			return;
 		}
 
 		$bodyPage = $this->getTitle();
-		$revisionStore = \MediaWiki\MediaWikiServices::getInstance()->getRevisionStore();
+		$revisionStore = MediaWikiServices::getInstance()->getRevisionStore();
 		$curRev = $revisionStore->getRevisionByTitle( $bodyPage );
 		if ( !$curRev ) {
-			throw new MWException( "No content for ad: {$this->name}" );
+			throw new MWException( "No content for ad: $this->name" );
 		}
-		$this->bodyContent = ContentHandler::getContentText( $curRev->getContent( \MediaWiki\Revision\SlotRecord::MAIN ) );
+		$content = $curRev->getContent( SlotRecord::MAIN );
+		$this->bodyContent = ( $content instanceof TextContent ) ? $content->getText() : '';
 
 		$this->markBodyContentDirty( false );
 	}
@@ -580,20 +674,30 @@ class Ad {
 	 *
 	 * @return bool
 	 */
-	protected function markBodyContentDirty( $dirty = true ) {
+	protected function markBodyContentDirty( bool $dirty = true ): bool {
 		return (bool)wfSetVar( $this->dirtyFlags['content'], $dirty, true );
 	}
 
 	/**
-	 * @throws MWException|\MWContentSerializationException
+	 * @param User $user The user performing the save operation
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 * @throws \MWContentSerializationException
+	 * @throws \MWUnknownContentModelException
 	 */
-	protected function saveBodyContent() {
+	protected function saveBodyContent( User $user ): void {
 		if ( $this->dirtyFlags['content'] ) {
 			$wikiPage = new WikiPage( $this->getTitle() );
-
 			$contentObj = ContentHandler::makeContent( $this->bodyContent, $wikiPage->getTitle() );
-			$wikiPage->doEditContent( $contentObj, '', EDIT_FORCE_BOT );
 
+			$mediaWikiServices = MediaWikiServices::getInstance();
+			$pageUpdater = $mediaWikiServices->getPageUpdaterFactory()->newPageUpdater( $this->getTitle(), $user );
+			$pageUpdater->setContent( SlotRecord::MAIN, $contentObj );
+			$pageUpdater->saveRevision(
+				CommentStoreComment::newUnsavedComment( '' ),
+				EDIT_FORCE_BOT
+			);
 		}
 	}
 
@@ -604,22 +708,26 @@ class Ad {
 	/**
 	 * Saves any changes made to the ad object into the database
 	 *
-	 * @param null $user
+	 * @param null|User $user
 	 *
 	 * @return $this
-	 * @throws \Exception
+	 * @throws Exception
+	 * @throws \PermissionsError If user lacks promoter-admin permission
 	 */
-	public function save( $user = null ) {
-		global $wgUser;
+	public function save( ?User $user = null ): static {
+		$user = $user ?? RequestContext::getMain()->getUser();
 
-		$db = PRDatabase::getDb();
-
-		$action = 'modified';
-		if ( $user === null ) {
-			$user = $wgUser;
+		// Verify user has permission to modify ads (defense-in-depth)
+		if ( !$user->isAllowed( 'promoter-admin' ) ) {
+			throw new \PermissionsError( 'promoter-admin' );
 		}
 
-		$this->saveBodyContent();
+		// Always use primary database for write operations
+		$db = $this->getDbProvider()->getPrimaryDatabase();
+
+		$action = 'modified';
+
+		$this->saveBodyContent( $user );
 
 		if ( !$this->exists() ) {
 			$action = 'created';
@@ -633,7 +741,6 @@ class Ad {
 			$value = false;
 		}
 
-
 		return $this;
 	}
 
@@ -642,9 +749,9 @@ class Ad {
 	 * being saved. Intended to create all table rows required such that any
 	 * additional operation can be an UPDATE statement.
 	 *
-	 * @param DatabaseBase $db
+	 * @param IReadableDatabase $db
 	 */
-	protected function initializeDbForNewAd( $db ) {
+	protected function initializeDbForNewAd( IReadableDatabase $db ): void {
 		$this->initializeDbBasicData( $db );
 	}
 
@@ -658,11 +765,9 @@ class Ad {
 	 *
 	 * Dirty flags are not globally reset until after this function is called.
 	 *
-	 * @param DatabaseBase $db
-	 *
-	 * @throws AdExistenceException
+	 * @param IReadableDatabase $db
 	 */
-	protected function saveAdInternal( $db ) {
+	protected function saveAdInternal( IReadableDatabase $db ): void {
 		$this->saveBasicData( $db );
 	}
 
@@ -674,8 +779,12 @@ class Ad {
 	 * TODO: Remove data from translation, in place replace all templates
 	 *
 	 * @return $this
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 * @throws TimestampException
 	 */
-	public function archive() {
+	public function archive(): static {
 		if ( $this->dirtyFlags['basic'] === null ) {
 			$this->populateBasicData();
 		}
@@ -692,8 +801,14 @@ class Ad {
 	 *
 	 * @return Ad
 	 * @throws AdDataException|AdExistenceException|MWException
+	 * @throws \PermissionsError If user lacks promoter-admin permission
 	 */
-	public function cloneAd( $destination, $user ) {
+	public function cloneAd( string $destination, User $user ): Ad {
+		// Verify user has permission to create ads (defense-in-depth)
+		if ( !$user->isAllowed( 'promoter-admin' ) ) {
+			throw new \PermissionsError( 'promoter-admin' );
+		}
+
 		if ( !$this->isValidAdName( $destination ) ) {
 			throw new AdDataException( 'promoter-ad-name-error' );
 		}
@@ -722,30 +837,35 @@ class Ad {
 	 * @throws MWException
 	 * @throws \FatalError
 	 */
-	public function remove( $user = null ) {
-		global $wgUser;
-		if ( $user === null ) {
-			$user = $wgUser;
-		}
+	public function remove( ?User $user = null ): void {
+		$user = $user ?? RequestContext::getMain()->getUser();
 		self::removeAd( $this->getId(), $user );
 	}
 
 	/**
 	 * Remove an ad either by ID or name.
-	 * @fixme this should really have some permission checks
 	 *
 	 * @param int|string $identifier
 	 * @param User $user
 	 *
 	 * @throws AdDataException|MWException|\FatalError
+	 * @throws \PermissionsError If user lacks promoter-admin permission
 	 */
-	public static function removeAd( $identifier, $user ) {
+	public static function removeAd( int|string $identifier, User $user ): void {
+		// Verify user has permission to delete ads (defense-in-depth)
+		if ( !$user->isAllowed( 'promoter-admin' ) ) {
+			throw new \PermissionsError( 'promoter-admin' );
+		}
+
 		$adObj = is_int( $identifier ) ? self::fromId( $identifier ) : self::fromName( $identifier );
 		$id = $adObj->getId();
-		$dbr = PRDatabase::getDb();
+		$services = MediaWikiServices::getInstance();
+		$dbProvider = $services->getConnectionProvider();
+
+		$dbr = $dbProvider->getReplicaDatabase();
 		$res = $dbr->select( 'pr_adlinks', 'adl_id', [ 'ad_id' => $id ], __METHOD__ );
 
-		if ( $dbr->numRows( $res ) > 0 ) {
+		if ( $res->numRows() > 0 ) {
 			throw new MWException( 'Cannot remove an ad still bound to a campaign!' );
 		} else {
 			// Log the removal of the ad
@@ -753,17 +873,20 @@ class Ad {
 			$adObj->logAdChange( 'removed', $user );
 
 			// Delete ad record from the Promoter pr_ads table
-			$dbw = PRDatabase::getDb();
+			$dbw = $dbProvider->getPrimaryDatabase();
 			$dbw->delete( 'pr_ads',
 				[ 'ad_id' => $id ],
 				__METHOD__
 			);
 
 			// Delete the MediaWiki page that contains the ad source
-			$article = new \Article(
-				Title::newFromText( "promoter-ad-{$adObj->getName()}", NS_MEDIAWIKI )
-			);
-			$article->doDeleteArticle( 'Promoter automated removal' );
+			$title = Title::newFromText( "promoter-ad-{$adObj->getName()}", NS_MEDIAWIKI );
+			$wikiPageFactory = $services->getWikiPageFactory();
+			$deletePageFactory = $services->getDeletePageFactory();
+
+			$page = $wikiPageFactory->newFromTitle( $title );
+			$deletePage = $deletePageFactory->newDeletePage( $page, $user );
+			$deletePage->deleteUnsafe( 'Promoter automated removal' );
 		}
 	}
 
@@ -773,10 +896,9 @@ class Ad {
 	 * Return settings for an ad
 	 *
 	 * @return array an array of ad settings
-	 * @throws AdDataException
 	 * @throws MWException
 	 */
-	public function getAdSettings() {
+	public function getAdSettings(): array {
 		if ( !$this->exists() ) {
 			throw new MWException( "Ad doesn't exist!" );
 		}
@@ -803,13 +925,21 @@ class Ad {
 	 * @param bool|int $displayUser integer flag for display to logged in users
 	 * @param bool|int $isActive
 	 *
-	 * @return bool true or false depending on whether ad was successfully added
+	 * @return bool|string true or error message, depending on whether ad was successfully added
 	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws MWException
+	 * @throws \PermissionsError If user lacks promoter-admin permission
 	 */
 	public static function addAd(
-		$name, $body, $caption, $mainlink, $user,
-		$displayAnon = true, $displayUser = true, $isActive = false
-	) {
+		string $name, string $body, string $caption, string $mainlink, User $user,
+		bool|int $displayAnon = true, bool|int $displayUser = true, bool|int $isActive = false
+	): bool|string {
+		// Verify user has permission to create ads (defense-in-depth)
+		if ( !$user->isAllowed( 'promoter-admin' ) ) {
+			throw new \PermissionsError( 'promoter-admin' );
+		}
+
 		if ( !self::isValidAdName( $name ) ) {
 			return 'promoter-null-string';
 		}
@@ -836,14 +966,15 @@ class Ad {
 	 * @param string $action 'created', 'modified', or 'removed'
 	 * @param User $user causing the change
 	 * @param array $beginSettings array of ad settings before changes (optional)
+	 * @throws MWException
 	 */
-	private function logAdChange( $action, $user, $beginSettings = [] ) {
+	private function logAdChange( string $action, User $user, array $beginSettings = [] ): void {
 		$endSettings = [];
 		if ( $action !== 'removed' ) {
 			$endSettings = $this->getAdSettings();
 		}
 
-		$dbw = PRDatabase::getDb();
+		$dbw = $this->getDbProvider()->getPrimaryDatabase();
 
 		$log = [
 			'adlog_timestamp'     => $dbw->timestamp(),
@@ -856,7 +987,7 @@ class Ad {
 
 		foreach ( $endSettings as $key => $value ) {
 			if ( is_array( $value ) ) {
-				$value = \FormatJSON::encode( $value );
+				$value = FormatJSON::encode( $value );
 			}
 
 			$log[ 'adlog_end_' . $key ] = $value;
@@ -875,7 +1006,7 @@ class Ad {
 	 *
 	 * @return bool True if valid
 	 */
-	public static function isValidAdName( $name ) {
+	public static function isValidAdName( string $name ): bool {
 		if ( empty( $name ) ) {
 			return false;
 		}
@@ -891,8 +1022,8 @@ class Ad {
 	 * @return bool
 	 * @throws MWException If it's a silly query
 	 */
-	public function exists() {
-		$db = PRDatabase::getDb();
+	public function exists(): bool {
+		$db = $this->getDbProvider()->getReplicaDatabase();
 		if ( $this->name !== null ) {
 			$selector = [ 'ad_name' => $this->name ];
 		} elseif ( $this->id !== null ) {
@@ -913,7 +1044,7 @@ class Ad {
 	 *
 	 * @return string
 	 */
-	public function renderHtml() {
+	public function renderHtml(): string {
 		$adCaption = $this->getCaption();
 		$adBody = wfMessage( $this->getDbKey() )->parse();
 		$adMainLink = $this->getMainLink();
@@ -925,23 +1056,23 @@ class Ad {
 		);
 			$adHtml .= Html::openElement( 'div', [ 'class' => 'header' ] );
 				// $adHtml .= HTML::element( 'span', [ 'class' => 'icon pull-right' ] );
-				if ( empty( $adMainLink ) ) {
-					$adHtml .= Html::element( 'span', [ 'class' => 'caption' ], $adCaption );
-				} else {
-					$adHtml .= Html::element(
-						'a',
-						[ 'class' => 'caption', 'href' => $adMainLink ],
-						$adCaption
-					);
-				}
+		if ( empty( $adMainLink ) ) {
+			$adHtml .= Html::element( 'span', [ 'class' => 'caption' ], $adCaption );
+		} else {
+			$adHtml .= Html::element(
+				'a',
+				[ 'class' => 'caption', 'href' => $adMainLink ],
+				$adCaption
+			);
+		}
 
 			$adHtml .= Html::closeElement( 'div' );
 			$adHtml .= Html::rawElement( 'div', [ 'class' => 'content' ], $adBody );
-			if ( $adMainLink ) {
-				$adHtml .= Html::openElement( 'div', [ 'class' => 'mainlink' ] );
-				$adHtml .= Html::element( 'a', [ 'href' => $adMainLink ], 'לפרטים נוספים...' );
-				$adHtml .= Html::closeElement( 'div' );
-			}
+		if ( $adMainLink ) {
+			$adHtml .= Html::openElement( 'div', [ 'class' => 'mainlink' ] );
+			$adHtml .= Html::element( 'a', [ 'href' => $adMainLink ], 'לפרטים נוספים...' );
+			$adHtml .= Html::closeElement( 'div' );
+		}
 		$adHtml .= Html::closeElement( 'div' );
 
 		 return $adHtml;
@@ -949,12 +1080,11 @@ class Ad {
 
 	/**
 	 * @return string
-	 * @throws MWException
 	 */
-	public function linkToEdit() {
-		return \Linker::link(
-			\SpecialPage::getTitleFor( 'PromoterAds', "edit/{$this->getName()}" ),
-			htmlspecialchars( $this->getName() ),
+	public function linkToEdit(): string {
+		return MediaWikiServices::getInstance()->getLinkRenderer()->makeKnownLink(
+			SpecialPage::getTitleFor( 'PromoterAds', "edit/{$this->getName()}" ),
+			$this->getName(),
 			[ 'class' => 'pr-ad-title' ]
 		);
 	}
@@ -964,9 +1094,9 @@ class Ad {
 	 *
 	 * @return array
 	 */
-	public function getLinkedCampaignNames() {
+	public function getLinkedCampaignNames(): array {
 		$campaignNames = [];
-		$dbr = wfGetDB( DB_REPLICA );
+		$dbr = $this->getDbProvider()->getReplicaDatabase();
 		$res = $dbr->select( 'pr_adlinks', 'cmp_id',
 			[ 'ad_id' => $this->getId() ]
 		);
