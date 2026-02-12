@@ -1,6 +1,7 @@
-/* eslint-env node */
+'use strict';
+
 module.exports = function ( grunt ) {
-	var conf = grunt.file.readJSON( 'extension.json' );
+	const conf = grunt.file.readJSON( 'extension.json' );
 
 	grunt.loadNpmTasks( 'grunt-banana-checker' );
 	grunt.loadNpmTasks( 'grunt-eslint' );
@@ -9,15 +10,17 @@ module.exports = function ( grunt ) {
 	grunt.initConfig( {
 		eslint: {
 			options: {
-				fix: grunt.option( 'fix' ),
-				reportUnusedDisableDirectives: true
+				cache: true,
+				fix: grunt.option( 'fix' )
 			},
 			all: '.'
 		},
 		stylelint: {
+			options: {
+				cache: true
+			},
 			all: [
 				'**/*.{css,less}',
-				'!**/coverage/**',
 				'!node_modules/**',
 				'!vendor/**'
 			]
