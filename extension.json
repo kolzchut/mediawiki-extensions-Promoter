@@ -2,7 +2,7 @@
 	"name": "Promoter",
 	"version": "1.0.0",
 	"author": [
-		"Dror S. [FFS] ([http://www.kolzchut.org.il Kol-Zchut])",
+		"Dror S. [FFS] ([https://www.kolzchut.org.il Kol-Zchut])",
 		"based on [https://mediawiki.org/wiki/Extension:CentralNotice Extension:CentralNotice]"
 	],
 	"url": "https://github.com/kolzchut/mediawiki-extensions-Promoter",
