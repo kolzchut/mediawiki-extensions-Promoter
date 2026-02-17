@@ -21,19 +21,19 @@ use Wikimedia\Timestamp\TimestampException;
  */
 class SpecialPromoterAds extends SpecialPromoter {
 	/** @var string Name of the ad we're currently editing */
-	protected $adName = '';
+	protected string $adName = '';
 
 	/** @var string Filter to apply to the ad search when generating the list */
-	protected $adFilterString = '';
+	protected string $adFilterString = '';
 
 	/** @var string Language code to render preview materials in */
 	protected $adLanguagePreview;
 
 	/** @var bool If true, form execution must stop and the page will be redirected */
-	protected $adFormRedirectRequired = false;
+	protected bool $adFormRedirectRequired = false;
 
 	/** @var array */
-	protected $allCampaigns = [];
+	protected array $allCampaigns = [];
 
 	/**
 	 * SpecialPromoterAds constructor.
@@ -53,7 +53,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 	 * Whether this special page is listed in Special:SpecialPages
 	 * @return bool
 	 */
-	public function isListed() {
+	public function isListed(): bool {
 		return false;
 	}
 
@@ -68,13 +68,13 @@ class SpecialPromoterAds extends SpecialPromoter {
 	 *
 	 * @throws ErrorPageError
 	 */
-	public function execute( $subPage ) {
+	public function execute( $subPage ): void {
 		// Do all the common setup
 		$this->setHeaders();
 		$this->editable = $this->getUser()->isAllowed( 'promoter-admin' );
 
 		// User settable text for some custom message, like usage instructions
-		$this->getOutput()->setPageTitle( $this->msg( 'campaignad' ) );
+		$this->getOutput()->setPageTitleMsg( $this->msg( 'campaignad' ) );
 		$this->getOutput()->addWikiMsg( 'promoter-summary' );
 		$this->getOutput()->addModules( 'ext.discovery' );
 
@@ -112,7 +112,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 	/**
 	 * Process the 'ad list' form and display a new one.
 	 */
-	protected function showAdList() {
+	protected function showAdList(): void {
 		$out = $this->getOutput();
 		$out->setPageTitle( $this->msg( 'promoter-manage-ads' ) );
 		$out->addModules( 'ext.promoter.adminUi.adManager' );
@@ -121,8 +121,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 		$formDescriptor = $this->generateAdListForm( $this->adFilterString );
 		$htmlForm = new PromoterHtmlForm( $formDescriptor, $this->getContext() );
 		$htmlForm->setSubmitCallback( [ $this, 'processAdList' ] );
-		$htmlForm->loadData();
-		$formResult = $htmlForm->trySubmit();
+		$formResult = $htmlForm->prepareForm()->trySubmit();
 
 		if ( $this->adFormRedirectRequired ) {
 			return;
@@ -147,7 +146,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 	 *
 	 * @return array of HTMLForm entities
 	 */
-	protected function generateAdListForm( $filter = '' ): array {
+	protected function generateAdListForm( string $filter = '' ): array {
 		// --- Create the ad search form --- //
 		$formDescriptor = [
 			'adNameFilter' => [
@@ -309,7 +308,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 	/**
 	 * Display the ad editor and process edits
 	 */
-	protected function showAdEditor() {
+	protected function showAdEditor(): void {
 		$out = $this->getOutput();
 		$out->addModules( 'ext.promoter.adminUi.adEditor' );
 
@@ -324,9 +323,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 		// Now begin form processing
 		$htmlForm = new PromoterHtmlForm( $formDescriptor, $this->getContext(), 'promoter' );
 		$htmlForm->setSubmitCallback( [ $this, 'processEditAd' ] );
-		$htmlForm->loadData();
-
-		$formResult = $htmlForm->tryAuthorizedSubmit();
+		$formResult = $htmlForm->prepareForm()->tryAuthorizedSubmit();
 
 		if ( $this->adFormRedirectRequired ) {
 			return;
@@ -587,7 +584,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 	/**
 	 * Use a URL parameter to set the filter string for the banner list.
 	 */
-	protected function setFilterFromUrl() {
+	protected function setFilterFromUrl(): void {
 		// This is the normal param on visible URLs.
 		$filterParam = $this->getRequest()->getVal( 'filter', null );
 		// If the form was posted the filter parameter'll have a different name.
@@ -611,7 +608,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 	 * @throws ErrorPageError
 	 * @throws MWException
 	 */
-	public function processEditAd( $formData ) {
+	public function processEditAd( $formData ): ?string {
 		// First things first! Figure out what the heck we're actually doing!
 		switch ( $formData[ 'action' ] ) {
 			case 'delete':
