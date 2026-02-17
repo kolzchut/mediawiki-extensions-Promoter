@@ -228,12 +228,12 @@
 			};
 
 			const adHTML = mw.discovery.buildDiscoveryItem( itemData );
-			adHTML.find( 'a' ).attr( 'target', '_blank' );
+			Array.prototype.forEach.call( adHTML.querySelectorAll( 'a' ), ( a ) => a.setAttribute( 'target', '_blank' ) );
 
 			const discoveryDiv = document.querySelector( '.discovery > div' );
 			if ( discoveryDiv ) {
 				discoveryDiv.innerHTML = '';
-				discoveryDiv.appendChild( adHTML[ 0 ] );
+				discoveryDiv.appendChild( adHTML );
 			}
 		},
 		createCharCounter: function () {
