@@ -240,9 +240,8 @@ class AdCampaign {
 		$adsIn = $campaignObj->getAds();
 		$adsOut = [];
 		// All we want are the ad names
-		foreach ( $adsIn as $key => $row ) {
-			$outKey = $adsIn[ $key ][ 'name' ];
-			$adsOut[ $outKey ]['weight'] = $adsIn[ $key ][ 'weight' ];
+		foreach ( $adsIn as $row ) {
+			$adsOut[] = $row['name'];
 		}
 		// Encode into a JSON string for storage
 		$campaign[ 'ads' ] = FormatJson::encode( $adsOut );
