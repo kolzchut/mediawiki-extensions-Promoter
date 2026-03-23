@@ -2,59 +2,47 @@
  * Backing JS for Special:PromoterAds/edit, the form that allows
  * editing of ad content and changing of ad settings.
  *
- * This file is part of the Promoter Extension to MediaWiki
- * https://www.mediawiki.org/wiki/Extension:Promoter
- *
- * @section LICENSE
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * http://www.gnu.org/copyleft/gpl.html
- *
  * @file
  */
 ( function () {
 	mw.promoter.adminUi.adEditor = {
 		/**
 		 * Display the 'Create Ad' dialog
+		 *
 		 * @return {boolean}
 		 */
 		doCloneAdDialog: function () {
-			var buttons = {},
+			const buttons = {},
 				okButtonText = mw.message( 'promoter-clone' ).text(),
 				cancelButtonText = mw.message( 'promoter-clone-cancel' ).text(),
-				dialogObj = $( '<form></form>' );
+				$dialogObj = $( '<form>' );
 
 			// Implement the functionality
 			buttons[ cancelButtonText ] = function () {
 				$( this ).dialog( 'close' );
 			};
 			buttons[ okButtonText ] = function () {
-				var formobj = $( '#pr-ad-editor' )[ 0 ];
+				const formobj = document.getElementById( 'pr-ad-editor' );
 				formobj.wpaction.value = 'clone';
 				formobj.wpcloneName.value = $( this )[ 0 ].wpcloneName.value;
 				formobj.submit();
 			};
 
 			// Create the dialog by copying the textfield element into a new form
-			dialogObj[ 0 ].name = 'addAdDialog';
-			dialogObj.append( $( '#pr-formsection-clone-ad' ).children( 'div' ).clone().show() )
-				.dialog( {
-					title: mw.message( 'promoter-clone' ).text(),
-					modal: true,
-					buttons: buttons,
-					width: 'auto'
-				} );
+			$dialogObj[ 0 ].name = 'addAdDialog';
+			const cloneSection = document.getElementById( 'pr-formsection-clone-ad' );
+			const divToClone = cloneSection.querySelector( 'div' );
+			if ( divToClone ) {
+				const clonedDiv = divToClone.cloneNode( true );
+				clonedDiv.style.display = '';
+				$dialogObj.append( clonedDiv );
+			}
+			$dialogObj.dialog( {
+				title: mw.message( 'promoter-clone' ).text(),
+				modal: true,
+				buttons: buttons,
+				width: 'auto'
+			} );
 
 			// Do not submit the form... that's up to the ok button
 			return false;
@@ -62,10 +50,12 @@
 
 		/**
 		 * Validates the contents of the ad body before submission.
+		 *
 		 * @return {boolean}
 		 */
 		doSaveAd: function () {
-			if ( $( '#mw-input-wpad-body' ).prop( 'value' ).indexOf( 'document.write' ) > -1 ) {
+			const adBodyField = document.getElementById( 'mw-input-wpad-body' );
+			if ( adBodyField && adBodyField.value.includes( 'document.write' ) ) {
 				OO.ui.alert( mw.msg( 'promoter-documentwrite-error' ) );
 			} else {
 				return true;
@@ -78,13 +68,13 @@
 		 * the form with the 'remove' action.
 		 */
 		doDeleteAd: function () {
-			var dialogObj = $( '<div></div>' ),
+			const $dialogObj = $( '<div>' ),
 				buttons = {},
 				deleteText = mw.message( 'promoter-delete-ad' ).text(),
 				cancelButtonText = mw.message( 'promoter-delete-ad-cancel' ).text();
 
 			buttons[ deleteText ] = function () {
-				var formobj = $( '#pr-ad-editor' )[ 0 ];
+				const formobj = document.getElementById( 'pr-ad-editor' );
 				formobj.wpaction.value = 'delete';
 				formobj.submit();
 			};
@@ -92,8 +82,8 @@
 				$( this ).dialog( 'close' );
 			};
 
-			dialogObj.text( mw.message( 'promoter-delete-ad-confirm' ).text() );
-			dialogObj.dialog( {
+			$dialogObj.text( mw.message( 'promoter-delete-ad-confirm' ).text() );
+			$dialogObj.dialog( {
 				title: mw.message( 'promoter-delete-ad-title', 1 ).text(),
 				resizable: false,
 				modal: true,
@@ -105,13 +95,13 @@
 		 * Submits the form with the archive action.
 		 */
 		doArchiveAd: function () {
-			var dialogObj = $( '<div></div>' ),
+			const $dialogObj = $( '<div>' ),
 				buttons = {},
 				archiveText = mw.message( 'promoter-archive-ad' ).text(),
 				cancelButtonText = mw.message( 'promoter-archive-ad-cancel' ).text();
 
 			buttons[ archiveText ] = function () {
-				var formobj = $( '#pr-ad-editor' )[ 0 ];
+				const formobj = document.getElementById( 'pr-ad-editor' );
 				formobj.wpaction.value = 'archive';
 				formobj.submit();
 			};
@@ -119,8 +109,8 @@
 				$( this ).dialog( 'close' );
 			};
 
-			dialogObj.text( mw.message( 'promoter-archive-ad-confirm' ).text() );
-			dialogObj.dialog( {
+			$dialogObj.text( mw.message( 'promoter-archive-ad-confirm' ).text() );
+			$dialogObj.dialog( {
 				title: mw.message( 'promoter-archive-ad-title', 1 ).text(),
 				resizable: false,
 				modal: true,
@@ -133,10 +123,15 @@
 		 * the "Automatically create landing page link" check box.
 		 */
 		showHideLpEditBox: function () {
-			if ( $( '#mw-input-wpcreate-landingpage-link' ).prop( 'checked' ) ) {
-				$( '#mw-input-wplanding-pages' ).parent().parent().show();
-			} else {
-				$( '#mw-input-wplanding-pages' ).parent().parent().hide();
+			const createLinkCheckbox = document.getElementById( 'mw-input-wpcreate-landingpage-link' );
+			const landingPagesInput = document.getElementById( 'mw-input-wplanding-pages' );
+			if ( createLinkCheckbox && landingPagesInput ) {
+				const parentContainer = landingPagesInput.parentElement.parentElement;
+				if ( createLinkCheckbox.checked ) {
+					parentContainer.style.display = '';
+				} else {
+					parentContainer.style.display = 'none';
+				}
 			}
 		},
 
@@ -145,7 +140,7 @@
 		 * form in order to update the language of the preview and the displayed translations.
 		 */
 		updateLanguage: function () {
-			var formobj = $( '#pr-ad-editor' )[ 0 ];
+			const formobj = document.getElementById( 'pr-ad-editor' );
 			formobj.wpaction.value = 'update-lang';
 			formobj.submit();
 		},
@@ -157,11 +152,11 @@
 		 * @param {string} buttonType
 		 */
 		insertButton: function ( buttonType ) {
-			var buttonValue,
+			let buttonValue,
 				sel,
-				adField = document.getElementById( 'mw-input-wpad-body' ),
 				startPos,
 				endPos;
+			const adField = document.getElementById( 'mw-input-wpad-body' );
 
 			if ( buttonType === 'close' ) {
 				buttonValue = '<a href="#" title="' +
@@ -180,32 +175,42 @@
 				// Mozilla support
 				startPos = adField.selectionStart;
 				endPos = adField.selectionEnd;
-				adField.value = adField.value.substring( 0, startPos ) +
+				adField.value = adField.value.slice( 0, Math.max( 0, startPos ) ) +
 					buttonValue +
-					adField.value.substring( endPos, adField.value.length );
+					adField.value.slice( endPos, adField.value.length );
 			} else {
 				adField.value += buttonValue;
 			}
 			adField.focus();
 		},
 		createAdPreview: function () {
-			var adPreviewDOM = $( '' +
-			'<div class="discovery-wrapper">' +
-				'<div class="discovery">' +
-					'<div></div>' +
-				'</div>' +
-			'</div>' );
-
-			$( '#mw-htmlform-preview > div' ).empty().append( adPreviewDOM );
+			const previewContainer = document.querySelector( '#mw-htmlform-preview > div' );
+			if ( previewContainer ) {
+				previewContainer.innerHTML = '';
+				const wrapper = document.createElement( 'div' );
+				wrapper.className = 'discovery-wrapper';
+				const discovery = document.createElement( 'div' );
+				discovery.className = 'discovery';
+				const innerDiv = document.createElement( 'div' );
+				discovery.appendChild( innerDiv );
+				wrapper.appendChild( discovery );
+				previewContainer.appendChild( wrapper );
+			}
 		},
 		triggerAdChange: function () {
-			var url = $( '#mw-input-wpad-link' ).val(),
-				urlType = 'internal',
-				blogUrl = mw.discovery.config.blogUrl,
-				itemData,
-				adHTML;
+			const linkInput = document.getElementById( 'mw-input-wpad-link' );
+			const bodyInput = document.getElementById( 'mw-input-wpad-body' );
+			const newCheckbox = document.getElementById( 'mw-input-wpad-tags-new' );
 
-			if ( url.indexOf( blogUrl ) > -1 ) {
+			if ( !linkInput || !bodyInput || !newCheckbox ) {
+				return;
+			}
+
+			let url = linkInput.value,
+				urlType = 'internal';
+			const blogUrl = mw.discovery.config.blogUrl;
+
+			if ( url.includes( blogUrl ) ) {
 				urlType = 'blog';
 			} else if ( url.indexOf( 'http' ) === 0 ) {
 				urlType = 'external';
@@ -213,49 +218,93 @@
 				url = mw.util.getUrl( url );
 			}
 
-			itemData = {
-				content: $( '#mw-input-wpad-body' ).val(),
+			const itemData = {
+				content: bodyInput.value,
 				url: url,
 				urlType: urlType,
 				indicators: {
-					'new': Number( $( '#mw-input-wpad-tags-new' ).prop( 'checked' ) )
+					new: Number( newCheckbox.checked )
 				}
 			};
 
-			adHTML = mw.discovery.buildDiscoveryItem( itemData );
-			adHTML.find( 'a' ).attr( 'target', '_blank' );
+			const adHTML = mw.discovery.buildDiscoveryItem( itemData );
+			Array.prototype.forEach.call( adHTML.querySelectorAll( 'a' ), ( a ) => a.setAttribute( 'target', '_blank' ) );
 
-			$( '.discovery > div' ).html( adHTML );
+			const discoveryDiv = document.querySelector( '.discovery > div' );
+			if ( discoveryDiv ) {
+				discoveryDiv.innerHTML = '';
+				discoveryDiv.appendChild( adHTML );
+			}
 		},
 		createCharCounter: function () {
-			$( '#mw-input-wpad-body' ).after( '<div class="char-counter"></div>' );
+			const adBodyField = document.getElementById( 'mw-input-wpad-body' );
+			if ( adBodyField ) {
+				const counter = document.createElement( 'div' );
+				counter.className = 'char-counter';
+				adBodyField.parentNode.insertBefore( counter, adBodyField.nextSibling );
+			}
 		},
 		updateCharCount: function () {
-			var maxChars = mw.discovery.MAX_CHARS,
-				currentCharCount = $( '#mw-input-wpad-body' ).val().length,
-				$charCounter = $( '.char-counter' );
+			const maxChars = mw.discovery.MAX_CHARS;
+			const adBodyField = document.getElementById( 'mw-input-wpad-body' );
+			const charCounter = document.querySelector( '.char-counter' );
 
-			if ( currentCharCount > maxChars ) {
-				$charCounter.addClass( 'red' );
-			} else {
-				$charCounter.removeClass( 'red' );
+			if ( !adBodyField || !charCounter ) {
+				return;
 			}
 
-			$charCounter.text( currentCharCount + '/' + maxChars );
+			const currentCharCount = adBodyField.value.length;
+
+			if ( currentCharCount > maxChars ) {
+				charCounter.classList.add( 'red' );
+			} else {
+				charCounter.classList.remove( 'red' );
+			}
+
+			charCounter.textContent = currentCharCount + '/' + maxChars;
 		}
 	};
 
 	// Attach event handlers
-	$( '#mw-input-wpdelete-button' ).click( mw.promoter.adminUi.adEditor.doDeleteAd );
-	$( '#mw-input-wparchive-button' ).click( mw.promoter.adminUi.adEditor.doArchiveAd );
-	$( '#mw-input-wpclone-button' ).click( mw.promoter.adminUi.adEditor.doCloneAdDialog );
-	$( '#mw-input-wpsave-button' ).click( mw.promoter.adminUi.adEditor.doSaveAd );
-	$( '#mw-input-wptranslate-language' ).change( mw.promoter.adminUi.adEditor.updateLanguage );
-	$( '#mw-input-wpcreate-landingpage-link' ).change( mw.promoter.adminUi.adEditor.showHideLpEditBox );
+	const deleteButton = document.getElementById( 'mw-input-wpdelete-button' );
+	const archiveButton = document.getElementById( 'mw-input-wparchive-button' );
+	const cloneButton = document.getElementById( 'mw-input-wpclone-button' );
+	const saveButton = document.getElementById( 'mw-input-wpsave-button' );
+	const translateLanguage = document.getElementById( 'mw-input-wptranslate-language' );
+	const createLandingpageLink = document.getElementById( 'mw-input-wpcreate-landingpage-link' );
+	const adTagsNew = document.getElementById( 'mw-input-wpad-tags-new' );
+	const adBody = document.getElementById( 'mw-input-wpad-body' );
+	const adLink = document.getElementById( 'mw-input-wpad-link' );
+	const jsErrorWarn = document.getElementById( 'pr-js-error-warn' );
 
-	$( '#mw-input-wpad-tags-new' ).change( mw.promoter.adminUi.adEditor.triggerAdChange );
-	$( '#mw-input-wpad-body, #mw-input-wpad-link' ).keyup( mw.promoter.adminUi.adEditor.triggerAdChange );
-	$( '#mw-input-wpad-body' ).keyup( mw.promoter.adminUi.adEditor.updateCharCount );
+	if ( deleteButton ) {
+		deleteButton.addEventListener( 'click', mw.promoter.adminUi.adEditor.doDeleteAd );
+	}
+	if ( archiveButton ) {
+		archiveButton.addEventListener( 'click', mw.promoter.adminUi.adEditor.doArchiveAd );
+	}
+	if ( cloneButton ) {
+		cloneButton.addEventListener( 'click', mw.promoter.adminUi.adEditor.doCloneAdDialog );
+	}
+	if ( saveButton ) {
+		saveButton.addEventListener( 'click', mw.promoter.adminUi.adEditor.doSaveAd );
+	}
+	if ( translateLanguage ) {
+		translateLanguage.addEventListener( 'change', mw.promoter.adminUi.adEditor.updateLanguage );
+	}
+	if ( createLandingpageLink ) {
+		createLandingpageLink.addEventListener( 'change', mw.promoter.adminUi.adEditor.showHideLpEditBox );
+	}
+	if ( adTagsNew ) {
+		adTagsNew.addEventListener( 'change', mw.promoter.adminUi.adEditor.triggerAdChange );
+	}
+	if ( adBody ) {
+		adBody.addEventListener( 'keyup', mw.promoter.adminUi.adEditor.triggerAdChange );
+		adBody.addEventListener( 'keyup', mw.promoter.adminUi.adEditor.updateCharCount );
+	}
+	if ( adLink ) {
+		adLink.addEventListener( 'keyup', mw.promoter.adminUi.adEditor.triggerAdChange );
+	}
 
 	// And do some initial form work
 	mw.promoter.adminUi.adEditor.showHideLpEditBox();
@@ -263,6 +312,8 @@
 	mw.promoter.adminUi.adEditor.triggerAdChange();
 	mw.promoter.adminUi.adEditor.createCharCounter();
 	mw.promoter.adminUi.adEditor.updateCharCount();
-	$( '#pr-js-error-warn' ).hide();
+	if ( jsErrorWarn ) {
+		jsErrorWarn.style.display = 'none';
+	}
 
 }() );

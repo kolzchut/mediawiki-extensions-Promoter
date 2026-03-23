@@ -140,7 +140,7 @@
 	/* Leaving room for the background image. */
 	padding-left: 17px !important;
 	/* @embed */
-	background: url( 'down-arrow-ltr.png' ) no-repeat scroll left center transparent;
+	background: url( down-arrow-ltr.png ) no-repeat scroll left center transparent;
 }
 
 .select-hint {
@@ -148,7 +148,7 @@
 	/* Leaving room for the background image. */
 	padding-left: 17px !important;
 	/* @embed */
-	background: url( 'up-arrow-ltr.png' ) no-repeat scroll left top transparent;
+	background: url( up-arrow-ltr.png ) no-repeat scroll left top transparent;
 }
 
 select.pr-multiselect {

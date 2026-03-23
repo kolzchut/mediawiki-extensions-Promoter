@@ -1,5 +1,9 @@
 <?php
 
+namespace MediaWiki\Extension\Promoter;
+
+use ReverseChronologicalPager;
+
 class PRAdPager extends ReverseChronologicalPager {
 
 	/** @var bool True if the form is to be created with editable elements */
@@ -18,14 +22,13 @@ class PRAdPager extends ReverseChronologicalPager {
 	protected $formSection = null;
 
 	/**
-	 * @param IContextSource $hostTitle
 	 * @param string|null $formSection
 	 * @param array $prependPrototypes
 	 * @param array $appendPrototypes
 	 * @param string $adFilter
 	 * @param bool $editable
 	 */
-	function __construct( $hostTitle, $formSection = null, $prependPrototypes = [],
+	public function __construct( $formSection = null, $prependPrototypes = [],
 		$appendPrototypes = [], $adFilter = '', $editable = false
 	) {
 		$this->editable = $editable;
@@ -36,17 +39,15 @@ class PRAdPager extends ReverseChronologicalPager {
 		$this->appendPrototypes = $appendPrototypes;
 		$this->formSection = $formSection;
 
-		$this->viewPage = $hostTitle;
-
 		// Override paging defaults
-		list( $this->mLimit, $this->mOffset ) = $this->mRequest->getLimitOffset( 20, '' );
+		[ $this->mLimit, $this->mOffset ] = $this->mRequest->getLimitOffset( 20, '' );
 		$this->mLimitsShown = [ 20, 50, 100 ];
-
-		// Get the database object
-		$this->mDb = PRDatabase::getDb();
 	}
 
-	function getNavigationBar() {
+	/**
+	 * @return array|string
+	 */
+	public function getNavigationBar() {
 		if ( isset( $this->mNavigationBar ) ) {
 			return $this->mNavigationBar;
 		}
@@ -55,7 +56,7 @@ class PRAdPager extends ReverseChronologicalPager {
 		parent::getNavigationBar();
 
 		$this->mNavigationBar = [
-			'class' => 'HTMLAdPagerNavigation',
+			'class' => 'MediaWiki\\Extension\\Promoter\\HTMLAdPagerNavigation',
 			'value' => $this->mNavigationBar
 		];
 
@@ -71,7 +72,7 @@ class PRAdPager extends ReverseChronologicalPager {
 	 *
 	 * @return array of query settings
 	 */
-	function getQueryInfo() {
+	public function getQueryInfo() {
 		// When the filter comes in it is space delimited, so break that...
 		$likeArray = preg_split( '/\s/', $this->filter );
 
@@ -100,18 +101,18 @@ class PRAdPager extends ReverseChronologicalPager {
 	 *
 	 * @return string
 	 */
-	function getIndexField() {
+	public function getIndexField() {
 		return 'ads.ad_id';
 	}
 
 	/**
 	 * Generate the contents of the table pager; intended to be consumed by the HTMLForm
 	 *
-	 * @param $row object: database row
+	 * @param array|\stdClass $row Database row
 	 *
 	 * @return array HTMLFormElement classes
 	 */
-	function formatRow( $row ) {
+	public function formatRow( $row ) {
 		$retval = [];
 
 		$adId = $row->ad_id;
@@ -119,15 +120,12 @@ class PRAdPager extends ReverseChronologicalPager {
 
 		// Add the prepend prototypes
 		foreach ( $this->prependPrototypes as $prototypeName => $prototypeValues ) {
-			$retval[ "{$prototypeName}-{$adName}" ] = $prototypeValues;
-			if ( array_key_exists( 'id', $prototypeValues ) ) {
-				$retval[ "{$prototypeName}-{$adId}" ][ 'id' ] .= "-$adName";
-			}
+			$retval[ "{$prototypeName}-{$adId}" ] = $prototypeValues;
 		}
 
 		// Now do the ad
 		$retval["pr-ad-list-element-$adId"] = [
-			'class' => 'HTMLPromoterAd',
+			'class' => 'MediaWiki\\Extension\\Promoter\\HTMLPromoterAd',
 			'ad' => $adName,
 			'withlabel' => true,
 		];
@@ -192,27 +190,5 @@ class PRAdPager extends ReverseChronologicalPager {
 			// TODO: empty value
 		}
 		return $retval;
-	}
-}
-
-class HTMLAdPagerNavigation extends HTMLFormField {
-	/** Empty - no validation can be done on a navigation element */
-	function validate( $value, $alldata ) {
-		return true;
-	}
-
-	public function getInputHTML( $value ) {
-		return $this->mParams['value'];
-	}
-
-	public function getDiv( $value ) {
-		$html = Xml::openElement(
-			'div',
-			[ 'class' => "pr-ad-list-pager-nav" ]
-		);
-		$html .= $this->getInputHTML( $value );
-		$html .= Xml::closeElement( 'div' );
-
-		return $html;
 	}
 }

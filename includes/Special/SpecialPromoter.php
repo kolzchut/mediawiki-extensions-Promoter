@@ -1,23 +1,56 @@
 <?php
 
-class Promoter extends SpecialPage {
+namespace MediaWiki\Extension\Promoter\Special;
 
-	public $editable, $promoterError;
+use Html;
+use Linker;
+use MediaWiki\Extension\Promoter\Ad;
+use MediaWiki\Extension\Promoter\AdCampaign;
+use MediaWiki\Extension\Promoter\AdCampaignExistenceException;
+use MediaWiki\Extension\Promoter\AdDataException;
+use MediaWiki\Extension\Promoter\PromoterPager;
+use MediaWiki\MediaWikiServices;
+use SpecialPage;
+use Wikimedia\Rdbms\IConnectionProvider;
+use Xml;
 
-	function __construct() {
-		// Register special page
-		parent::__construct( 'Promoter' );
+class SpecialPromoter extends SpecialPage {
+
+	/** @var bool */
+	protected $editable;
+
+	/** @var bool */
+	private $promoterError;
+
+	/** @var IConnectionProvider */
+	private IConnectionProvider $dbProvider;
+
+	/**
+	 * SpecialPromoter constructor.
+	 *
+	 * @param string $name
+	 */
+	public function __construct( $name = 'Promoter' ) {
+		parent::__construct( $name );
+		$this->dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isEditable() {
+		return $this->editable;
 	}
 
 	/**
 	 * Handle different types of page requests
 	 *
-	 * @param $sub
+	 * @param string $subPage
 	 *
-	 * @throws ErrorPageError
-	 * @throws MWException
+	 * @throws \ErrorPageError
+	 * @throws \MWException
 	 */
-	function execute( $sub ) {
+	public function execute( $subPage ) {
 		// Begin output
 		$this->setHeaders();
 		$this->outputHeader();
@@ -191,13 +224,13 @@ class Promoter extends SpecialPage {
 	/**
 	 * Build a table row. Needed since Xml::buildTableRow escapes all HTML.
 	 *
-	 * @param $fields
+	 * @param string[] $fields
 	 * @param string $element
 	 * @param array $attribs
 	 *
 	 * @return string
 	 */
-	function tableRow( $fields, $element = 'td', $attribs = [] ) {
+	protected function tableRow( $fields, $element = 'td', $attribs = [] ) {
 		$cells = [];
 		foreach ( $fields as $field ) {
 			$cells[ ] = Xml::tags( $element, [], $field );
@@ -208,13 +241,13 @@ class Promoter extends SpecialPage {
 	/**
 	 * Show all campaigns found in the database, show "Add a campaign" form
 	 */
-	function listCampaigns() {
+	private function listCampaigns() {
 		// Cache these commonly used properties
 		$readonly = [ 'disabled' => 'disabled' ];
 
 		// TODO: refactor to use AdCampaign::getCampaigns
 		// Get all campaigns from the database
-		$dbr = PRDatabase::getDb();
+		$dbr = $this->dbProvider->getReplicaDatabase();
 		$res = $dbr->select( 'pr_campaigns',
 			[
 				'cmp_name',
@@ -278,7 +311,7 @@ class Promoter extends SpecialPage {
 				// Name
 				$rowCells .= Html::rawElement( 'td', [],
 					Linker::link(
-						$this->getTitle(),
+						$this->getPageTitle(),
 						htmlspecialchars( $row->cmp_name ),
 						[],
 						[
@@ -352,7 +385,8 @@ class Promoter extends SpecialPage {
 			// If there was an error, we'll need to restore the state of the form
 			if ( $request->wasPosted() && ( $request->getVal( 'method' ) == 'addCampaign' ) ) {
 				// Used to have projects & languages
-			} else { // Defaults
+			} else {
+				// Defaults
 				/*
 				$start = null;
 				$campaignProjects = [];
@@ -369,30 +403,31 @@ class Promoter extends SpecialPage {
 					'role' => 'form'
 				]
 			);
-			$htmlOut .= Html::hidden( 'title', $this->getTitle()->getPrefixedText() );
+			$htmlOut .= Html::hidden( 'title', $this->getPageTitle()->getPrefixedText() );
 			$htmlOut .= Html::hidden( 'method', 'addCampaign' );
 
 			// Name
 			$htmlOut .= Xml::openElement( 'div', [ 'class' => 'form-group' ] );
-			$htmlOut .= Xml::label( $this->msg( 'promoter-campaign-name' )->escaped(), 'campaignName', [
+			$htmlOut .= Html::label( $this->msg( 'promoter-campaign-name' )->escaped(), 'campaignName', [
 					'class' => 'sr-only'
 				]
 			);
-			$htmlOut .= Xml::input( 'campaignName', 25, $request->getVal( 'campaignName' ), [
+			$htmlOut .= Html::input( 'campaignName', 25, $request->getVal( 'campaignName' ), [
 					'id' => 'campaignName',
 					'placeholder' => $this->msg( 'promoter-campaign-name' )->escaped(),
 					'class' => 'form-control'
 				]
 			);
-			$htmlOut .= Xml::closeElement( 'div' );
+			$htmlOut .= Html::closeElement( 'div' );
 
-			$htmlOut .= Html::hidden( 'change', 'weight' );
-			$htmlOut .= Html::hidden( 'authtoken', $this->getUser()->getEditToken() );
+			// @todo this is probably the wrong way to do this
+			$editToken =  $this->getContext()->getCsrfTokenSet()->getToken();
+			$htmlOut .= Html::hidden( 'authtoken', $editToken );
 
 			// Submit button
-			$htmlOut .= Xml::submitButton( $this->msg( 'promoter-modify' )->text(), [ 'class' => 'btn' ] );
+			$htmlOut .= Html::submitButton( $this->msg( 'promoter-modify' )->text(), [ 'class' => 'btn' ] );
 			// End Add a campaign form
-			$htmlOut .= Xml::closeElement( 'form' );
+			$htmlOut .= Html::closeElement( 'form' );
 		}
 
 		// Output HTML
@@ -402,21 +437,23 @@ class Promoter extends SpecialPage {
 	/**
 	 * Show the interface for viewing/editing an individual campaign
 	 *
-	 * @param $campaign string The name of the campaign to view
+	 * @param string $campaign The name of the campaign to view
 	 *
 	 * @throws AdDataException
-	 * @throws ErrorPageError
-	 * @throws MWException
+	 * @throws \ErrorPageError
+	 * @throws \MWException
 	 */
-	function listCampaignDetail( $campaign ) {
-		$c = new AdCampaign( $campaign ); // Todo: Convert the rest of this page to use this object
+	private function listCampaignDetail( $campaign ) {
+		// Todo: Convert the rest of this page to use this object
+		$c = new AdCampaign( $campaign );
 		try {
 			if ( $c->isArchived() ) {
 				$this->getOutput()->setSubtitle( $this->msg( 'promoter-archive-edit-prevented' ) );
-				$this->editable = false; // Todo: Fix this gross hack to prevent editing
+				// Todo: Fix this gross hack to prevent editing
+				$this->editable = false;
 			}
 		} catch ( AdCampaignExistenceException $ex ) {
-			throw new ErrorPageError( 'promoter', 'promoter-campaign-doesnt-exist' );
+			throw new \ErrorPageError( 'promoter', 'promoter-campaign-doesnt-exist' );
 		}
 
 		// Handle form submissions from campaign detail interface
@@ -448,11 +485,9 @@ class Promoter extends SpecialPage {
 					// Handle adding of ads to the campaign
 					$adsToAdd = $request->getArray( 'addAds' );
 					if ( $adsToAdd ) {
-						$weight = $request->getArray( 'weight' );
-						foreach ( $adsToAdd as $adName ) {
-							$adId = Ad::fromName( $adName )->getId();
+						foreach ( $adsToAdd as $adId ) {
 							$result = AdCampaign::addAdTo(
-								$campaign, $adName, $weight[ $adId ]
+								$campaign, $adId
 							);
 							if ( $result !== true ) {
 								$this->showError( $result );
@@ -463,20 +498,8 @@ class Promoter extends SpecialPage {
 					// Handle removing of ads from the campaign
 					$adToRemove = $request->getArray( 'removeAds' );
 					if ( $adToRemove ) {
-						foreach ( $adToRemove as $ad ) {
-							AdCampaign::removeAdFor( $campaign, $ad );
-						}
-					}
-
-					// Handle weight changes
-					$updatedWeights = $request->getArray( 'weight' );
-					$balanced = $request->getCheck( 'balanced' );
-					if ( $updatedWeights ) {
-						foreach ( $updatedWeights as $adId => $weight ) {
-							if ( $balanced ) {
-								$weight = 25;
-							}
-							AdCampaign::updateWeight( $campaign, $adId, $weight );
+						foreach ( $adToRemove as $adId ) {
+							AdCampaign::removeAdFor( $campaign, $adId );
 						}
 					}
 
@@ -566,11 +589,11 @@ class Promoter extends SpecialPage {
 	/**
 	 * Create form for managing campaign settings (start date, end date, languages, etc.)
 	 *
-	 * @param $campaignNameOrId
+	 * @param string|int $campaignNameOrId
 	 *
 	 * @return string
 	 */
-	function campaignDetailForm( $campaignNameOrId ) {
+	private function campaignDetailForm( $campaignNameOrId ) {
 		if ( $this->editable ) {
 			$readonly = [];
 		} else {
@@ -588,7 +611,8 @@ class Promoter extends SpecialPage {
 				$isArchived = $request->getCheck( 'archived' );
 				// $campaignNameOrId = $request->getText( 'campaign' );
 				// $catPageId = $request->getInt( 'catPageId' );
-			} else { // Defaults
+			} else {
+				// Defaults
 				$isEnabled = ( $campaign[ 'enabled' ] == '1' );
 				$isArchived = ( $campaign[ 'archived' ] == '1' );
 				// $catPageId = (int)$campaign[ 'catPageId' ];
@@ -614,21 +638,6 @@ class Promoter extends SpecialPage {
 				)
 			);
 			$htmlOut .= Xml::closeElement( 'tr' );
-
-			/*
-			// Linked to Category / Page
-			$catTitle = Title::newFromID( $catPageId );
-			$catName = $catTitle ? $catTitle->getText() : $this->msg( 'promoter-no-assigned-cat' )->text();
-			$htmlOut .= Xml::openElement( 'tr' );
-			$htmlOut .= Xml::tags( 'td', [],
-				Xml::label( $this->msg( 'promoter-campaign-linked-to' )->text(), 'catPageId' ) );
-			$htmlOut .= Xml::tags( 'td', [],
-				Xml::input( 'catPageId', 30, $catName, array_replace( $readonly,
-						array( 'id' => 'catPageId' ) )
-				)
-			);
-			$htmlOut .= Xml::closeElement( 'tr' );
-			*/
 
 			// Enabled
 			$htmlOut .= Xml::openElement( 'tr' );
@@ -662,13 +671,13 @@ class Promoter extends SpecialPage {
 	/**
 	 * Create form for managing ads assigned to a campaign
 	 *
-	 * @param $campaign
+	 * @param string $campaign
 	 *
 	 * @return string
 	 * @throws AdDataException
 	 */
-	function assignedAdsForm( $campaign ) {
-		$dbr = PRDatabase::getDb();
+	private function assignedAdsForm( $campaign ) {
+		$dbr = $this->dbProvider->getReplicaDatabase();
 		$res = $dbr->select(
 			// Aliases are needed to avoid problems with table prefixes
 			[
@@ -678,8 +687,7 @@ class Promoter extends SpecialPage {
 			],
 			[
 				'ads.ad_id',
-				'ads.ad_name',
-				'adlinks.adl_weight',
+				'ads.ad_name'
 			],
 			[
 				'campaigns.cmp_name' => $campaign,
@@ -691,7 +699,7 @@ class Promoter extends SpecialPage {
 		);
 
 		// No ads found
-		if ( $dbr->numRows( $res ) < 1 ) {
+		if ( $res->numRows() < 1 ) {
 			return '';
 		}
 
@@ -701,30 +709,13 @@ class Promoter extends SpecialPage {
 			$readonly = [ 'disabled' => 'disabled' ];
 		}
 
-		$weights = [];
-
 		$ads = [];
 		foreach ( $res as $row ) {
 			$ads[] = $row;
-
-			$weights[] = $row->adl_weight;
 		}
-		$isBalanced = ( count( array_unique( $weights ) ) === 1 );
 
 		// Build Assigned ads HTML
-		$htmlOut = Html::hidden( 'change', 'weight' );
-		$htmlOut .= Xml::fieldset( $this->msg( 'promoter-assigned-ads' )->text() );
-
-		// Equal weight ads
-		$htmlOut .= Xml::openElement( 'tr' );
-		$htmlOut .= Xml::tags( 'td', [],
-			Xml::label( $this->msg( 'promoter-balanced' )->text(), 'balanced' ) );
-		$htmlOut .= Xml::tags( 'td', [],
-			Xml::check( 'balanced', $isBalanced,
-				array_replace( $readonly, [ 'value' => $campaign, 'id' => 'balanced' ] )
-			)
-		);
-		$htmlOut .= Xml::closeElement( 'tr' );
+		$htmlOut = Xml::fieldset( $this->msg( 'promoter-assigned-ads' )->text() );
 
 		$htmlOut .= Xml::openElement( 'table',
 			[
@@ -733,16 +724,10 @@ class Promoter extends SpecialPage {
 			]
 		);
 		if ( $this->editable ) {
-			$htmlOut .= Xml::element( 'th', [ 'align' => 'left', 'width' => '5%' ],
+			$htmlOut .= Xml::element( 'th', null,
 				$this->msg( "promoter-remove" )->text() );
 		}
-		$htmlOut .= Xml::element( 'th', [ 'align' => 'left', 'width' => '5%', 'class' => 'pr-weight' ],
-			$this->msg( 'promoter-weight' )->text() );
-		/*
-		$htmlOut .= Xml::element( 'th', [ 'align' => 'left', 'width' => '5%' ],
-			$this->msg( 'promoter-bucket' )->text() );
-		*/
-		$htmlOut .= Xml::element( 'th', [ 'align' => 'left', 'width' => '70%' ],
+		$htmlOut .= Xml::element( 'th', null,
 			$this->msg( 'promoter-ads' )->text() );
 
 		// Table rows
@@ -751,20 +736,17 @@ class Promoter extends SpecialPage {
 
 			if ( $this->editable ) {
 				// Remove
-				$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top' ],
-					Xml::check( 'removeAds[]', false, [ 'value' => $row->ad_name ] )
-				);
+				$htmlOut .= Xml::openElement( 'td', [ 'valign' => 'top' ] );
+				$htmlOut .= Html::openElement( 'label', [ 'class' => 'checkbox-label' ] );
+				$htmlOut .= Xml::check( 'removeAds[]', '', [ 'value' => $row->ad_id ] );
+				$htmlOut .= Html::closeElement( 'label' );
+				$htmlOut .= Html::closeElement( 'td' );
 			}
-
-			// Weight
-			$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top', 'class' => 'pr-weight' ],
-				$this->weightDropDown( "weight[$row->ad_id]", $row->adl_weight )
-			);
 
 			// Ad
 			$ad = Ad::fromName( $row->ad_name );
 			$htmlOut .= Xml::tags( 'td', [ 'valign' => 'top' ],
-				$ad->linkToPreview()
+				$ad->linkToEdit()
 			);
 
 			$htmlOut .= Xml::closeElement( 'tr' );
@@ -774,29 +756,14 @@ class Promoter extends SpecialPage {
 		return $htmlOut;
 	}
 
-	function weightDropDown( $name, $selected ) {
-		$selected = intval( $selected );
-
-		if ( $this->editable ) {
-			$html = Html::openElement( 'select', [ 'name' => $name ] );
-			foreach ( range( 5, 100, 5 ) as $value ) {
-				$html .= Xml::option( $value, $value, $value === $selected );
-			}
-			$html .= Html::closeElement( 'select' );
-			return $html;
-		} else {
-			return htmlspecialchars( $selected );
-		}
-	}
-
 	/**
 	 * Create form for adding ads to a campaign
 	 *
-	 * @param $campaign
+	 * @param string $campaign
 	 *
 	 * @return string
 	 */
-	function addAdsForm( $campaign ) {
+	private function addAdsForm( $campaign ) {
 		// Sanitize input on search key and split out terms
 		$searchTerms = $this->sanitizeSearchTerms( $this->getRequest()->getText( 'adsearchkey' ) );
 
@@ -842,57 +809,24 @@ class Promoter extends SpecialPage {
 		return $htmlOut;
 	}
 
-	function getProjectName( $value ) {
-		return $value; // @fixme -- use $this->msg()
-	}
-
-	public static function dropDownList( $text, $values ) {
-		$dropDown = "*{$text}\n";
-		foreach ( $values as $value ) {
-			$dropDown .= "**{$value}\n";
-		}
-		return $dropDown;
-	}
-
-	protected function paddedRange( $begin, $end ) {
-		$unpaddedRange = range( $begin, $end );
-		$paddedRange = [];
-		foreach ( $unpaddedRange as $number ) {
-			$paddedRange[ ] = sprintf( "%02d", $number ); // pad number with 0 if needed
-		}
-		return $paddedRange;
-	}
-
-	function showError( $message ) {
+	/**
+	 * @param string $message
+	 */
+	protected function showError( $message ) {
 		$this->getOutput()->wrapWikiMsg( "<div class='pr-error'>\n$1\n</div>", $message );
 		$this->promoterError = true;
 	}
 
 	/**
-	 * @static Obtains the parameter $param, sanitizes by returning the first match to $regex or
-	 * $default if there was no match.
-	 * @param string $param Name of GET/POST parameter
-	 * @param string $regex Sanitization regular expression
-	 * @param string|null $default Default value to return on error
-	 * @return null|string The sanitized value
-	 */
-	protected function getTextAndSanitize( $param, $regex, $default = null ) {
-		if ( preg_match( $regex, $this->getRequest()->getText( $param ), $matches ) ) {
-			return $matches[0];
-		} else {
-			return $default;
-		}
-	}
-
-	/**
 	 * Sanitizes ad search terms by removing non alpha and ensuring space delimiting.
 	 *
-	 * @param $terms string Search terms to sanitize
+	 * @param string $terms Search terms to sanitize
 	 *
 	 * @return string Space delimited string
 	 */
 	public static function sanitizeSearchTerms( $terms ) {
-		$retval = ' '; // The space is important... it gets trimmed later
+		// The space is important... it gets trimmed later
+		$retval = ' ';
 
 		foreach ( preg_split( '/\s+/', $terms ) as $term ) {
 			preg_match( '/[0-9a-zA-Zא-ת_\-]+/', $term, $matches );
@@ -909,17 +843,18 @@ class Promoter extends SpecialPage {
 	 * Adds Promoter specific navigation tabs to the UI.
 	 * Implementation of SkinTemplateNavigation::SpecialPage hook.
 	 *
-	 * @param Skin $skin Reference to the Skin object
-	 * @param array $tabs Any current skin tabs
+	 * @param \Skin $skin Reference to the Skin object
+	 * @param array &$tabs Any current skin tabs
 	 *
 	 * @return bool
-	 * @throws MWException
+	 * @throws \MWException
 	 */
-	public static function addNavigationTabs( Skin $skin, array &$tabs ) {
+	public static function addNavigationTabs( \Skin $skin, array &$tabs ) {
 		global $wgPromoterTabifyPages;
 
 		$title = $skin->getTitle();
-		list( $alias, $sub ) = SpecialPageFactory::resolveAlias( $title->getText() );
+		$specialPageFactory = MediaWikiServices::getInstance()->getSpecialPageFactory();
+		[ $alias, $subPage ] = $specialPageFactory->resolveAlias( $title->getText() );
 
 		if ( !array_key_exists( $alias, $wgPromoterTabifyPages ) ) {
 			return true;
@@ -936,45 +871,4 @@ class Promoter extends SpecialPage {
 		return true;
 	}
 
-	/**
-	 * Loads a Promoter variable from session data.
-	 *
-	 * @param string $variable Name of the variable
-	 * @param object|null $default Default value of the variable
-	 *
-	 * @return object Stored variable or default
-	 */
-	public function getPRSessionVar( $variable, $default = null ) {
-		$val = $this->getRequest()->getSessionData( "promoter-$variable" );
-		if ( is_null( $val ) ) {
-			$val = $default;
-		}
-
-		return $val;
-	}
-
-	/**
-	 * Sets a Promoter session variable. Note that this will fail silently if a
-	 * session does not exist for the user.
-	 *
-	 * @param string $variable Name of the variable
-	 * @param object $value Value for the variable
-	 */
-	public function setPRSessionVar( $variable, $value ) {
-		$this->getRequest()->setSessionData( "promoter-{$variable}", $value );
-	}
-
-	protected function makeShortList( $all, $list ) {
-		global $wgPromoterListComplementThreshold;
-		// TODO ellipsis and js/css expansion
-		if ( count( $list ) == count( $all ) ) {
-			return $this->getContext()->msg( 'promoter-all' )->text();
-		}
-		if ( count( $list ) > $wgPromoterListComplementThreshold * count( $all ) ) {
-			$inverse = array_values( array_diff( $all, $list ) );
-			$txt = $this->getContext()->getLanguage()->listToText( $inverse );
-			return $this->getContext()->msg( 'promoter-all-except', $txt )->text();
-		}
-		return $this->getContext()->getLanguage()->listToText( array_values( $list ) );
-	}
 }

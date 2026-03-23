@@ -1,25 +1,47 @@
 <?php
 
+namespace MediaWiki\Extension\Promoter\Special;
+
+use DateTime;
+use ErrorPageError;
+use Exception;
+use MediaWiki\Extension\Promoter\Ad;
+use MediaWiki\Extension\Promoter\AdCampaign;
+use MediaWiki\Extension\Promoter\AdDataException;
+use MediaWiki\Extension\Promoter\AdExistenceException;
+use MediaWiki\Extension\Promoter\PRAdPager;
+use MediaWiki\Extension\Promoter\PromoterHtmlForm;
+use MWException;
+use MWTimestamp;
+use SpecialPage;
+use Wikimedia\Timestamp\TimestampException;
+
 /**
  * Special page for management of Promoter ads
  */
-class SpecialPromoterAds extends Promoter {
+class SpecialPromoterAds extends SpecialPromoter {
 	/** @var string Name of the ad we're currently editing */
-	protected $adName = '';
+	protected string $adName = '';
 
 	/** @var string Filter to apply to the ad search when generating the list */
-	protected $adFilterString = '';
+	protected string $adFilterString = '';
 
 	/** @var string Language code to render preview materials in */
 	protected $adLanguagePreview;
 
 	/** @var bool If true, form execution must stop and the page will be redirected */
-	protected $adFormRedirectRequired = false;
+	protected bool $adFormRedirectRequired = false;
 
-	protected $allCampaigns = [];
+	/** @var array */
+	protected array $allCampaigns = [];
 
-	function __construct() {
-		SpecialPage::__construct( 'PromoterAds' );
+	/**
+	 * SpecialPromoterAds constructor.
+	 *
+	 * @param string $name
+	 */
+	public function __construct( $name = 'PromoterAds' ) {
+		parent::__construct( $name );
 
 		// Make sure we have a session
 		$this->getRequest()->getSession()->persist();
@@ -29,9 +51,9 @@ class SpecialPromoterAds extends Promoter {
 
 	/**
 	 * Whether this special page is listed in Special:SpecialPages
-	 * @return Bool
+	 * @return bool
 	 */
-	public function isListed() {
+	public function isListed(): bool {
 		return false;
 	}
 
@@ -42,22 +64,22 @@ class SpecialPromoterAds extends Promoter {
 	 *    Null      - Display a list of ads
 	 *    Edit      - Edits an existing ad
 	 *
-	 * @param $page
+	 * @param string $subPage
 	 *
 	 * @throws ErrorPageError
 	 */
-	public function execute( $page ) {
+	public function execute( $subPage ): void {
 		// Do all the common setup
 		$this->setHeaders();
 		$this->editable = $this->getUser()->isAllowed( 'promoter-admin' );
 
 		// User settable text for some custom message, like usage instructions
-		$this->getOutput()->setPageTitle( $this->msg( 'campaignad' ) );
+		$this->getOutput()->setPageTitleMsg( $this->msg( 'campaignad' ) );
 		$this->getOutput()->addWikiMsg( 'promoter-summary' );
 		$this->getOutput()->addModules( 'ext.discovery' );
 
 		// Now figure out wth to display
-		$parts = explode( '/', $page );
+		$parts = explode( '/', $subPage );
 		$action = ( isset( $parts[0] ) && $parts[0] ) ? $parts[0] : 'list';
 
 		switch ( strtolower( $action ) ) {
@@ -84,14 +106,13 @@ class SpecialPromoterAds extends Promoter {
 			default:
 				// Something went wrong; display error page
 				throw new ErrorPageError( 'campaignad', 'promoter-generic-error' );
-				break;
 		}
 	}
 
 	/**
 	 * Process the 'ad list' form and display a new one.
 	 */
-	protected function showAdList() {
+	protected function showAdList(): void {
 		$out = $this->getOutput();
 		$out->setPageTitle( $this->msg( 'promoter-manage-ads' ) );
 		$out->addModules( 'ext.promoter.adminUi.adManager' );
@@ -100,8 +121,7 @@ class SpecialPromoterAds extends Promoter {
 		$formDescriptor = $this->generateAdListForm( $this->adFilterString );
 		$htmlForm = new PromoterHtmlForm( $formDescriptor, $this->getContext() );
 		$htmlForm->setSubmitCallback( [ $this, 'processAdList' ] );
-		$htmlForm->loadData();
-		$formResult = $htmlForm->trySubmit();
+		$formResult = $htmlForm->prepareForm()->trySubmit();
 
 		if ( $this->adFormRedirectRequired ) {
 			return;
@@ -126,7 +146,7 @@ class SpecialPromoterAds extends Promoter {
 	 *
 	 * @return array of HTMLForm entities
 	 */
-	protected function generateAdListForm( $filter = '' ) {
+	protected function generateAdListForm( string $filter = '' ): array {
 		// --- Create the ad search form --- //
 		$formDescriptor = [
 			'adNameFilter' => [
@@ -190,7 +210,6 @@ class SpecialPromoterAds extends Promoter {
 
 		// --- Add all the ads via the fancy pager object ---
 		$pager = new PRAdPager(
-			$this->getPageTitle(),
 			'ad-list',
 			[
 				 'applyTo' => [
@@ -214,7 +233,7 @@ class SpecialPromoterAds extends Promoter {
 	 * Callback function from the showAdList() form that actually processes the
 	 * response data.
 	 *
-	 * @param $formData
+	 * @param array $formData
 	 *
 	 * @return null|string|array
 	 * @throws AdDataException
@@ -260,7 +279,6 @@ class SpecialPromoterAds extends Promoter {
 
 				case 'archive':
 					return ( 'Archiving not yet implemented!' );
-					break;
 
 				case 'remove':
 					$failed = [];
@@ -268,7 +286,7 @@ class SpecialPromoterAds extends Promoter {
 						$parts = explode( '-', $element, 2 );
 						if ( ( $parts[0] === 'applyTo' ) && ( $value === true ) ) {
 							try {
-								Ad::removeAd( $parts[1], $this->getUser() );
+								Ad::removeAd( (int)$parts[1], $this->getUser() );
 							} catch ( Exception $ex ) {
 								$failed[] = $parts[1];
 							}
@@ -290,7 +308,7 @@ class SpecialPromoterAds extends Promoter {
 	/**
 	 * Display the ad editor and process edits
 	 */
-	protected function showAdEditor() {
+	protected function showAdEditor(): void {
 		$out = $this->getOutput();
 		$out->addModules( 'ext.promoter.adminUi.adEditor' );
 
@@ -305,9 +323,7 @@ class SpecialPromoterAds extends Promoter {
 		// Now begin form processing
 		$htmlForm = new PromoterHtmlForm( $formDescriptor, $this->getContext(), 'promoter' );
 		$htmlForm->setSubmitCallback( [ $this, 'processEditAd' ] );
-		$htmlForm->loadData();
-
-		$formResult = $htmlForm->tryAuthorizedSubmit();
+		$formResult = $htmlForm->prepareForm()->tryAuthorizedSubmit();
 
 		if ( $this->adFormRedirectRequired ) {
 			return;
@@ -327,7 +343,15 @@ class SpecialPromoterAds extends Promoter {
 			displayForm( $formResult );
 	}
 
-	protected function generateAdEditForm() {
+	/**
+	 * @return array
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws ErrorPageError
+	 * @throws MWException
+	 * @throws TimestampException
+	 */
+	protected function generateAdEditForm(): array {
 		$ad = Ad::fromName( $this->adName );
 		try {
 			$adSettings = $ad->getAdSettings();
@@ -444,7 +468,8 @@ class SpecialPromoterAds extends Promoter {
 			'section' => 'edit-ad',
 			'type' => 'textarea',
 			'rows' => 5,
-			'cols' => 45, // Same as the regular inputs
+			// Cols is 45, same as the regular inputs
+			'cols' => 45,
 			'required' => true,
 			'label-message' => 'promoter-ad-body',
 			'placeholder' => '<!-- blank ad -->',
@@ -559,7 +584,7 @@ class SpecialPromoterAds extends Promoter {
 	/**
 	 * Use a URL parameter to set the filter string for the banner list.
 	 */
-	protected function setFilterFromUrl() {
+	protected function setFilterFromUrl(): void {
 		// This is the normal param on visible URLs.
 		$filterParam = $this->getRequest()->getVal( 'filter', null );
 		// If the form was posted the filter parameter'll have a different name.
@@ -574,7 +599,16 @@ class SpecialPromoterAds extends Promoter {
 		}
 	}
 
-	public function processEditAd( $formData ) {
+	/**
+	 * @param array $formData
+	 *
+	 * @return string|null
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 * @throws ErrorPageError
+	 * @throws MWException
+	 */
+	public function processEditAd( $formData ): ?string {
 		// First things first! Figure out what the heck we're actually doing!
 		switch ( $formData[ 'action' ] ) {
 			case 'delete':
@@ -595,7 +629,6 @@ class SpecialPromoterAds extends Promoter {
 					return null;
 				}
 				return 'Archiving currently does not work';
-				break;
 
 			case 'clone':
 				if ( !$this->editable ) {
@@ -632,7 +665,6 @@ class SpecialPromoterAds extends Promoter {
 					return null;
 				}
 				return $this->processSaveAdAction( $formData );
-				break;
 
 			default:
 				// Nothing was requested, so do nothing
@@ -642,6 +674,13 @@ class SpecialPromoterAds extends Promoter {
 		return null;
 	}
 
+	/**
+	 * @param array $formData
+	 *
+	 * @return null
+	 * @throws AdDataException
+	 * @throws AdExistenceException
+	 */
 	protected function processSaveAdAction( $formData ) {
 		$startDate = null;
 		$endDate = null;
@@ -672,16 +711,16 @@ class SpecialPromoterAds extends Promoter {
 		$campaignsToAddTo = array_diff( $campaignsToAddTo, $linkedCampaigns );
 
 		// Get campaign IDs
-		$campaignsToAddTo = array_map( function ( $campaign ) {
+		$campaignsToAddTo = array_map( static function ( $campaign ) {
 			return AdCampaign::getCampaignId( $campaign );
 		}, $campaignsToAddTo );
 
-		$campaignsToRemoveFrom = array_map( function ( $campaign ) {
+		$campaignsToRemoveFrom = array_map( static function ( $campaign ) {
 			return AdCampaign::getCampaignId( $campaign );
 		}, $campaignsToRemoveFrom );
 
 		// Add/remove ad from said campaigns
-		AdCampaign::addAdToCampaigns( $campaignsToAddTo, $ad->getId(), 25 );
+		AdCampaign::addAdToCampaigns( $campaignsToAddTo, $ad->getId() );
 		AdCampaign::removeAdForCampaigns( $campaignsToRemoveFrom, $ad->getId() );
 
 		/* --- Ad settings --- */
@@ -704,17 +743,4 @@ class SpecialPromoterAds extends Promoter {
 		return null;
 	}
 
-}
-
-/**
- * Class PromoterHtmlForm
- */
-class PromoterHtmlForm extends HTMLForm {
-	/**
-	 * Get the whole body of the form.
-	 * @return string
-	 */
-	function getBody() {
-		return $this->displaySection( $this->mFieldTree, '', 'pr-formsection-' );
-	}
 }
