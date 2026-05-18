@@ -90,10 +90,10 @@ class Ad {
 	];
 
 	/** @var MWTimestamp|null */
-	protected ?MWTimestamp $startDate;
+	protected ?MWTimestamp $startDate = null;
 
 	/** @var MWTimestamp|null */
-	protected ?MWTimestamp $endDate;
+	protected ?MWTimestamp $endDate = null;
 
 	/** @var bool True if archived and hidden from default view. */
 	protected bool $archived = false;
@@ -513,7 +513,9 @@ class Ad {
 			$this->allocateUser = (bool)$row->ad_display_user;
 			$this->tags['new'] = (bool)$row->ad_tag_new;
 			$this->adCaption = $row->ad_title;
-			$this->adLink = $row->ad_mainlink;
+			// ad_mainlink is nullable in the schema; coerce to empty string
+			// to satisfy the typed `string` property.
+			$this->adLink = $row->ad_mainlink ?? '';
 			$this->setStartDate( $row->ad_date_start );
 			$this->setEndDate( $row->ad_date_end );
 			$this->active = (bool)$row->ad_active;
