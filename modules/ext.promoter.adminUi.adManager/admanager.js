@@ -21,11 +21,10 @@
  */
 ( function () {
 
-	let am,
-		// Cache DOM references to avoid repeated queries
-		domRefs = {};
+	// Cache DOM references to avoid repeated queries
+	const domRefs = {};
 
-	am = mw.promoter.adminUi.adManager = {
+	const am = mw.promoter.adminUi.adManager = {
 		/**
 		 * State tracking variable for the number of items currently selected
 		 *
@@ -46,37 +45,23 @@
 		 * @return {boolean}
 		 */
 		doAddAdDialog: function () {
-			const buttons = {},
-				okButtonText = mw.message( 'promoter-add-ad-button' ).text(),
-				cancelButtonText = mw.message( 'promoter-add-ad-cancel-button' ).text(),
-				$dialogObj = $( '<form>' ),
-				$addAdSection = $( domRefs.formSectionAddAd ).children( 'div' ).clone().show();
+			OO.ui.prompt( mw.msg( 'promoter-ad-name' ), {
+				title: mw.msg( 'promoter-add-new-ad-title' ),
+				actions: [
+					{ action: 'accept', label: mw.msg( 'promoter-add-ad-button' ), flags: [ 'primary', 'progressive' ] },
+					{ action: 'reject', label: mw.msg( 'promoter-add-ad-cancel-button' ), flags: 'safe' }
+				]
+			} ).then( ( adName ) => {
+				// We'll submit the real form (outside the dialog).
+				// Copy in the entered name before submitting.
+				if ( adName !== null ) {
+					domRefs.adManagerForm.wpaction.value = 'create';
+					domRefs.adManagerForm.wpnewAdName.value = adName;
+					domRefs.adManagerForm.submit();
+				}
+			} );
 
-			// Implement the functionality
-			buttons[ cancelButtonText ] = function () {
-				$( this ).dialog( 'close' );
-			};
-
-			// We'll submit the real form (outside the dialog).
-			// Copy in values to that form before submitting.
-			buttons[ okButtonText ] = function () {
-				domRefs.adManagerForm.wpaction.value = 'create';
-				domRefs.adManagerForm.wpnewAdName.value = $( this )[ 0 ].wpnewAdName.value;
-
-				domRefs.adManagerForm.submit();
-			};
-
-			// Create the dialog by copying the textfield element into a new form
-			$dialogObj[ 0 ].name = $dialogObj[ 0 ].id = 'addAdDialog';
-			$dialogObj.append( $addAdSection )
-				.dialog( {
-					title: mw.message( 'promoter-add-new-ad-title' ).escaped(),
-					modal: true,
-					buttons: buttons,
-					width: 400
-				} );
-
-			// Do not submit the form... that's up to the ok button
+			// Do not submit the form... that's up to the dialog
 			return false;
 		},
 
@@ -85,65 +70,36 @@
 		 * the form with the 'remove' action.
 		 */
 		doRemoveAds: function () {
-			const $dialogObj = $( '<form>' ),
-				$dialogMessage = $( document.createElement( 'div' ) ).addClass( 'pr-dialog-message' ),
-				$removeAdSection = $( domRefs.formSectionRemoveAd ).children( 'div' ).clone().show(),
-				buttons = {},
-				deleteText = mw.message( 'promoter-delete-ad' ).text(),
-				cancelButtonText = mw.message( 'promoter-delete-ad-cancel' ).text();
-
-			// We'll submit the real form (outside the dialog).
-			// Copy in values to that form before submitting.
-			buttons[ deleteText ] = function () {
-				domRefs.adManagerForm.wpaction.value = 'remove';
-
-				domRefs.adManagerForm.submit();
-			};
-			buttons[ cancelButtonText ] = function () {
-				$( this ).dialog( 'close' );
-			};
-
-			$dialogObj.append( $dialogMessage );
-			$dialogMessage.text( mw.message( 'promoter-delete-ad-confirm' ).text() );
-
-			$dialogObj.append( $removeAdSection )
-				.dialog( {
-					title: mw.message(
-						'promoter-delete-ad-title',
-						am.selectedItemCount
-					).escaped(),
-					width: '35em',
-					modal: true,
-					buttons: buttons
-				} );
+			OO.ui.confirm( mw.msg( 'promoter-delete-ad-confirm' ), {
+				title: mw.msg( 'promoter-delete-ad-title', am.selectedItemCount ),
+				actions: [
+					{ action: 'accept', label: mw.msg( 'promoter-delete-ad' ), flags: [ 'primary', 'destructive' ] },
+					{ action: 'reject', label: mw.msg( 'promoter-delete-ad-cancel' ), flags: 'safe' }
+				]
+			} ).then( ( confirmed ) => {
+				// We'll submit the real form (outside the dialog).
+				if ( confirmed ) {
+					domRefs.adManagerForm.wpaction.value = 'remove';
+					domRefs.adManagerForm.submit();
+				}
+			} );
 		},
 
 		/**
 		 * Submits the form with the archive action.
 		 */
 		doArchiveAds: function () {
-			const $dialogObj = $( document.createElement( 'div' ) ),
-				buttons = {},
-				archiveText = mw.message( 'promoter-archive-ad' ).text(),
-				cancelButtonText = mw.message( 'promoter-archive-ad-cancel' ).text();
-
-			buttons[ archiveText ] = function () {
-				domRefs.adManagerForm.wpaction.value = 'archive';
-				domRefs.adManagerForm.submit();
-			};
-			buttons[ cancelButtonText ] = function () {
-				$( this ).dialog( 'close' );
-			};
-
-			$dialogObj.text( mw.message( 'promoter-archive-ad-confirm' ).text() );
-			$dialogObj.dialog( {
-				title: mw.message(
-					'promoter-archive-ad-title',
-					am.selectedItemCount
-				).escaped(),
-				resizable: false,
-				modal: true,
-				buttons: buttons
+			OO.ui.confirm( mw.msg( 'promoter-archive-ad-confirm' ), {
+				title: mw.msg( 'promoter-archive-ad-title', am.selectedItemCount ),
+				actions: [
+					{ action: 'accept', label: mw.msg( 'promoter-archive-ad' ), flags: [ 'primary' ] },
+					{ action: 'reject', label: mw.msg( 'promoter-archive-ad-cancel' ), flags: 'safe' }
+				]
+			} ).then( ( confirmed ) => {
+				if ( confirmed ) {
+					domRefs.adManagerForm.wpaction.value = 'archive';
+					domRefs.adManagerForm.submit();
+				}
 			} );
 		},
 
@@ -170,7 +126,7 @@
 		 * Updates the 'checkAll' check box if any of the ad check boxes are checked
 		 */
 		selectCheckStateAltered: function () {
-			if ( $( this ).prop( 'checked' ) === true ) {
+			if ( this.checked ) {
 				am.selectedItemCount++;
 			} else {
 				am.selectedItemCount--;
@@ -208,10 +164,8 @@
 		 * filter (or lack thereof).
 		 */
 		applyFilter: function () {
-			let newUri, filterStr;
-
-			filterStr = domRefs.filterInput.value;
-			newUri = new mw.Uri();
+			let filterStr = domRefs.filterInput.value;
+			const newUri = new mw.Uri();
 
 			// If there's a filter, reload with a filter query param.
 			// If there's no filter, reload with no such param.

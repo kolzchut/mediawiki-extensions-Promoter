@@ -9,7 +9,6 @@ use MediaWiki\Extension\Promoter\AdCampaign;
 use MediaWiki\Extension\Promoter\AdCampaignExistenceException;
 use MediaWiki\Extension\Promoter\AdDataException;
 use MediaWiki\Extension\Promoter\PromoterPager;
-use MediaWiki\MediaWikiServices;
 use SpecialPage;
 use Wikimedia\Rdbms\IConnectionProvider;
 use Xml;
@@ -28,11 +27,12 @@ class SpecialPromoter extends SpecialPage {
 	/**
 	 * SpecialPromoter constructor.
 	 *
+	 * @param IConnectionProvider $dbProvider
 	 * @param string $name
 	 */
-	public function __construct( $name = 'Promoter' ) {
+	public function __construct( IConnectionProvider $dbProvider, $name = 'Promoter' ) {
 		parent::__construct( $name );
-		$this->dbProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		$this->dbProvider = $dbProvider;
 	}
 
 	/**
@@ -421,7 +421,7 @@ class SpecialPromoter extends SpecialPage {
 			$htmlOut .= Html::closeElement( 'div' );
 
 			// @todo this is probably the wrong way to do this
-			$editToken =  $this->getContext()->getCsrfTokenSet()->getToken();
+			$editToken = $this->getContext()->getCsrfTokenSet()->getToken();
 			$htmlOut .= Html::hidden( 'authtoken', $editToken );
 
 			// Submit button
@@ -837,38 +837,6 @@ class SpecialPromoter extends SpecialPage {
 		}
 
 		return trim( $retval );
-	}
-
-	/**
-	 * Adds Promoter specific navigation tabs to the UI.
-	 * Implementation of SkinTemplateNavigation::SpecialPage hook.
-	 *
-	 * @param \Skin $skin Reference to the Skin object
-	 * @param array &$tabs Any current skin tabs
-	 *
-	 * @return bool
-	 * @throws \MWException
-	 */
-	public static function addNavigationTabs( \Skin $skin, array &$tabs ) {
-		global $wgPromoterTabifyPages;
-
-		$title = $skin->getTitle();
-		$specialPageFactory = MediaWikiServices::getInstance()->getSpecialPageFactory();
-		[ $alias, $subPage ] = $specialPageFactory->resolveAlias( $title->getText() );
-
-		if ( !array_key_exists( $alias, $wgPromoterTabifyPages ) ) {
-			return true;
-		}
-
-		foreach ( $wgPromoterTabifyPages as $page => $keys ) {
-			$tabs[ $keys[ 'type' ] ][ $page ] = [
-				'text' => wfMessage( $keys[ 'message' ] ),
-				'href' => SpecialPage::getTitleFor( $page )->getFullURL(),
-				'class' => ( $alias === $page ) ? 'selected' : ''
-			];
-		}
-
-		return true;
 	}
 
 }

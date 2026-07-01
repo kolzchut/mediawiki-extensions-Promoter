@@ -40,7 +40,7 @@ class PRAdPager extends ReverseChronologicalPager {
 		$this->formSection = $formSection;
 
 		// Override paging defaults
-		[ $this->mLimit, $this->mOffset ] = $this->mRequest->getLimitOffset( 20, '' );
+		[ $this->mLimit, $this->mOffset ] = $this->mRequest->getLimitOffsetForUser( $this->getUser(), 20, '' );
 		$this->mLimitsShown = [ 20, 50, 100 ];
 	}
 

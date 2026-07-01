@@ -1,6 +1,6 @@
 {
 	"name": "Promoter",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"author": [
 		"Dror S. [FFS] ([https://www.kolzchut.org.il Kol-Zchut])",
 		"based on [https://mediawiki.org/wiki/Extension:CentralNotice Extension:CentralNotice]"
@@ -31,11 +31,12 @@
 		"ext.promoter.adminUi.adManager": {
 			"dependencies": [
 				"ext.promoter.adminUi",
-				"jquery.ui"
+				"oojs-ui-windows"
 			],
 			"scripts": "ext.promoter.adminUi.adManager/admanager.js",
 			"styles": "ext.promoter.adminUi.adManager/admanager.css",
 			"messages": [
+				"promoter-ad-name",
 				"promoter-add-ad-button",
 				"promoter-add-ad-cancel-button",
 				"promoter-archive-ad",
@@ -52,13 +53,13 @@
 		"ext.promoter.adminUi.adEditor": {
 			"dependencies": [
 				"ext.promoter.adminUi",
-				"jquery.ui",
 				"oojs-ui-windows"
 			],
 			"scripts": "ext.promoter.adminUi.adEditor/adeditor.js",
 			"styles": "ext.promoter.adminUi.adEditor/adeditor.css",
 			"messages": [
 				"promoter-clone",
+				"promoter-clone-name",
 				"promoter-clone-campaign",
 				"promoter-clone-cancel",
 				"promoter-archive-ad",
@@ -73,8 +74,7 @@
 		},
 		"ext.promoter.adminUi.campaignManager": {
 			"dependencies": [
-				"ext.promoter.adminUi",
-				"jquery.ui"
+				"ext.promoter.adminUi"
 			],
 			"scripts": "ext.promoter.adminUi.campaignManager/campaignManager.js",
 			"styles": "ext.promoter.adminUi.campaignManager/campaignManager.css"
@@ -87,13 +87,32 @@
 	"AvailableRights": [
 		"promoter-admin"
 	],
+	"HookHandlers": {
+		"main": {
+			"class": "MediaWiki\\Extension\\Promoter\\Hooks",
+			"services": [
+				"SpecialPageFactory",
+				"MainConfig"
+			]
+		}
+	},
 	"Hooks": {
 		"LoadExtensionSchemaUpdates": "MediaWiki\\Extension\\Promoter\\PRDatabasePatcher::applyUpdates",
-		"SkinTemplateNavigation::Universal": "MediaWiki\\Extension\\Promoter\\Special\\SpecialPromoter::addNavigationTabs"
+		"SkinTemplateNavigation::Universal": "main"
 	},
 	"SpecialPages": {
-		"Promoter": "MediaWiki\\Extension\\Promoter\\Special\\SpecialPromoter",
-		"PromoterAds": "MediaWiki\\Extension\\Promoter\\Special\\SpecialPromoterAds"
+		"Promoter": {
+			"class": "MediaWiki\\Extension\\Promoter\\Special\\SpecialPromoter",
+			"services": [
+				"ConnectionProvider"
+			]
+		},
+		"PromoterAds": {
+			"class": "MediaWiki\\Extension\\Promoter\\Special\\SpecialPromoterAds",
+			"services": [
+				"ConnectionProvider"
+			]
+		}
 	},
 	"GroupPermissions": {
 		"sysop": {
