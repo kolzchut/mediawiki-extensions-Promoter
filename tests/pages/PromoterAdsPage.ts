@@ -1,4 +1,5 @@
 import { Page, Locator, expect } from '@playwright/test';
+import { mwApiLogin } from './mwAuth';
 
 /**
  * Page object for Special:PromoterAds (the ad-manager admin UI) and its
@@ -18,16 +19,14 @@ export class PromoterAdsPage {
     this.scriptPath = process.env.MW_SCRIPT_PATH || '/he';
   }
 
-  /** Form-based login via Special:UserLogin (goes through ResourceLoader + redirect). */
+  /**
+   * Log in via the MediaWiki API (`clientlogin`), not the Special:UserLogin
+   * form — the form embeds reCAPTCHA on staging, which a headless browser can't
+   * solve. The API sets the session cookie in Playwright's shared jar, so the
+   * subsequent page navigations run authenticated. See {@link mwApiLogin}.
+   */
   async login(username: string, password: string): Promise<void> {
-    await this.page.goto(
-      `${this.scriptPath}/Special:UserLogin?returnto=Special:PromoterAds`
-    );
-    await this.page.getByRole('textbox').first().fill(username);
-    // The password field is the second textbox; target by its input type to be safe.
-    await this.page.locator('input[type="password"]').fill(password);
-    await this.page.locator('button[type="submit"], #wpLoginAttempt').first().click();
-    await this.page.waitForLoadState('domcontentloaded');
+    await mwApiLogin(this.page, username, password);
   }
 
   async gotoAdManager(): Promise<void> {
