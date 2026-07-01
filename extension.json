@@ -89,7 +89,7 @@
 	],
 	"Hooks": {
 		"LoadExtensionSchemaUpdates": "MediaWiki\\Extension\\Promoter\\PRDatabasePatcher::applyUpdates",
-		"SkinTemplateNavigation::SpecialPage": "MediaWiki\\Extension\\Promoter\\Special\\SpecialPromoter::addNavigationTabs"
+		"SkinTemplateNavigation::Universal": "MediaWiki\\Extension\\Promoter\\Special\\SpecialPromoter::addNavigationTabs"
 	},
 	"SpecialPages": {
 		"Promoter": "MediaWiki\\Extension\\Promoter\\Special\\SpecialPromoter",
