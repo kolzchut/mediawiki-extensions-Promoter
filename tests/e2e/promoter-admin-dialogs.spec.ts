@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { PromoterAdsPage } from '../pages/PromoterAdsPage';
+import { isIgnorablePageError } from '../pages/mwAuth';
 
 /**
  * Promoter admin UI — Special:PromoterAds.
@@ -32,9 +33,14 @@ test.describe('Promoter admin dialogs (Special:PromoterAds)', () => {
 
   test.beforeEach(async ({ page }) => {
     // Fail loudly on any uncaught page error (a broken module or a PHP-rendered
-    // fatal would surface here).
+    // fatal would surface here) — except third-party reCAPTCHA errors, which
+    // come from staging's login-widget site config, not the code under test.
     pageErrors = [];
-    page.on('pageerror', (err) => pageErrors.push(String(err)));
+    page.on('pageerror', (err) => {
+      const message = String(err);
+      if (isIgnorablePageError(message)) return;
+      pageErrors.push(message);
+    });
 
     const promoter = new PromoterAdsPage(page);
     await promoter.login(USERNAME, PASSWORD);
