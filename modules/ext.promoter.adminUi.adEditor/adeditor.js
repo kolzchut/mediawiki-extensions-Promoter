@@ -12,39 +12,22 @@
 		 * @return {boolean}
 		 */
 		doCloneAdDialog: function () {
-			const buttons = {},
-				okButtonText = mw.message( 'promoter-clone' ).text(),
-				cancelButtonText = mw.message( 'promoter-clone-cancel' ).text(),
-				$dialogObj = $( '<form>' );
-
-			// Implement the functionality
-			buttons[ cancelButtonText ] = function () {
-				$( this ).dialog( 'close' );
-			};
-			buttons[ okButtonText ] = function () {
-				const formobj = document.getElementById( 'pr-ad-editor' );
-				formobj.wpaction.value = 'clone';
-				formobj.wpcloneName.value = $( this )[ 0 ].wpcloneName.value;
-				formobj.submit();
-			};
-
-			// Create the dialog by copying the textfield element into a new form
-			$dialogObj[ 0 ].name = 'addAdDialog';
-			const cloneSection = document.getElementById( 'pr-formsection-clone-ad' );
-			const divToClone = cloneSection.querySelector( 'div' );
-			if ( divToClone ) {
-				const clonedDiv = divToClone.cloneNode( true );
-				clonedDiv.style.display = '';
-				$dialogObj.append( clonedDiv );
-			}
-			$dialogObj.dialog( {
-				title: mw.message( 'promoter-clone' ).text(),
-				modal: true,
-				buttons: buttons,
-				width: 'auto'
+			OO.ui.prompt( mw.msg( 'promoter-clone-name' ), {
+				title: mw.msg( 'promoter-clone' ),
+				actions: [
+					{ action: 'accept', label: mw.msg( 'promoter-clone' ), flags: [ 'primary', 'progressive' ] },
+					{ action: 'reject', label: mw.msg( 'promoter-clone-cancel' ), flags: 'safe' }
+				]
+			} ).then( ( cloneName ) => {
+				if ( cloneName !== null ) {
+					const formobj = document.getElementById( 'pr-ad-editor' );
+					formobj.wpaction.value = 'clone';
+					formobj.wpcloneName.value = cloneName;
+					formobj.submit();
+				}
 			} );
 
-			// Do not submit the form... that's up to the ok button
+			// Do not submit the form... that's up to the dialog
 			return false;
 		},
 
@@ -68,26 +51,18 @@
 		 * the form with the 'remove' action.
 		 */
 		doDeleteAd: function () {
-			const $dialogObj = $( '<div>' ),
-				buttons = {},
-				deleteText = mw.message( 'promoter-delete-ad' ).text(),
-				cancelButtonText = mw.message( 'promoter-delete-ad-cancel' ).text();
-
-			buttons[ deleteText ] = function () {
-				const formobj = document.getElementById( 'pr-ad-editor' );
-				formobj.wpaction.value = 'delete';
-				formobj.submit();
-			};
-			buttons[ cancelButtonText ] = function () {
-				$( this ).dialog( 'close' );
-			};
-
-			$dialogObj.text( mw.message( 'promoter-delete-ad-confirm' ).text() );
-			$dialogObj.dialog( {
-				title: mw.message( 'promoter-delete-ad-title', 1 ).text(),
-				resizable: false,
-				modal: true,
-				buttons: buttons
+			OO.ui.confirm( mw.msg( 'promoter-delete-ad-confirm' ), {
+				title: mw.msg( 'promoter-delete-ad-title', 1 ),
+				actions: [
+					{ action: 'accept', label: mw.msg( 'promoter-delete-ad' ), flags: [ 'primary', 'destructive' ] },
+					{ action: 'reject', label: mw.msg( 'promoter-delete-ad-cancel' ), flags: 'safe' }
+				]
+			} ).then( ( confirmed ) => {
+				if ( confirmed ) {
+					const formobj = document.getElementById( 'pr-ad-editor' );
+					formobj.wpaction.value = 'delete';
+					formobj.submit();
+				}
 			} );
 		},
 
@@ -95,26 +70,18 @@
 		 * Submits the form with the archive action.
 		 */
 		doArchiveAd: function () {
-			const $dialogObj = $( '<div>' ),
-				buttons = {},
-				archiveText = mw.message( 'promoter-archive-ad' ).text(),
-				cancelButtonText = mw.message( 'promoter-archive-ad-cancel' ).text();
-
-			buttons[ archiveText ] = function () {
-				const formobj = document.getElementById( 'pr-ad-editor' );
-				formobj.wpaction.value = 'archive';
-				formobj.submit();
-			};
-			buttons[ cancelButtonText ] = function () {
-				$( this ).dialog( 'close' );
-			};
-
-			$dialogObj.text( mw.message( 'promoter-archive-ad-confirm' ).text() );
-			$dialogObj.dialog( {
-				title: mw.message( 'promoter-archive-ad-title', 1 ).text(),
-				resizable: false,
-				modal: true,
-				buttons: buttons
+			OO.ui.confirm( mw.msg( 'promoter-archive-ad-confirm' ), {
+				title: mw.msg( 'promoter-archive-ad-title', 1 ),
+				actions: [
+					{ action: 'accept', label: mw.msg( 'promoter-archive-ad' ), flags: [ 'primary' ] },
+					{ action: 'reject', label: mw.msg( 'promoter-archive-ad-cancel' ), flags: 'safe' }
+				]
+			} ).then( ( confirmed ) => {
+				if ( confirmed ) {
+					const formobj = document.getElementById( 'pr-ad-editor' );
+					formobj.wpaction.value = 'archive';
+					formobj.submit();
+				}
 			} );
 		},
 

@@ -81,7 +81,7 @@ class HTMLPromoterAd extends HTMLInfoField {
 		return Xml::tags(
 			'div',
 			[
-				 'id' => Sanitizer::escapeId( "pr-ad-preview-$adName" ),
+				 'id' => Sanitizer::escapeIdForAttribute( "pr-ad-preview-$adName" ),
 				 'class' => 'pr-ad-preview-div',
 			],
 			$preview
@@ -129,7 +129,7 @@ class HTMLPromoterAd extends HTMLInfoField {
 		$html = Xml::openElement(
 			'div',
 			[
-				 'id' => Sanitizer::escapeId( "pr-ad-list-element-{$this->mParams['ad']}" ),
+				 'id' => Sanitizer::escapeIdForAttribute( "pr-ad-list-element-{$this->mParams['ad']}" ),
 				 'class' => "pr-ad-list-element",
 			]
 		);

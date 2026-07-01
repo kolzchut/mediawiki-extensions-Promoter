@@ -14,6 +14,7 @@ use MediaWiki\Extension\Promoter\PromoterHtmlForm;
 use MWException;
 use MWTimestamp;
 use SpecialPage;
+use Wikimedia\Rdbms\IConnectionProvider;
 use Wikimedia\Timestamp\TimestampException;
 
 /**
@@ -38,10 +39,11 @@ class SpecialPromoterAds extends SpecialPromoter {
 	/**
 	 * SpecialPromoterAds constructor.
 	 *
+	 * @param IConnectionProvider $dbProvider
 	 * @param string $name
 	 */
-	public function __construct( $name = 'PromoterAds' ) {
-		parent::__construct( $name );
+	public function __construct( IConnectionProvider $dbProvider, $name = 'PromoterAds' ) {
+		parent::__construct( $dbProvider, $name );
 
 		// Make sure we have a session
 		$this->getRequest()->getSession()->persist();
@@ -153,7 +155,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 				'section' => 'header/ad-search',
 				'class' => 'HTMLTextField',
 				// 'cssclass' => 'form-control',
-				'placeholder' => wfMessage( 'promoter-filter-ad-prompt' ),
+				'placeholder' => $this->msg( 'promoter-filter-ad-prompt' ),
 				'filter-callback' => [ $this, 'sanitizeSearchTerms' ],
 				'default' => $filter,
 			],
@@ -161,7 +163,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 				'section' => 'header/ad-search',
 				'class' => 'HTMLSubmitField',
 				// 'cssclass' => 'btn',
-				'default' => wfMessage( 'promoter-filter-ad-submit' )->text(),
+				'default' => $this->msg( 'promoter-filter-ad-submit' )->text(),
 			]
 		];
 
@@ -186,14 +188,14 @@ class SpecialPromoterAds extends SpecialPromoter {
 				'section' => 'header/ad-bulk-manage',
 				'class' => 'HTMLButtonField',
 				// 'cssclass' => 'btn danger ',
-				'default' => wfMessage( 'promoter-remove' )->text(),
+				'default' => $this->msg( 'promoter-remove' )->text(),
 				'disabled' => !$this->editable,
 			],
 			'addNewAd' => [
 				'section' => 'header/one-off',
 				'class' => 'HTMLButtonField',
 				// 'cssclass' => 'btn',
-				'default' => wfMessage( 'promoter-add-ad' )->text(),
+				'default' => $this->msg( 'promoter-add-ad' )->text(),
 				'disabled' => !$this->editable,
 			],
 			'newAdName' => [
@@ -201,7 +203,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 				'class' => 'HTMLTextField',
 				// 'cssclass' => 'form-control',
 				'disabled' => !$this->editable,
-				'label' => wfMessage( 'promoter-ad-name' )->text(),
+				'label' => $this->msg( 'promoter-ad-name' )->text(),
 			],
 			'action' => [
 				'type' => 'hidden',
@@ -248,13 +250,13 @@ class SpecialPromoterAds extends SpecialPromoter {
 					// Attempt to create a new ad and redirect; we validate here because it's
 					// a hidden field and that doesn't work so well with the form
 					if ( !Ad::isValidAdName( $formData[ 'newAdName' ] ) ) {
-						return wfMessage( 'promoter-ad-name-error' );
+						return $this->msg( 'promoter-ad-name-error' );
 					} else {
 						$this->adName = $formData[ 'newAdName' ];
 					}
 
 					if ( Ad::fromName( $this->adName )->exists() ) {
-						return wfMessage( 'promoter-ad-already-exists', $this->adName )->text();
+						return $this->msg( 'promoter-ad-already-exists', $this->adName )->text();
 					} else {
 						$retval = Ad::addAd(
 							$this->adName,
@@ -266,7 +268,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 
 						if ( $retval && $retval !== true ) {
 							// Something failed; display error to user
-							return wfMessage( $retval )->text();
+							return $this->msg( $retval )->text();
 						} else {
 							$this->getOutput()->redirect(
 								SpecialPage::getTitleFor( 'PromoterAds', "edit/{$this->adName}" )->
@@ -299,7 +301,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 			}
 		} elseif ( $formData[ 'action' ] ) {
 			// Oh noes! The l33t hakorz are here...
-			return wfMessage( 'promoter-generic-error' )->text();
+			return $this->msg( 'promoter-generic-error' )->text();
 		}
 
 		return null;
@@ -654,11 +656,11 @@ class SpecialPromoterAds extends SpecialPromoter {
 					( $formData[ 'ad-date-end' ] && !$formData[ 'ad-date-start' ] )
 					|| ( !$formData[ 'ad-date-end' ] && $formData[ 'ad-date-start' ] )
 				) {
-					return wfMessage( 'promoter-ad-inconsistent-dates-error' )->text();
+					return $this->msg( 'promoter-ad-inconsistent-dates-error' )->text();
 				}
 
 				if ( strtotime( $formData['ad-date-start'] ) > strtotime( $formData['ad-date-end'] ) ) {
-					return wfMessage( 'promoter-ad-date-end-bigger-than-date-start' )->text();
+					return $this->msg( 'promoter-ad-date-end-bigger-than-date-start' )->text();
 				}
 
 				if ( !$this->editable ) {

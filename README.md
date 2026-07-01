@@ -37,6 +37,17 @@ request ads, which is used in turn by Extension:Discovery, which offers its own 
 
 
 ## Changelog
+- 1.1.0, 2026-07-01
+  - Modernise for MediaWiki 1.43:
+    - Register the skin navigation tabs through an instance-based `HookHandlers`
+      class with service injection (replacing the removed
+      `SkinTemplateNavigation::SpecialPage` hook, on top of the earlier
+      `::Universal` fix); inject `IConnectionProvider` into the special pages.
+    - Fix latent 1.43 fatals that made `Special:PromoterAds` unusable:
+      `WebRequest::getLimitOffset()` → `getLimitOffsetForUser()` and
+      `Sanitizer::escapeId()` → `escapeIdForAttribute()`.
+  - Replace the jQuery UI admin dialogs with OOUI (`OO.ui.confirm`/`OO.ui.prompt`)
+    and drop the `jquery.ui` dependency from the admin modules.
 - 1.0.0, 2021-05-10
   - A major milestone on the road to merging this extension with extension:Discovery:
 	- Remove all logic from this extension, as it no longer handles choosing and displaying ads
