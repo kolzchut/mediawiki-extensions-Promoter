@@ -31,7 +31,9 @@ class SpecialPromoter extends SpecialPage {
 	 * @param string $name
 	 */
 	public function __construct( IConnectionProvider $dbProvider, $name = 'Promoter' ) {
-		parent::__construct( $name );
+		// Viewing the admin pages needs the same right as editing them: they list
+		// inactive ads and campaigns that are not meant to be public.
+		parent::__construct( $name, 'promoter-admin' );
 		$this->dbProvider = $dbProvider;
 	}
 
@@ -53,6 +55,7 @@ class SpecialPromoter extends SpecialPage {
 	public function execute( $subPage ) {
 		// Begin output
 		$this->setHeaders();
+		$this->checkPermissions();
 		$this->outputHeader();
 
 		$out = $this->getOutput();
@@ -620,8 +623,8 @@ class SpecialPromoter extends SpecialPage {
 
 			// Build Html
 			$htmlOut = '';
-			$htmlOut .= Xml::tags(
-				'h2', null, $this->msg( 'promoter-campaign-heading', $campaignNameOrId )->text()
+			$htmlOut .= Html::element(
+				'h2', [], $this->msg( 'promoter-campaign-heading', $campaignNameOrId )->text()
 			);
 			$htmlOut .= Xml::openElement( 'table', [ 'cellpadding' => 9 ] );
 

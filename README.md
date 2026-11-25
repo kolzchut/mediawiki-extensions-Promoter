@@ -10,8 +10,8 @@ The plan is for the two extensions to merge eventually.
   to this default campaign. By default, this is set to 'general'.
 
 ### User rights
-Anyone can access the special pages, but the 'promoter-admin' user right
-is required to edit anything in them.
+The 'promoter-admin' user right is required both to view the special pages
+and to edit anything in them. Other users get the standard permission error.
 
 ## How to use
 Basically, this extension cannot be directly used anymore; it only offers an internal PHP API to
@@ -37,6 +37,11 @@ request ads, which is used in turn by Extension:Discovery, which offers its own 
 
 
 ## Changelog
+- 1.2.0, 2026-11-25
+  - Require the 'promoter-admin' right to view `Special:Promoter` and
+    `Special:PromoterAds`, not only to edit in them.
+  - Process the ad list form's actions only on a POST with a valid edit token.
+  - Escape the campaign name in the campaign detail heading.
 - 1.1.0, 2026-07-01
   - Modernise for MediaWiki 1.43:
     - Register the skin navigation tabs through an instance-based `HookHandlers`

@@ -73,6 +73,7 @@ class SpecialPromoterAds extends SpecialPromoter {
 	public function execute( $subPage ): void {
 		// Do all the common setup
 		$this->setHeaders();
+		$this->checkPermissions();
 		$this->editable = $this->getUser()->isAllowed( 'promoter-admin' );
 
 		// User settable text for some custom message, like usage instructions
@@ -119,11 +120,16 @@ class SpecialPromoterAds extends SpecialPromoter {
 		$out->setPageTitle( $this->msg( 'promoter-manage-ads' ) );
 		$out->addModules( 'ext.promoter.adminUi.adManager' );
 
-		// Process the form that we sent out
+		// The filter is a plain GET parameter (see admanager.js), so read it here
+		// rather than only when the form is submitted.
+		$this->setFilterFromUrl();
+
+		// Process the form that we sent out. Only a POST carrying a valid edit
+		// token reaches the submit callback, which can create and delete ads.
 		$formDescriptor = $this->generateAdListForm( $this->adFilterString );
 		$htmlForm = new PromoterHtmlForm( $formDescriptor, $this->getContext() );
 		$htmlForm->setSubmitCallback( [ $this, 'processAdList' ] );
-		$formResult = $htmlForm->prepareForm()->trySubmit();
+		$formResult = $htmlForm->prepareForm()->tryAuthorizedSubmit();
 
 		if ( $this->adFormRedirectRequired ) {
 			return;

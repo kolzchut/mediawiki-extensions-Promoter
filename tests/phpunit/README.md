@@ -15,11 +15,17 @@ tests/phpunit/
     ├── AdPermissionsIntegrationTest.php       -- Ad write methods,
     │                                             authorized + denial paths
     │                                             with DB state assertions
-    └── AdCampaignPermissionsIntegrationTest.php
-                                                -- AdCampaign write methods,
-                                                   including the ones that
-                                                   pull the user from
-                                                   RequestContext
+    ├── AdCampaignPermissionsIntegrationTest.php
+    │                                           -- AdCampaign write methods,
+    │                                              including the ones that
+    │                                              pull the user from
+    │                                              RequestContext
+    ├── SpecialPromoterTest.php                -- Special:Promoter view
+    │                                             right, campaign heading
+    │                                             escaping
+    └── SpecialPromoterAdsTest.php             -- Special:PromoterAds view
+                                                  right, ad list actions
+                                                  need a tokened POST
 ```
 
 ## What each layer covers
@@ -100,12 +106,19 @@ Inside the Kol-Zchut dev container, run from `/var/www/html/w`:
 
 ## Special pages
 
-The Special pages (`SpecialPromoter`, `SpecialPromoterAds`) simply
-delegate writes to the model layer covered here, so their permission
-behaviour is verified indirectly. Driving the Special pages end-to-end
-(form submission, OutputPage capture) was deliberately out of scope —
-the model-layer tests already prove that an unauthorized request
-cannot mutate state, regardless of which UI path led to the call.
+`SpecialPromoterTest` and `SpecialPromoterAdsTest` drive the special pages
+through core's `SpecialPageTestBase`:
+
+- A user without `promoter-admin` (anonymous or registered) gets a
+  `PermissionsError` on `Special:Promoter`, its campaign detail view,
+  `Special:PromoterAds` and `Special:PromoterAds/edit/<name>`.
+- The ad list's `remove` action deletes nothing on a GET, or on a POST whose
+  edit token is bad or empty. A control test posts the same request with a
+  valid token and checks that the ad is removed, so the guard tests cannot
+  pass merely because removal is broken. `SpecialPageExecutor` fills in a
+  valid `wpEditToken` on any POST that has none, which is why the "no token"
+  test sends an empty one.
+- The campaign detail heading escapes the campaign name.
 
 ## Design notes
 
